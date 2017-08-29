@@ -1,0 +1,6 @@
+Application/MDK-ARM/Output/
+Application/MDK-ARM/Listing/
+*.uvgui*
+*.uvopt
+*.dep
+*.bak
