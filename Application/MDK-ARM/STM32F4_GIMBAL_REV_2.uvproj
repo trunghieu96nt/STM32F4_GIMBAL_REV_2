@@ -425,6 +425,26 @@
               <FileType>1</FileType>
               <FilePath>..\Src\main.c</FilePath>
             </File>
+            <File>
+              <FileName>gpio_driver.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Src\gpio_driver.c</FilePath>
+            </File>
+            <File>
+              <FileName>motor_driver.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Src\motor_driver.c</FilePath>
+            </File>
+            <File>
+              <FileName>adis_sensor.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Src\adis_sensor.c</FilePath>
+            </File>
+            <File>
+              <FileName>comm_driver.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Src\comm_driver.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
