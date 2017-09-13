@@ -135,82 +135,55 @@ void v_ADIS_Init(void)
   */
 bool bool_ADIS_Read(void)
 {
-  static uint8_t *pu8_IMU_Rx_Cur = &au8_IMU_Rx[IMU_RXBUFF_SIZE - 1];
-  static uint8_t *pu8_IMU_Rx_Pre = &au8_IMU_Rx[IMU_RXBUFF_SIZE - 1];
+  static uint32_t u32_Idx_Cur = 0, u32_Idx_Pre = 0;
+  uint32_t u32_Length;
+  int32_t i32_Idx;
   uint8_t *pu8_End_Chr = NULL, *pu8_Start_Chr = NULL;
   uint8_t au8_IMU_Frame[IMU_FRAME_LEN_MAX];
-  uint32_t u32_Length = 0;
   
-  if (IMU_RX_DMA_STREAM->NDTR == IMU_RXBUFF_SIZE)
-    pu8_IMU_Rx_Cur = &au8_IMU_Rx[IMU_RXBUFF_SIZE - 1];
-  else
-    pu8_IMU_Rx_Cur = &au8_IMU_Rx[IMU_RXBUFF_SIZE - IMU_RX_DMA_STREAM->NDTR - 1];
+  u32_Idx_Cur = IMU_RXBUFF_SIZE - IMU_RX_DMA_STREAM->NDTR;
   
-  if (pu8_IMU_Rx_Cur > pu8_IMU_Rx_Pre)
+  if (u32_Idx_Cur >= u32_Idx_Pre) u32_Length = u32_Idx_Cur - u32_Idx_Pre;
+  else u32_Length = IMU_RXBUFF_SIZE + (u32_Idx_Pre - u32_Idx_Cur);
+  
+  /* Check enough lengh */
+  if (u32_Length < IMU_FRAME_LEN) return false;
+  
+  /* search IMU_END_FRAME and IMU_START_FRAME backward from au8_IMU_Rx[u32_Idx_Cur] */
+  i32_Idx = u32_Idx_Cur;
+  while (true)
   {
-    //check enough lengh
-    if ((pu8_IMU_Rx_Cur - pu8_IMU_Rx_Pre + 1) < IMU_FRAME_LEN) return false;
-    //search IMU_END_FRAME backward from pu8_IMU_Rx_Cur to pu8_IMU_Rx_Pre
-    pu8_End_Chr = memrchr(pu8_IMU_Rx_Cur, IMU_END_FRAME, pu8_IMU_Rx_Cur - pu8_IMU_Rx_Pre + 1);
-    if (pu8_End_Chr == NULL) return false;
-    //search IMU_START_FRAME backward from pu8_End_Chr to pu8_IMU_Rx_Pre
-    pu8_Start_Chr = memrchr(pu8_End_Chr, IMU_START_FRAME, pu8_End_Chr - pu8_IMU_Rx_Pre + 1);
-    if (pu8_Start_Chr == NULL) return false;
-    u32_Length = pu8_End_Chr - pu8_Start_Chr + 1;
-    if (u32_Length > (IMU_FRAME_LEN_MAX - 1)) return false;
-    memcpy(au8_IMU_Frame, pu8_Start_Chr, u32_Length);
-    au8_IMU_Frame[u32_Length] = 0;
-  }
-  else if (pu8_IMU_Rx_Cur < pu8_IMU_Rx_Pre)
-  {
-    //check enough lengh
-    if ((pu8_IMU_Rx_Cur + IMU_RXBUFF_SIZE - pu8_IMU_Rx_Pre + 1) < IMU_FRAME_LEN) return false;
-    //search IMU_END_FRAME backward from pu8_IMU_Rx_Cur to au8_IMU_Rx
-    pu8_End_Chr = memrchr(pu8_IMU_Rx_Cur, IMU_END_FRAME, pu8_IMU_Rx_Cur - au8_IMU_Rx + 1);
-    if (pu8_End_Chr != NULL)
+    if (pu8_End_Chr == NULL)
     {
-      //search IMU_START_FRAME backward from pu8_End_Chr to au8_IMU_Rx
-      pu8_Start_Chr = memrchr(pu8_End_Chr, IMU_START_FRAME, pu8_End_Chr - au8_IMU_Rx + 1);
-      if (pu8_Start_Chr != NULL)
+      if (*(au8_IMU_Rx + i32_Idx) == IMU_END_FRAME)
       {
-        u32_Length = pu8_End_Chr - pu8_Start_Chr + 1;
-        if (u32_Length > (IMU_FRAME_LEN_MAX - 1)) return false;
-        memcpy(au8_IMU_Frame, pu8_Start_Chr, u32_Length);
-        au8_IMU_Frame[u32_Length] = 0;
-      }
-      else
-      {
-        //search IMU_START_FRAME backward from &au8_IMU_Rx[IMU_RXBUFF_SIZE - 1] to pu8_IMU_Rx_Pre
-        pu8_Start_Chr = memrchr(&au8_IMU_Rx[IMU_RXBUFF_SIZE - 1], IMU_START_FRAME, &au8_IMU_Rx[IMU_RXBUFF_SIZE - 1] - pu8_IMU_Rx_Pre + 1);
-        if (pu8_Start_Chr == NULL) return false;
-        u32_Length = pu8_End_Chr - pu8_Start_Chr + IMU_RXBUFF_SIZE + 1;
-        if (u32_Length > (IMU_FRAME_LEN_MAX - 1)) return false;
-        memcpy(au8_IMU_Frame, pu8_Start_Chr, &au8_IMU_Rx[IMU_RXBUFF_SIZE - 1] - pu8_Start_Chr + 1);
-        memcpy(&au8_IMU_Frame[&au8_IMU_Rx[IMU_RXBUFF_SIZE - 1] - pu8_Start_Chr + 1], au8_IMU_Rx, pu8_End_Chr - au8_IMU_Rx + 1);
-        au8_IMU_Frame[u32_Length] = 0;
+        pu8_End_Chr = au8_IMU_Rx + i32_Idx;
+        u32_Idx_Pre = i32_Idx;
       }
     }
     else
     {
-      //search IMU_END_FRAME backward from &au8_IMU_Rx[IMU_RXBUFF_SIZE - 1] to pu8_IMU_Rx_Pre
-      pu8_End_Chr = memrchr(&au8_IMU_Rx[IMU_RXBUFF_SIZE - 1], IMU_END_FRAME, &au8_IMU_Rx[IMU_RXBUFF_SIZE - 1] - pu8_IMU_Rx_Pre + 1);
-      if(pu8_End_Chr == NULL) return false;
-      //search IMU_START_FRAME backward from pu8_End_Chr to pu8_IMU_Rx_Pre
-      pu8_Start_Chr = memrchr(pu8_End_Chr, IMU_START_FRAME, pu8_End_Chr - pu8_IMU_Rx_Pre + 1);
-      if(pu8_Start_Chr == NULL) return false;
-      u32_Length = pu8_End_Chr - pu8_Start_Chr + 1;
-      if (u32_Length > (IMU_FRAME_LEN_MAX - 1)) return false;
-      memcpy(au8_IMU_Frame, pu8_Start_Chr, u32_Length);
-      au8_IMU_Frame[u32_Length] = 0;
+      if (*(au8_IMU_Rx + i32_Idx) == IMU_START_FRAME)
+      {
+        pu8_Start_Chr = au8_IMU_Rx + i32_Idx;
+        break;
+      }
     }
+    if (--i32_Idx < 0) i32_Idx = IMU_RXBUFF_SIZE - 1;
+    if (i32_Idx == u32_Idx_Pre) return false; //Not found
   }
-  else //pu8_IMU_Rx_Cur == pu8_IMU_Rx_Pre
+  
+  if (pu8_End_Chr >= pu8_Start_Chr) u32_Length = pu8_End_Chr - pu8_Start_Chr + 1;
+  else u32_Length = IMU_RXBUFF_SIZE + (pu8_Start_Chr - pu8_End_Chr) + 1;
+  
+  if (u32_Length >= IMU_FRAME_LEN_MAX) return false;
+  
+  for (i32_Idx = 0; i32_Idx < u32_Length; i32_Idx++)
   {
-    return false;
+    au8_IMU_Frame[i32_Idx] = *(pu8_Start_Chr + i32_Idx);
   }
-  pu8_IMU_Rx_Pre = pu8_End_Chr;
-  if(bool_ADIS_Parse(au8_IMU_Frame) == false) return false;
-  return true;
+  
+  return bool_ADIS_Parse(au8_IMU_Frame);
 }
 
 /**
