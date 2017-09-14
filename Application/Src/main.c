@@ -36,6 +36,8 @@ int main(void)
     }
     
     v_CMD_Receive();
+    bool_ADIS_Read_IsTimeout(100);
+    
     //Controller
     if(tick_flag == true)
     {

@@ -34,7 +34,6 @@ STRU_IMU_DATA_T stru_IMU_Data = {false}; //initial bool_Available value.
 
 /* Private function prototypes -----------------------------------------------*/
 /* Private functions ---------------------------------------------------------*/
-void *memrchr(const void *str, int c, size_t n);
 bool bool_ADIS_Parse(uint8_t *pu8_IMU_Frame);
 
 /** @defgroup ADIS Initialization
@@ -130,27 +129,32 @@ void v_ADIS_Init(void)
 /**
   * @brief  Read ADIS
   * @note   get raw IMU frame and call Gimbal_ADIS_Parse()
+  *         Frame: _123_
+  *         u32_Idx_Pre -> _
+  *         u32_Idx_Cur -> 3
   * @param  none
   * @retval true if get correctly and vice versa
   */
 bool bool_ADIS_Read(void)
 {
-  static uint32_t u32_Idx_Cur = 0, u32_Idx_Pre = 0;
-  uint32_t u32_Length;
-  int32_t i32_Idx;
-  uint8_t *pu8_End_Chr = NULL, *pu8_Start_Chr = NULL;
-  uint8_t au8_IMU_Frame[IMU_FRAME_LEN_MAX];
+  static uint32_t u32_Idx_Pre = 0;
+  uint32_t u32_Length, u32_Idx_Cur;
+  int32_t i32_Idx, i32_Cnt;
+  uint8_t *pu8_End_Chr = NULL; //Can change to bool variable
+  uint8_t au8_IMU_Frame[IMU_FRAME_LEN + 1];
   
-  u32_Idx_Cur = IMU_RXBUFF_SIZE - IMU_RX_DMA_STREAM->NDTR;
+  if (IMU_RX_DMA_STREAM->NDTR == IMU_RXBUFF_SIZE) u32_Idx_Cur = IMU_RXBUFF_SIZE - 1;
+  else u32_Idx_Cur = IMU_RXBUFF_SIZE - IMU_RX_DMA_STREAM->NDTR - 1;
   
   if (u32_Idx_Cur >= u32_Idx_Pre) u32_Length = u32_Idx_Cur - u32_Idx_Pre;
-  else u32_Length = IMU_RXBUFF_SIZE + (u32_Idx_Pre - u32_Idx_Cur);
+  else u32_Length = IMU_RXBUFF_SIZE - (u32_Idx_Pre - u32_Idx_Cur);
   
   /* Check enough lengh */
   if (u32_Length < IMU_FRAME_LEN) return false;
   
-  /* search IMU_END_FRAME and IMU_START_FRAME backward from au8_IMU_Rx[u32_Idx_Cur] */
-  i32_Idx = u32_Idx_Cur;
+  /* Search IMU_END_FRAME and Copy backward from au8_IMU_Rx[u32_Idx_Cur] */
+  i32_Idx = u32_Idx_Cur; i32_Cnt = IMU_FRAME_LEN - 2;
+  au8_IMU_Frame[IMU_FRAME_LEN] = 0;
   while (true)
   {
     if (pu8_End_Chr == NULL)
@@ -158,31 +162,20 @@ bool bool_ADIS_Read(void)
       if (*(au8_IMU_Rx + i32_Idx) == IMU_END_FRAME)
       {
         pu8_End_Chr = au8_IMU_Rx + i32_Idx;
-        u32_Idx_Pre = i32_Idx;
+        au8_IMU_Frame[IMU_FRAME_LEN - 1] = IMU_END_FRAME;
+        u32_Idx_Cur = i32_Idx; //Save End index
       }
     }
     else
     {
-      if (*(au8_IMU_Rx + i32_Idx) == IMU_START_FRAME)
-      {
-        pu8_Start_Chr = au8_IMU_Rx + i32_Idx;
-        break;
-      }
+      au8_IMU_Frame[i32_Cnt] = *(au8_IMU_Rx + i32_Idx);
+      if (au8_IMU_Frame[i32_Cnt] == IMU_START_FRAME) break;
+      if (--i32_Cnt < 0) return false; //Over Length
     }
     if (--i32_Idx < 0) i32_Idx = IMU_RXBUFF_SIZE - 1;
     if (i32_Idx == u32_Idx_Pre) return false; //Not found
   }
-  
-  if (pu8_End_Chr >= pu8_Start_Chr) u32_Length = pu8_End_Chr - pu8_Start_Chr + 1;
-  else u32_Length = IMU_RXBUFF_SIZE + (pu8_Start_Chr - pu8_End_Chr) + 1;
-  
-  if (u32_Length >= IMU_FRAME_LEN_MAX) return false;
-  
-  for (i32_Idx = 0; i32_Idx < u32_Length; i32_Idx++)
-  {
-    au8_IMU_Frame[i32_Idx] = *(pu8_Start_Chr + i32_Idx);
-  }
-  
+  u32_Idx_Pre = u32_Idx_Cur;
   return bool_ADIS_Parse(au8_IMU_Frame);
 }
 
@@ -251,45 +244,6 @@ bool bool_ADIS_Read_IsTimeout(uint32_t u32_Timeout_ms)
     stru_IMU_Data.bool_Available = true;
   }
   return false;
-}
-
-/**
-  * @}
-  */
-
-/** @defgroup ADIS Initialization
- *  @brief   ...
- *
- @verbatim
- ===============================================================================
-                          ##### ADIS Utilities #####
- ===============================================================================  
-
- @endverbatim
-  * @{
-  */
-
-/**
-  * @brief  memrchr
-  * @note   search from *str backward n
-  * @param  str: pointer to string
-  * @param  c: desired int (or char)
-  * @param  n: length to search
-  * @retval pointer of searched char if existed or null
-  */
-void *memrchr(const void *str, int c, size_t n)
-{
-  if(n != 0)
-  {
-    const unsigned char *p = str;
-    do {
-      if (*p-- == (unsigned char) c)
-      {
-        return (void *) (p + 1);
-      }
-    } while (--n);
-  }
-  return NULL;
 }
 
 /**

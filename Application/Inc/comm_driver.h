@@ -29,7 +29,7 @@ extern "C" {
 /** @defgroup CMD UART (Receiver) - Frame Information
   * @{
   */
-#define LEADING_FRAME_BYTES       6
+#define FRAME_HEADER_BYTES        6
 
 #define BYTE_HEADER_1             0
 #define BYTE_HEADER_2             1
@@ -74,8 +74,8 @@ extern "C" {
 #define CMD_RX_FRAME_TIMEOUT  200 //ms
 
 #define CMD_TXBUFF_SIZE           128
-#define CMD_RXBUFF_SIZE           512
-#define CMD_FRAME_LEN_MAX         128
+#define CMD_RXBUFF_SIZE           64
+#define CMD_FRAME_LEN_MAX         64
 
 #define CMD_USART                 USART2
 #define CMD_USART_CLK             RCC_APB1Periph_USART2

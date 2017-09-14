@@ -28,17 +28,15 @@
 /* Private define ------------------------------------------------------------*/
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
-static uint8_t au8_CMD_Rx[CMD_RXBUFF_SIZE]= {0};
+uint8_t au8_CMD_Rx[CMD_RXBUFF_SIZE]= {0};
 static uint8_t au8_RESV_Rx[RESV_RXBUFF_SIZE]= {0};
+uint8_t au8_CMD_Frame[CMD_FRAME_LEN_MAX] = {'G', 'B', 0x02, 0x01};
 
 /* Private function prototypes -----------------------------------------------*/
 /* Private functions ---------------------------------------------------------*/
 void v_CMD_UART_Init(void);
 void v_DATA_UART_Init(void);
 void v_RESV_UART_Init(void);
-uint8_t *pu8_Search_Header(const uint8_t *pu8_Haystack, uint32_t u32_Hlen, 
-                           const uint8_t *pu8_Needle, uint32_t u32_Nlen);
-bool bool_CMD_Parse(const uint8_t *pu8_Message, uint32_t u32_Message_Size);
 
 /** @defgroup Communication Initialization
  *  @brief   ...
@@ -70,7 +68,7 @@ void v_Comm_Init(void)
   */
 
 /** @defgroup CMD - UART
- *  @brief   ...
+ *  @brief    ...
  *
  @verbatim
  ===============================================================================
@@ -192,111 +190,104 @@ bool bool_CMD_Send(const uint8_t *pu8_Message, uint32_t u32_Message_Size)
 
 void v_CMD_Receive(void)
 {
-  static uint8_t *pu8_CMD_Rx_Cur = &au8_CMD_Rx[CMD_RXBUFF_SIZE - 1];
-  static uint8_t *pu8_CMD_Rx_Pre = &au8_CMD_Rx[CMD_RXBUFF_SIZE - 1];
-  static uint32_t u32_Start_Receive_Time = 0;
-  static bool bool_Receiving = false;
-  static uint8_t au8_CMD_Frame[CMD_FRAME_LEN_MAX];
-  static uint32_t u32_CMD_Buff_Count = 0;
-  //uint32_t u32_Length = 0;
-  uint8_t *pu8_CMD_Frame = 0;
+  static uint32_t u32_Idx_Pre = 0, u32_Cnt = 0, u32_Time_Tick = 0;
+  static bool bool_Header_Detected = false, bool_Length_Detected = false;
+  uint32_t u32_Length, u32_Idx_Cur;
+  //uint8_t au8_CMD_Frame[CMD_FRAME_LEN_MAX] = {'G', 'B', 0x02, 0x01};
   
-  if (CMD_RX_DMA_STREAM->NDTR == CMD_RXBUFF_SIZE)
-    pu8_CMD_Rx_Cur = &au8_CMD_Rx[CMD_RXBUFF_SIZE - 1];
-  else
-    pu8_CMD_Rx_Cur = &au8_CMD_Rx[CMD_RXBUFF_SIZE - CMD_RX_DMA_STREAM->NDTR - 1];
-
-  if (pu8_CMD_Rx_Cur == pu8_CMD_Rx_Pre)
+  u32_Idx_Cur = CMD_RXBUFF_SIZE - CMD_RX_DMA_STREAM->NDTR;
+  
+  if (u32_Idx_Cur == u32_Idx_Pre)
   {
-    if (bool_Receiving == true)
+    if (SysTick_IsTimeout(u32_Time_Tick, 50))
     {
-      if (SysTick_IsTimeout(u32_Start_Receive_Time, CMD_RX_FRAME_TIMEOUT))
+      u32_Cnt = 0;
+      bool_Length_Detected = false;
+      bool_Header_Detected = false;
+    }
+    return;
+  }
+  
+  u32_Time_Tick = SysTick_GetTick();
+  
+  /* Search Header "GB" */
+  if (bool_Header_Detected == false)
+  {
+    while (true)
+    {
+      if (u32_Idx_Cur >= u32_Idx_Pre) u32_Length = u32_Idx_Cur - u32_Idx_Pre;
+      else u32_Length = CMD_RXBUFF_SIZE - (u32_Idx_Pre - u32_Idx_Cur);
+      
+      if (u32_Length < 2) return;
+      
+      if (*(au8_CMD_Rx + u32_Idx_Pre) == 'G')
       {
-        bool_Receiving = false;
-        au8_CMD_Frame[u32_CMD_Buff_Count] = 0;
-        //Handle Data au8_CMD_Frame Here
-        bool_CMD_Parse(au8_CMD_Frame, u32_CMD_Buff_Count);
-        u32_CMD_Buff_Count = 0;
+        if (++u32_Idx_Pre >= CMD_RXBUFF_SIZE) u32_Idx_Pre = 0;
+        if (*(au8_CMD_Rx + u32_Idx_Pre) == 'B')
+        {
+          if (++u32_Idx_Pre >= CMD_RXBUFF_SIZE) u32_Idx_Pre = 0;
+          bool_Header_Detected = true;
+          break;
+        }
+      }
+      else
+      {
+        if (++u32_Idx_Pre >= CMD_RXBUFF_SIZE) u32_Idx_Pre = 0;
       }
     }
   }
-  else if (pu8_CMD_Rx_Cur > pu8_CMD_Rx_Pre)
+  
+  /* Search Length of Frame*/
+  if (bool_Length_Detected == false)
   {
-    if (bool_Receiving == false)
+    if (u32_Idx_Cur >= u32_Idx_Pre) u32_Length = u32_Idx_Cur - u32_Idx_Pre;
+    else u32_Length = CMD_RXBUFF_SIZE - (u32_Idx_Pre - u32_Idx_Cur);
+    
+    if (u32_Length < 5) return;
+    
+    /* Check DEST_ID - ID_GIMBAL_CONTROLER */
+    if (au8_CMD_Rx[u32_Idx_Pre] != 0x02) 
     {
-      pu8_CMD_Frame = pu8_Search_Header(pu8_CMD_Rx_Pre + 1, pu8_CMD_Rx_Cur - pu8_CMD_Rx_Pre, 
-                                        (uint8_t *)STRING_HEADER, strlen(STRING_HEADER));
-      if (pu8_CMD_Frame == NULL)
-      {
-        pu8_CMD_Rx_Pre = pu8_CMD_Rx_Cur;
-        return;
-      }
-      bool_Receiving = true;
-      u32_Start_Receive_Time = SysTick_GetTick();
+      bool_Header_Detected = false;
+      return;
     }
+    if (++u32_Idx_Pre == CMD_RXBUFF_SIZE) u32_Idx_Pre = 0;
+    
+    /* Check SRC_ID - ID_GUI_SOFTWARE */
+    if (au8_CMD_Rx[u32_Idx_Pre] != 0x01) 
+    {
+      bool_Header_Detected = false;
+      return;
+    }
+    if (++u32_Idx_Pre == CMD_RXBUFF_SIZE) u32_Idx_Pre = 0;
+    
+    /* Get Seq */
+    au8_CMD_Frame[4] = au8_CMD_Rx[u32_Idx_Pre];
+    if (++u32_Idx_Pre == CMD_RXBUFF_SIZE) u32_Idx_Pre = 0;
+    
+    /* Get Length */
+    bool_Length_Detected = true;
+    au8_CMD_Frame[5] = au8_CMD_Rx[u32_Idx_Pre];
+    if (++u32_Idx_Pre == CMD_RXBUFF_SIZE) u32_Idx_Pre = 0;
   }
-//  {
-//    if (bool_Receiving == false)
-//    {
-//      
-//      bool_Receiving = true;
-//      u32_Start_Receive_Time = SysTick_GetTick();
-//    }
-//    
-//    pu8_CMD_Frame = au8_CMD_Frame + u32_CMD_Buff_Count; //Calculate the pointer of next copy
-//    if (pu8_CMD_Rx_Cur > pu8_CMD_Rx_Pre)
-//    {
-//      u32_Length = pu8_CMD_Rx_Cur - pu8_CMD_Rx_Pre;
-//      u32_CMD_Buff_Count += u32_Length;
-//      if (u32_CMD_Buff_Count > (CMD_FRAME_LEN_MAX - 1))
-//      {
-//        bool_Receiving = false;
-//        u32_CMD_Buff_Count = 0;
-//        pu8_CMD_Rx_Pre = pu8_CMD_Rx_Cur;
-//        return;
-//      }
-//        memcpy(pu8_CMD_Frame, pu8_CMD_Rx_Pre + 1, u32_Length);
-//    }
-//    else //(pu8_CMD_Rx_Cur < pu8_CMD_Rx_Pre)
-//    {
-//      u32_Length = pu8_CMD_Rx_Cur + CMD_RXBUFF_SIZE - pu8_CMD_Rx_Pre;
-//      u32_CMD_Buff_Count += u32_Length;
-//      if (u32_CMD_Buff_Count > (CMD_FRAME_LEN_MAX - 1))
-//      {
-//        bool_Receiving = false;
-//        u32_CMD_Buff_Count = 0;
-//        pu8_CMD_Rx_Pre = pu8_CMD_Rx_Cur;
-//        return;
-//      }
-//      u32_Length = au8_CMD_Rx + CMD_RXBUFF_SIZE - pu8_CMD_Rx_Pre - 1;
-//      memcpy(pu8_CMD_Frame, pu8_CMD_Rx_Pre + 1, u32_Length);
-//      memcpy(pu8_CMD_Frame + u32_Length, au8_CMD_Rx, pu8_CMD_Rx_Cur - au8_CMD_Rx + 1);
-//    }
-//    pu8_CMD_Rx_Pre = pu8_CMD_Rx_Cur;
-//  }
-}
-
-bool bool_CMD_Parse(const uint8_t *pu8_Message, uint32_t u32_Message_Size)
-{
-  /* Check Header Frame */
-  if (memcmp(pu8_Message, STRING_HEADER, 2) != 0) return false;
   
-  /* Check DestID */
-  if (pu8_Message[BYTE_DEST_ID] != ID_GIMBAL_CONTROLER) return false;
+  /* Getting Frame */
+  while (true)
+  {
+    au8_CMD_Frame[u32_Cnt + 6] = *(au8_CMD_Rx + u32_Idx_Pre);
+    if (++u32_Idx_Pre >= CMD_RXBUFF_SIZE) u32_Idx_Pre = 0;
+    if (++u32_Cnt == au8_CMD_Frame[5])
+    {
+      u32_Cnt = 0;
+      bool_Length_Detected = false;
+      bool_Header_Detected = false;
+      break;
+    }
+    if (u32_Idx_Pre == u32_Idx_Cur) return;
+  }
   
-  /* Check SrcID */
-  if (pu8_Message[BYTE_SRC_ID] != ID_GUI_SOFTWARE) return false;
+  /* Check CRC */
   
-  /* Check Seq */
-  //pu8_Message[BYTE_SEQ]
-  
-  /* Check Length */
-  if (pu8_Message[BYTE_LEN] != (u32_Message_Size - LEADING_FRAME_BYTES)) return false;
-  
-  /* Handle Data */
-  
-  
-  return true;
 }
 
 /**
@@ -541,32 +532,5 @@ bool bool_RESV_Send(const uint8_t *pu8_Message, uint32_t u32_Message_Size)
 /**
   * @}
   */
-
-/*
- * The memmem() function finds the start of the first occurrence of the
- * substring 'needle' of length 'nlen' in the memory area 'haystack' of
- * length 'hlen'.
- *
- * The return value is a pointer to the beginning of the sub-string, or
- * NULL if the substring is not found.
- */
-uint8_t *pu8_Search_Header(const uint8_t *pu8_Haystack, uint32_t u32_Hlen, 
-                           const uint8_t *pu8_Needle, uint32_t u32_Nlen)
-{
-  uint8_t u8_Needle_First = *pu8_Needle;
-  const uint8_t *pu8_Search = pu8_Haystack;
-  uint32_t u32_Slen = u32_Hlen;
-
-  if (u32_Nlen == 0) return NULL;
-
-  do {
-    pu8_Search = memchr(pu8_Search, u8_Needle_First, u32_Slen - u32_Nlen + 1);
-    if (pu8_Search == NULL) return NULL;
-    if (!memcmp(pu8_Search, pu8_Needle, u32_Nlen)) return (uint8_t *)pu8_Search;
-    pu8_Search++;
-    u32_Slen = u32_Hlen - (pu8_Search - pu8_Haystack);
-  } while (u32_Slen >= u32_Nlen);
-  return NULL;
-}
 
 /*********************************END OF FILE**********************************/
