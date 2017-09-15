@@ -1,6 +1,6 @@
 /**
   ******************************************************************************
-  * @file    comm_driver.h
+  * @file    uart_comm.h
   * @author  Vu Trung Hieu
   * @version V2.0
   * @date    11-September-2017
@@ -11,8 +11,8 @@
   ******************************************************************************
   */
 /* Define to prevent recursive inclusion -------------------------------------*/
-#ifndef __COMM_DRIVER_H
-#define __COMM_DRIVER_H
+#ifndef __UART_COMM_H
+#define __UART_COMM_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -23,57 +23,40 @@ extern "C" {
 #include "stdint.h"
 
 /* Exported types ------------------------------------------------------------*/
-//typedef here
+typedef enum{
+  MSG_NONE                = 0x00,
+  MSG_HOME                = 0x01,
+  MSG_STOP                = 0x02,
+  MSG_EMERGENCY_STOP      = 0x03,
+  MSG_STABILIZING_MODE    = 0x04,
+  MSG_SET_POS             = 0x05,
+  MSG_SET_VEL             = 0x06,
+  MSG_SET_POS_VEL         = 0x07,
+  MSG_GET_POS             = 0x08,
+  MSG_SET_KP              = 0x09,
+  MSG_SET_KI              = 0x0A,
+  MSG_SET_KD              = 0x0B,
+  MSG_SET_KFF1            = 0x0C,
+  MSG_SET_KFF2            = 0x0D,
+  MSG_GET_PARAMS          = 0x0E
+} ENUM_MSG_ID;
+
+typedef bool (*CMD_HANDLER_FUNC)(uint8_t *, uint32_t);
+
+typedef struct{
+  ENUM_MSG_ID enum_Msg_ID;
+  uint32_t u32_Data_Num_Bytes;
+  CMD_HANDLER_FUNC bool_Msg_Handler;
+} STRU_CMD_HANDLER;
 
 /* Exported constants --------------------------------------------------------*/
-/** @defgroup CMD UART (Receiver) - Frame Information
-  * @{
-  */
-#define FRAME_HEADER_BYTES        6
-
-#define BYTE_HEADER_1             0
-#define BYTE_HEADER_2             1
-#define BYTE_DEST_ID              2
-#define BYTE_SRC_ID               3
-#define BYTE_SEQ                  4
-#define BYTE_LEN                  5
-#define BYTE_MSG_ID               6
-#define BYTE_PAYLOAD_AXIS_ID      7
-
-#define STRING_HEADER             "GB"
-
-#define ID_GUI_SOFTWARE           0x01
-#define ID_GIMBAL_CONTROLER       0x02
-
-#define MSG_ID_HOME               0x01
-#define MSG_ID_STOP               0x02
-#define MSG_ID_EMERGENCY_STOP     0x03
-#define MSG_ID_STABILIZING_MODE   0x04
-#define MSG_ID_SET_POS            0x05
-#define MSG_ID_SET_VEL            0x06
-#define MSG_ID_SET_POS_VEL        0x07
-#define MSG_ID_GET_POS            0x08
-#define MSG_ID_SET_KP             0x09
-#define MSG_ID_SET_KI             0x0A
-#define MSG_ID_SET_KD             0x0B
-#define MSG_ID_SET_KFF1           0x0C
-#define MSG_ID_SET_KFF2           0x0D
-#define MSG_ID_GET_PARAMS         0x0E
-
-#define AXIS_ID_AZIMUTH           1
-#define AXIS_ID_ELEVATOR          2
-#define AXIS_ID_BOTH              3
-
-/**
-  * @}
-  */
-
 /** @defgroup CMD UART (Receiver)
   * @{
   */
-#define CMD_RX_FRAME_TIMEOUT  200 //ms
+#define CMD_RX_FRAME_TIMEOUT      50 //ms
+#define CMD_NUM_MSG_ID_MAX        20
 
-#define CMD_TXBUFF_SIZE           128
+#define CMD_TXBUFF_SIZE           64
 #define CMD_RXBUFF_SIZE           64
 #define CMD_FRAME_LEN_MAX         64
 
@@ -188,6 +171,6 @@ void v_CMD_Receive(void);
 }
 #endif
 
-#endif /* __COMM_DRIVER_H */
+#endif /* __UART_COMM_H */
 
 /*********************************END OF FILE**********************************/

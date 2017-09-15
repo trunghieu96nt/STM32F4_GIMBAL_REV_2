@@ -1,6 +1,6 @@
 /**
   ******************************************************************************
-  * @file    comm_driver.c
+  * @file    uart_comm.c
   * @author  Vu Trung Hieu
   * @version V2.0
   * @date    11-September-2017
@@ -20,17 +20,50 @@
   
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f4xx.h"
-#include "comm_driver.h"
-#include "string.h"
+#include "uart_comm.h"
 #include "system_timetick.h"
 
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
-uint8_t au8_CMD_Rx[CMD_RXBUFF_SIZE]= {0};
+static uint8_t au8_CMD_Rx[CMD_RXBUFF_SIZE]= {0};
 static uint8_t au8_RESV_Rx[RESV_RXBUFF_SIZE]= {0};
-uint8_t au8_CMD_Frame[CMD_FRAME_LEN_MAX] = {'G', 'B', 0x02, 0x01};
+
+extern bool bool_None_Handler             (uint8_t *pu8_Data, uint32_t u32_Data_Cnt);
+extern bool bool_Home_Handler             (uint8_t *pu8_Data, uint32_t u32_Data_Cnt);
+extern bool bool_Stop_Handler             (uint8_t *pu8_Data, uint32_t u32_Data_Cnt);
+extern bool bool_Emergency_Stop_Handler   (uint8_t *pu8_Data, uint32_t u32_Data_Cnt);
+extern bool bool_Stabilizing_Mode_Handler (uint8_t *pu8_Data, uint32_t u32_Data_Cnt);
+extern bool bool_Set_Pos_Handler          (uint8_t *pu8_Data, uint32_t u32_Data_Cnt);
+extern bool bool_Set_Vel_Handler          (uint8_t *pu8_Data, uint32_t u32_Data_Cnt);
+extern bool bool_Set_Pos_Vel_Handler      (uint8_t *pu8_Data, uint32_t u32_Data_Cnt);
+extern bool bool_Get_Pos_Handler          (uint8_t *pu8_Data, uint32_t u32_Data_Cnt);
+extern bool bool_Set_Kp_Handler           (uint8_t *pu8_Data, uint32_t u32_Data_Cnt);
+extern bool bool_Set_Ki_Handler           (uint8_t *pu8_Data, uint32_t u32_Data_Cnt);
+extern bool bool_Set_Kd_Handler           (uint8_t *pu8_Data, uint32_t u32_Data_Cnt);
+extern bool bool_Set_Kff1_Handler         (uint8_t *pu8_Data, uint32_t u32_Data_Cnt);
+extern bool bool_Set_Kff2_Handler         (uint8_t *pu8_Data, uint32_t u32_Data_Cnt);
+extern bool bool_Get_Params_Handler       (uint8_t *pu8_Data, uint32_t u32_Data_Cnt);
+
+const STRU_CMD_HANDLER astru_CMD_Handler[CMD_NUM_MSG_ID_MAX] =
+{
+  {MSG_NONE,                0,    bool_None_Handler},
+  {MSG_HOME,                1,    bool_Home_Handler},
+  {MSG_STOP,                1,    bool_Stop_Handler},
+  {MSG_EMERGENCY_STOP,      1,    bool_Emergency_Stop_Handler},
+  {MSG_STABILIZING_MODE,    2,    bool_Stabilizing_Mode_Handler},
+  {MSG_SET_POS,             5,    bool_Set_Pos_Handler},
+  {MSG_SET_VEL,             5,    bool_Set_Vel_Handler},
+  {MSG_SET_POS_VEL,         9,    bool_Set_Pos_Vel_Handler},
+  {MSG_GET_POS,             1,    bool_Get_Pos_Handler},
+  {MSG_SET_KP,              5,    bool_Set_Kp_Handler},
+  {MSG_SET_KI,              5,    bool_Set_Ki_Handler},
+  {MSG_SET_KD,              5,    bool_Set_Kd_Handler},
+  {MSG_SET_KFF1,            5,    bool_Set_Kff1_Handler},
+  {MSG_SET_KFF2,            5,    bool_Set_Kff2_Handler},
+  {MSG_GET_PARAMS,          1,    bool_Get_Params_Handler}
+};
 
 /* Private function prototypes -----------------------------------------------*/
 /* Private functions ---------------------------------------------------------*/
@@ -188,22 +221,32 @@ bool bool_CMD_Send(const uint8_t *pu8_Message, uint32_t u32_Message_Size)
   }
 }
 
+/**
+  * @brief  Receive and Parse message through DMA - UART
+  * @note   CMD, Call in while loop (main.c) if used
+  * @param  None
+  * @retval None
+  */
 void v_CMD_Receive(void)
 {
-  static uint32_t u32_Idx_Pre = 0, u32_Cnt = 0, u32_Time_Tick = 0;
+  static uint32_t u32_Idx_Pre = 0, u32_Idx = 0, u32_Time_Tick = 0;
   static bool bool_Header_Detected = false, bool_Length_Detected = false;
-  uint32_t u32_Length, u32_Idx_Cur;
-  //uint8_t au8_CMD_Frame[CMD_FRAME_LEN_MAX] = {'G', 'B', 0x02, 0x01};
+  static uint8_t au8_CMD_Frame[CMD_FRAME_LEN_MAX] = {'G', 'B', 0x02, 0x01};
+  uint32_t u32_Length, u32_Idx_Cur, u32_Cnt;
+  uint16_t u16_CRC_Check;
   
   u32_Idx_Cur = CMD_RXBUFF_SIZE - CMD_RX_DMA_STREAM->NDTR;
   
   if (u32_Idx_Cur == u32_Idx_Pre)
   {
-    if (SysTick_IsTimeout(u32_Time_Tick, 50))
+    if (bool_Header_Detected == true)
     {
-      u32_Cnt = 0;
-      bool_Length_Detected = false;
-      bool_Header_Detected = false;
+      if (SysTick_IsTimeout(u32_Time_Tick, 50))
+      {
+        u32_Idx = 0;
+        bool_Length_Detected = false;
+        bool_Header_Detected = false;
+      }
     }
     return;
   }
@@ -274,11 +317,11 @@ void v_CMD_Receive(void)
   /* Getting Frame */
   while (true)
   {
-    au8_CMD_Frame[u32_Cnt + 6] = *(au8_CMD_Rx + u32_Idx_Pre);
+    au8_CMD_Frame[u32_Idx + 6] = *(au8_CMD_Rx + u32_Idx_Pre);
     if (++u32_Idx_Pre >= CMD_RXBUFF_SIZE) u32_Idx_Pre = 0;
-    if (++u32_Cnt == au8_CMD_Frame[5])
+    if (++u32_Idx == au8_CMD_Frame[5])
     {
-      u32_Cnt = 0;
+      u32_Idx = 0;
       bool_Length_Detected = false;
       bool_Header_Detected = false;
       break;
@@ -287,7 +330,21 @@ void v_CMD_Receive(void)
   }
   
   /* Check CRC */
+  u32_Length = au8_CMD_Frame[5] + 6 - 2; //Total Length except 2 byte CRC
+  for (u32_Cnt = 0; u32_Cnt < u32_Length; u32_Cnt++)
+  {
+    u16_CRC_Check += au8_CMD_Frame[u32_Cnt];
+  }
+  u16_CRC_Check = ~u16_CRC_Check;
+  if (((u16_CRC_Check >> 8) & 0x0FF) != au8_CMD_Frame[u32_Length]) return;
+  if ((u16_CRC_Check & 0x0FF) != au8_CMD_Frame[u32_Length + 1]) return;
   
+  /* Check enough length */
+  u32_Length = au8_CMD_Frame[5] - 3; //Length Payload
+  if (astru_CMD_Handler[au8_CMD_Frame[6]].u32_Data_Num_Bytes != u32_Length) return;
+  
+  /* Handle Data */
+  astru_CMD_Handler[au8_CMD_Frame[6]].bool_Msg_Handler(&au8_CMD_Frame[7], u32_Length);
 }
 
 /**

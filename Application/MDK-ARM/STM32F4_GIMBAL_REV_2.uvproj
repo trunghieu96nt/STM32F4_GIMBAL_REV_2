@@ -441,9 +441,14 @@
               <FilePath>..\Src\adis_sensor.c</FilePath>
             </File>
             <File>
-              <FileName>comm_driver.c</FileName>
+              <FileName>uart_comm.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\Src\comm_driver.c</FilePath>
+              <FilePath>..\Src\uart_comm.c</FilePath>
+            </File>
+            <File>
+              <FileName>control.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Src\control.c</FilePath>
             </File>
           </Files>
         </Group>
