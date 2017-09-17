@@ -29,12 +29,13 @@
 /* Private define ------------------------------------------------------------*/
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
-uint8_t au8_IMU_Rx[IMU_RXBUFF_SIZE]= {0};
+static uint8_t au8_IMU_Rx[IMU_RXBUFF_SIZE]= {0};
 STRU_IMU_DATA_T stru_IMU_Data = {false}; //initial bool_Available value.
 
 /* Private function prototypes -----------------------------------------------*/
+static bool bool_ADIS_Parse(uint8_t *pu8_IMU_Frame);
+
 /* Private functions ---------------------------------------------------------*/
-bool bool_ADIS_Parse(uint8_t *pu8_IMU_Frame);
 
 /** @defgroup ADIS Initialization
  *  @brief   ...
@@ -137,7 +138,7 @@ void v_ADIS_Init(void)
   */
 bool bool_ADIS_Read(void)
 {
-  static uint32_t u32_Idx_Pre = 0;
+  static uint32_t u32_Idx_Pre = IMU_RXBUFF_SIZE - 1;
   uint32_t u32_Length, u32_Idx_Cur;
   int32_t i32_Idx, i32_Cnt;
   uint8_t *pu8_End_Chr = NULL; //Can change to bool variable
@@ -185,7 +186,7 @@ bool bool_ADIS_Read(void)
   * @param  pu8_IMU_Frame: pointer to IMU frame
   * @retval true if parse correctly and vice versa
   */
-bool bool_ADIS_Parse(uint8_t *pu8_IMU_Frame)
+static bool bool_ADIS_Parse(uint8_t *pu8_IMU_Frame)
 {
   uint32_t u32_Idx = 0;
   uint8_t *pu8_End = NULL, *pu8_Start = pu8_IMU_Frame + 2;
@@ -234,8 +235,8 @@ bool bool_ADIS_Read_IsTimeout(uint32_t u32_Timeout_ms)
   {
     if(SysTick_IsTimeout(u32_Read_Done_Time, u32_Timeout_ms) == true)
     {
-        stru_IMU_Data.bool_Available = false;
-        return true;
+      stru_IMU_Data.bool_Available = false;
+      return true;
     }
   }
   else

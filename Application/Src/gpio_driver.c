@@ -35,12 +35,12 @@ static PULSE_HANDLE_T p_El_Limit_Rising_Handler = 0;
 static PULSE_HANDLE_T p_El_Limit_Falling_Handler = 0;
 
 /* Private function prototypes -----------------------------------------------*/
-void v_LED_Init(void);
-void v_Button_Init(void);
+static void v_LED_Init(void);
+static void v_Button_Init(void);
 void v_DI_Init(void);
-void v_Home_Pulse_Init(void);
-void v_El_Limit_Init(void);
-void v_DO_Init(void);
+static void v_Home_Pulse_Init(void);
+static void v_El_Limit_Init(void);
+static void v_DO_Init(void);
 
 /* Private functions ---------------------------------------------------------*/
 
@@ -102,7 +102,7 @@ void v_GPIO_Init(void)
   * @param  none
   * @retval none
   */
-void v_LED_Init(void)
+static void v_LED_Init(void)
 {
   GPIO_InitTypeDef GPIO_InitStructure;
   /* GPIOD Peripheral clock enable */
@@ -159,7 +159,7 @@ void v_Led_Toggle(uint16_t LEDx_Pin)
   * @param  none
   * @retval none
   */
-void v_Button_Init(void)
+static void v_Button_Init(void)
 {
   GPIO_InitTypeDef GPIO_InitStructure;
   /* GPIOD Peripheral clock enable */
@@ -217,7 +217,7 @@ void v_DI_Init(void)
   * @param  none
   * @retval none
   */
-void v_Home_Pulse_Init(void)
+static void v_Home_Pulse_Init(void)
 {
   EXTI_InitTypeDef   EXTI_InitStructure;
   GPIO_InitTypeDef   GPIO_InitStructure;
@@ -364,7 +364,7 @@ void AZ_EXTI_IRQn_Handler(void)
   * @param  p_Function: Pointer to function
   * @retval none
   */
-void v_El_Limit_Init(void)
+static void v_El_Limit_Init(void)
 {
   EXTI_InitTypeDef   EXTI_InitStructure;
   GPIO_InitTypeDef   GPIO_InitStructure;
@@ -466,7 +466,7 @@ void EL_LIMIT_EXTI_IRQn_Handler(void)
   * @param  none
   * @retval none
   */
-void v_DO_Init(void)
+static void v_DO_Init(void)
 {
   GPIO_InitTypeDef GPIO_InitStructure;
   /* GPIO Peripheral clock enable */

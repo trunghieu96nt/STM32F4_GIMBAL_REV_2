@@ -28,7 +28,8 @@
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
 static uint8_t au8_CMD_Rx[CMD_RXBUFF_SIZE]= {0};
-static uint8_t au8_RESV_Rx[RESV_RXBUFF_SIZE]= {0};
+uint8_t au8_DATA_Rx[DATA_RXBUFF_SIZE]= {0};
+uint8_t au8_RESV_Rx[RESV_RXBUFF_SIZE]= {0};
 
 extern bool bool_None_Handler             (uint8_t *pu8_Data, uint32_t u32_Data_Cnt);
 extern bool bool_Home_Handler             (uint8_t *pu8_Data, uint32_t u32_Data_Cnt);
@@ -46,7 +47,7 @@ extern bool bool_Set_Kff1_Handler         (uint8_t *pu8_Data, uint32_t u32_Data_
 extern bool bool_Set_Kff2_Handler         (uint8_t *pu8_Data, uint32_t u32_Data_Cnt);
 extern bool bool_Get_Params_Handler       (uint8_t *pu8_Data, uint32_t u32_Data_Cnt);
 
-const STRU_CMD_HANDLER astru_CMD_Handler[CMD_NUM_MSG_ID_MAX] =
+const STRU_CMD_HANDLER_T astru_CMD_Handler[CMD_NUM_MSG_ID_MAX] =
 {
   {MSG_NONE,                0,    bool_None_Handler},
   {MSG_HOME,                1,    bool_Home_Handler},
@@ -66,10 +67,11 @@ const STRU_CMD_HANDLER astru_CMD_Handler[CMD_NUM_MSG_ID_MAX] =
 };
 
 /* Private function prototypes -----------------------------------------------*/
+static void v_CMD_UART_Init(void);
+static void v_DATA_UART_Init(void);
+static void v_RESV_UART_Init(void);
+
 /* Private functions ---------------------------------------------------------*/
-void v_CMD_UART_Init(void);
-void v_DATA_UART_Init(void);
-void v_RESV_UART_Init(void);
 
 /** @defgroup Communication Initialization
  *  @brief   ...
@@ -89,7 +91,7 @@ void v_RESV_UART_Init(void);
   * @param  none
   * @retval none
   */
-void v_Comm_Init(void)
+void v_UART_Comm_Init(void)
 {
   v_CMD_UART_Init();
   v_DATA_UART_Init();
@@ -117,7 +119,7 @@ void v_Comm_Init(void)
   * @param  none
   * @retval none
   */
-void v_CMD_UART_Init(void)
+static void v_CMD_UART_Init(void)
 {
   USART_InitTypeDef     USART_InitStructure;
   GPIO_InitTypeDef      GPIO_InitStructure;
@@ -155,7 +157,7 @@ void v_CMD_UART_Init(void)
   DMA_InitStructure.DMA_PeripheralBaseAddr = CMD_DATA_REG;
   DMA_InitStructure.DMA_PeripheralDataSize = DMA_PeripheralDataSize_Byte;
   DMA_InitStructure.DMA_MemoryDataSize     = DMA_MemoryDataSize_Byte;
-  DMA_InitStructure.DMA_Priority           = DMA_Priority_VeryHigh;
+  DMA_InitStructure.DMA_Priority           = DMA_Priority_High;
   DMA_InitStructure.DMA_FIFOMode           = DMA_FIFOMode_Disable; //direct mode
   DMA_InitStructure.DMA_FIFOThreshold      = DMA_FIFOThreshold_Full;
   DMA_InitStructure.DMA_MemoryInc          = DMA_MemoryInc_Enable;
@@ -368,21 +370,23 @@ void v_CMD_Receive(void)
   * @param  none
   * @retval none
   */
-void v_DATA_UART_Init(void)
+static void v_DATA_UART_Init(void)
 {
   USART_InitTypeDef   USART_InitStructure;
   GPIO_InitTypeDef    GPIO_InitStructure;
   DMA_InitTypeDef     DMA_InitStructure;
   
-  RCC_AHB1PeriphClockCmd(DATA_PORT_CLK, ENABLE);
   /* GPIO configuration */
-  GPIO_InitStructure.GPIO_Pin   = DATA_TX;
+  RCC_AHB1PeriphClockCmd(DATA_PORT_CLK, ENABLE);
+  GPIO_InitStructure.GPIO_Pin   = DATA_TX | DATA_RX;
   GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_AF;
   GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
   GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
   GPIO_InitStructure.GPIO_PuPd  = GPIO_PuPd_NOPULL;
   GPIO_Init(DATA_PORT, &GPIO_InitStructure);
+  
   GPIO_PinAFConfig(DATA_PORT, DATA_TX_SOURCE, DATA_AF);
+  GPIO_PinAFConfig(DATA_PORT, DATA_RX_SOURCE, DATA_AF);
   
   /* USART configuration */
   RCC_APB1PeriphClockCmd(DATA_USART_CLK, ENABLE);
@@ -397,14 +401,37 @@ void v_DATA_UART_Init(void)
     
   USART_ClearFlag(DATA_USART, USART_FLAG_TC);
   //USART_ClearFlag(DATA_USART, USART_FLAG_RXNE);
-
+  
+  /* DMA RX configuration */
   RCC_AHB1PeriphClockCmd(DATA_AHB_PERIPH_DMA, ENABLE);
+  DMA_DeInit(DATA_RX_DMA_STREAM);  
+  DMA_InitStructure.DMA_Channel            = DATA_RX_DMA_CHANNEL;
+  DMA_InitStructure.DMA_DIR                = DMA_DIR_PeripheralToMemory;
+  DMA_InitStructure.DMA_Memory0BaseAddr    = (uint32_t)&au8_DATA_Rx[0];
+  DMA_InitStructure.DMA_PeripheralBaseAddr = DATA_DATA_REG;
+  DMA_InitStructure.DMA_PeripheralDataSize = DMA_PeripheralDataSize_Byte;
+  DMA_InitStructure.DMA_MemoryDataSize     = DMA_MemoryDataSize_Byte;
+  DMA_InitStructure.DMA_Priority           = DMA_Priority_Low;
+  DMA_InitStructure.DMA_FIFOMode           = DMA_FIFOMode_Disable; //direct mode
+  DMA_InitStructure.DMA_FIFOThreshold      = DMA_FIFOThreshold_Full;
+  DMA_InitStructure.DMA_MemoryInc          = DMA_MemoryInc_Enable;
+  DMA_InitStructure.DMA_PeripheralInc      = DMA_PeripheralInc_Disable;
+  DMA_InitStructure.DMA_Mode               = DMA_Mode_Circular; // avoid buffer overload error
+  DMA_InitStructure.DMA_BufferSize         = DATA_RXBUFF_SIZE;
+  DMA_InitStructure.DMA_MemoryBurst        = DMA_MemoryBurst_Single;
+  DMA_InitStructure.DMA_PeripheralBurst    = DMA_PeripheralBurst_Single;
+  DMA_Init(DATA_RX_DMA_STREAM, &DMA_InitStructure);
+  /* Enable  request */
+  USART_DMACmd(DATA_USART, USART_DMAReq_Rx, ENABLE);  
+  /* Enable DMA RX Channel */
+  DMA_Cmd(DATA_RX_DMA_STREAM, ENABLE);
+  
   /* DMA TX configuration */
   DMA_DeInit(DATA_TX_DMA_STREAM);
   DMA_InitStructure.DMA_Channel            = DATA_TX_DMA_CHANNEL;
   DMA_InitStructure.DMA_DIR                = DMA_DIR_MemoryToPeripheral;
   DMA_InitStructure.DMA_Memory0BaseAddr    = 0;
-  DMA_InitStructure.DMA_PeripheralBaseAddr = DATA_DATA_REG;   
+  DMA_InitStructure.DMA_PeripheralBaseAddr = DATA_DATA_REG;
   DMA_InitStructure.DMA_PeripheralDataSize = DMA_PeripheralDataSize_Byte;
   DMA_InitStructure.DMA_MemoryDataSize     = DMA_MemoryDataSize_Byte;
   DMA_InitStructure.DMA_Priority           = DMA_Priority_Low;
@@ -472,7 +499,7 @@ bool bool_DATA_Send(const uint8_t *pu8_Message, uint32_t u32_Message_Size)
   * @param  none
   * @retval none
   */
-void v_RESV_UART_Init(void)
+static void v_RESV_UART_Init(void)
 {
   USART_InitTypeDef     USART_InitStructure;
   GPIO_InitTypeDef      GPIO_InitStructure;
@@ -520,7 +547,7 @@ void v_RESV_UART_Init(void)
   DMA_InitStructure.DMA_PeripheralBaseAddr = RESV_DATA_REG;
   DMA_InitStructure.DMA_PeripheralDataSize = DMA_PeripheralDataSize_Byte;
   DMA_InitStructure.DMA_MemoryDataSize     = DMA_MemoryDataSize_Byte;
-  DMA_InitStructure.DMA_Priority           = DMA_Priority_VeryHigh;
+  DMA_InitStructure.DMA_Priority           = DMA_Priority_Low;
   DMA_InitStructure.DMA_FIFOMode           = DMA_FIFOMode_Disable; //direct mode
   DMA_InitStructure.DMA_FIFOThreshold      = DMA_FIFOThreshold_Full;
   DMA_InitStructure.DMA_MemoryInc          = DMA_MemoryInc_Enable;

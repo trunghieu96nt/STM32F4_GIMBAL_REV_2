@@ -29,7 +29,7 @@ typedef enum
   AXIS_A,
   AXIS_E,
   AXIS_BOTH,
-} ENUM_AXIS;
+} ENUM_AXIS_T;
 
 /* Exported constants --------------------------------------------------------*/
 /** @defgroup Group_1

@@ -43,14 +43,14 @@ static volatile int32_t i32_Enc2_Dp = 0;
 static volatile int32_t i32_Enc2_P0 = 0, i32_Enc2_P1 = 0;
 
 /* Private function prototypes -----------------------------------------------*/
-void v_ENC0_Init(void);
-void v_ENC1_Init(void);
-void v_ENC2_Init(void);
+static void v_ENC0_Init(void);
+static void v_ENC1_Init(void);
+static void v_ENC2_Init(void);
 
-void v_PWM0_Init(void);
-void v_PWM1_Init(void);
+static void v_PWM0_Init(void);
+static void v_PWM1_Init(void);
 
-uint32_t u32_Timer_Get_Clock(TIM_TypeDef* TIMx);
+static uint32_t u32_Timer_Get_Clock(TIM_TypeDef* TIMx);
 
 /* Private functions ---------------------------------------------------------*/
 
@@ -104,7 +104,7 @@ void v_Motor_Init(void)
   * @param  none
   * @retval none
   */
-void v_ENC0_Init(void)
+static void v_ENC0_Init(void)
 {
   GPIO_InitTypeDef GPIO_InitStructure;
   
@@ -138,7 +138,7 @@ void v_ENC0_Init(void)
   ENC0_TIM_POS->CNT = 0;
 }
 
-void v_ENC1_Init(void)
+static void v_ENC1_Init(void)
 {
   GPIO_InitTypeDef GPIO_InitStructure;
   
@@ -171,7 +171,7 @@ void v_ENC1_Init(void)
   ENC1_TIM_POS->CNT = 0;
 }
 
-void v_ENC2_Init(void)
+static void v_ENC2_Init(void)
 {
   GPIO_InitTypeDef GPIO_InitStructure;
 
@@ -361,7 +361,7 @@ void v_ENC2_Reset(void)
   * @param  none
   * @retval none
   */
-void v_PWM0_Init(void)
+static void v_PWM0_Init(void)
 {
   GPIO_InitTypeDef          GPIO_InitStructure;
   TIM_TimeBaseInitTypeDef   TIM_TimeBaseStructure;
@@ -421,7 +421,7 @@ void v_PWM0_Init(void)
   TIM_Cmd(PWM0_TIM, ENABLE);
 }
 
-void v_PWM1_Init(void)
+static void v_PWM1_Init(void)
 {
   GPIO_InitTypeDef GPIO_InitStructure;
   TIM_TimeBaseInitTypeDef TIM_TimeBaseStructure;
@@ -585,7 +585,7 @@ void v_PWM1_Set_Duty(int16_t s16_Duty)
   * @param  Timer TIMx
   * @retval Clock of timer
   */
-uint32_t u32_Timer_Get_Clock(TIM_TypeDef* TIMx)
+static uint32_t u32_Timer_Get_Clock(TIM_TypeDef* TIMx)
 {
   uint32_t u32_Clock;
   RCC_ClocksTypeDef RCC_Clocks;  

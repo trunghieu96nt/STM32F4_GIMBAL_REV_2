@@ -39,15 +39,15 @@ typedef enum{
   MSG_SET_KFF1            = 0x0C,
   MSG_SET_KFF2            = 0x0D,
   MSG_GET_PARAMS          = 0x0E
-} ENUM_MSG_ID;
+} ENUM_MSG_ID_T;
 
 typedef bool (*CMD_HANDLER_FUNC)(uint8_t *, uint32_t);
 
 typedef struct{
-  ENUM_MSG_ID enum_Msg_ID;
+  ENUM_MSG_ID_T enum_Msg_ID;
   uint32_t u32_Data_Num_Bytes;
   CMD_HANDLER_FUNC bool_Msg_Handler;
-} STRU_CMD_HANDLER;
+} STRU_CMD_HANDLER_T;
 
 /* Exported constants --------------------------------------------------------*/
 /** @defgroup CMD UART (Receiver)
@@ -90,8 +90,8 @@ typedef struct{
 /** @defgroup DATA UART Define (Sender)
   * @{
   */
-#define DATA_TXBUFF_SIZE          128
-#define DATA_RXBUFF_SIZE          128
+#define DATA_TXBUFF_SIZE          512
+#define DATA_RXBUFF_SIZE          64
 
 #define DATA_USART                USART3
 #define DATA_USART_CLK            RCC_APB1Periph_USART3
@@ -102,7 +102,7 @@ typedef struct{
 #define DATA_RX                   GPIO_Pin_11
 #define DATA_RX_SOURCE            GPIO_PinSource11
 #define DATA_AF                   GPIO_AF_USART3
-#define DATA_BAUDRATE             (uint32_t)921600 //921600 //115200
+#define DATA_BAUDRATE             (uint32_t)115200 //921600 //115200
 
 #define DATA_AHB_PERIPH_DMA       RCC_AHB1Periph_DMA1
 #define DATA_DATA_REG             (uint32_t)DATA_USART + 0x04
@@ -123,7 +123,7 @@ typedef struct{
 /** @defgroup RESV UART (General)
   * @{
   */
-#define RESV_TXBUFF_SIZE          128
+#define RESV_TXBUFF_SIZE          64
 #define RESV_RXBUFF_SIZE          1024
 
 #define RESV_USART                UART5
@@ -137,7 +137,7 @@ typedef struct{
 #define RESV_RX                   GPIO_Pin_2
 #define RESV_RX_SOURCE            GPIO_PinSource2
 #define RESV_AF                   GPIO_AF_UART5
-#define RESV_BAUDRATE             (uint32_t)115200
+#define RESV_BAUDRATE             (uint32_t)115200 //921600 //115200
 
 #define RESV_AHB_PERIPH_DMA       RCC_AHB1Periph_DMA1
 #define RESV_DATA_REG             (uint32_t)RESV_USART + 0x04
@@ -158,7 +158,7 @@ typedef struct{
 /* Exported macro ------------------------------------------------------------*/
 /* Exported functions --------------------------------------------------------*/
 /* Initialization and Configuration functions *********************************/
-void v_Comm_Init(void);
+void v_UART_Comm_Init(void);
 
 /* Communication functions ****************************************************/
 bool bool_DATA_Send(const uint8_t *pu8_Message, uint32_t u32_Message_Size);

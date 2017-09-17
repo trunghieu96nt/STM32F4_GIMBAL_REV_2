@@ -51,7 +51,7 @@ typedef struct
 #define IMU_RXBUFF_SIZE       1024
 #endif
 
-#define IMU_FRAME_LEN         62
+#define IMU_FRAME_LEN         71
 #define IMU_FRAME_LEN_MAX     (IMU_FRAME_LEN + 1)
 #define IMU_ELEMENT_MAX_LEN   15
 #define IMU_START_FRAME       0x0a
@@ -72,7 +72,7 @@ typedef struct
 #define IMU_RX                GPIO_Pin_1
 #define IMU_RX_SOURCE         GPIO_PinSource1
 #define IMU_AF                GPIO_AF_UART4
-#define IMU_BAUDRATE          (uint32_t)921600 //921600//9600
+#define IMU_BAUDRATE          (uint32_t)115200 //921600//115200
 
 #define IMU_AHB_PERIPH_DMA    RCC_AHB1Periph_DMA1
 #define IMU_DATA_REG          (uint32_t)IMU_USART + 0x04

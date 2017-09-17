@@ -446,6 +446,16 @@
               <FilePath>..\Src\uart_comm.c</FilePath>
             </File>
             <File>
+              <FileName>i2c_comm.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Src\i2c_comm.c</FilePath>
+            </File>
+            <File>
+              <FileName>pid.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Src\pid.c</FilePath>
+            </File>
+            <File>
               <FileName>control.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\Src\control.c</FilePath>

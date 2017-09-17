@@ -8,7 +8,8 @@ void Board_Init()
   v_GPIO_Init();
   v_Motor_Init();
   v_ADIS_Init();
-  v_Comm_Init();
+  v_UART_Comm_Init();
+  v_I2C_Comm_Init();
   
   //for testing
   v_PWM0_Set_Duty(400);
@@ -17,7 +18,9 @@ void Board_Init()
   v_DO_Reset(DO0_PIN);
   v_DO_Reset(DO1_PIN);
   
-  bool_CMD_Send((uint8_t *)"Done", strlen("Done"));
+  bool_CMD_Send((uint8_t *)"CMD Ok\r\n", strlen("CMD Ok\r\n"));
+  bool_DATA_Send((uint8_t *)"DATA Ok\r\n", strlen("DATA Ok\r\n"));
+  bool_RESV_Send((uint8_t *)"RESV Ok\r\n", strlen("RESV Ok\r\n"));
 }
 
 int main(void)
@@ -36,7 +39,7 @@ int main(void)
     }
     
     v_CMD_Receive();
-    bool_ADIS_Read_IsTimeout(100);
+    bool_ADIS_Read_IsTimeout(500);
     
     //Controller
     if(tick_flag == true)

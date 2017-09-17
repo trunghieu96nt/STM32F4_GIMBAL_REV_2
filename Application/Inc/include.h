@@ -8,4 +8,5 @@
 #include "motor_driver.h"
 #include "adis_sensor.h"
 #include "uart_comm.h"
+#include "i2c_comm.h"
 
