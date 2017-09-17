@@ -30,17 +30,17 @@
 
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
-static volatile int32_t i32_Enc0_Cur = 0;
-static volatile int32_t i32_Enc0_Dp = 0;
-static volatile int32_t i32_Enc0_P0 = 0, i32_Enc0_P1 = 0;
+static volatile int32_t s32_Enc0_Cur = 0;
+static volatile int32_t s32_Enc0_Dp = 0;
+static volatile int32_t s32_Enc0_P0 = 0, s32_Enc0_P1 = 0;
 
-static volatile int32_t i32_Enc1_Cur = 0;
-static volatile int32_t i32_Enc1_Dp = 0;
-static volatile int32_t i32_Enc1_P0 = 0, i32_Enc1_P1 = 0;
+static volatile int32_t s32_Enc1_Cur = 0;
+static volatile int32_t s32_Enc1_Dp = 0;
+static volatile int32_t s32_Enc1_P0 = 0, s32_Enc1_P1 = 0;
 
-static volatile int32_t i32_Enc2_Cur = 0;
-static volatile int32_t i32_Enc2_Dp = 0;
-static volatile int32_t i32_Enc2_P0 = 0, i32_Enc2_P1 = 0;
+static volatile int32_t s32_Enc2_Cur = 0;
+static volatile int32_t s32_Enc2_Dp = 0;
+static volatile int32_t s32_Enc2_P0 = 0, s32_Enc2_P1 = 0;
 
 /* Private function prototypes -----------------------------------------------*/
 static void v_ENC0_Init(void);
@@ -215,79 +215,79 @@ static void v_ENC2_Init(void)
   * @param  none
   * @retval Current Encoder Position
   */
-int32_t i32_ENC0_Get_Pos(void)
+int32_t s32_ENC0_Get_Pos(void)
 {
-  i32_Enc0_P0 = (int32_t)ENC0_TIM_POS->CNT;
+  s32_Enc0_P0 = (int32_t)ENC0_TIM_POS->CNT;
 
   if (!IS_TIMER_32BIT(ENC0_TIM_POS))
   {
-    i32_Enc0_Dp = i32_Enc0_P0 - i32_Enc0_P1;
-    if (i32_Enc0_Dp > 32768)
+    s32_Enc0_Dp = s32_Enc0_P0 - s32_Enc0_P1;
+    if (s32_Enc0_Dp > 32768)
     {
-      i32_Enc0_Dp -= 65536;
+      s32_Enc0_Dp -= 65536;
     }
-    else if (i32_Enc0_Dp < -32768)
+    else if (s32_Enc0_Dp < -32768)
     {
-      i32_Enc0_Dp += 65536;
+      s32_Enc0_Dp += 65536;
     }
-    i32_Enc0_P1 = i32_Enc0_P0;
-    i32_Enc0_Cur += i32_Enc0_Dp;
+    s32_Enc0_P1 = s32_Enc0_P0;
+    s32_Enc0_Cur += s32_Enc0_Dp;
   }
   else
   {
-    i32_Enc0_Cur = i32_Enc0_P0;
+    s32_Enc0_Cur = s32_Enc0_P0;
   }
-  return i32_Enc0_Cur;
+  return s32_Enc0_Cur;
 }
 
-int32_t i32_ENC1_Get_Pos(void)
+int32_t s32_ENC1_Get_Pos(void)
 {
-  i32_Enc1_P0 = (int32_t)ENC1_TIM_POS->CNT;
+  s32_Enc1_P0 = (int32_t)ENC1_TIM_POS->CNT;
 
   if (!IS_TIMER_32BIT(ENC1_TIM_POS))
   {
-    i32_Enc1_Dp = i32_Enc1_P0 - i32_Enc1_P1;
-    if (i32_Enc1_Dp > 32768)
+    s32_Enc1_Dp = s32_Enc1_P0 - s32_Enc1_P1;
+    if (s32_Enc1_Dp > 32768)
     {
-      i32_Enc1_Dp -= 65536;
+      s32_Enc1_Dp -= 65536;
     }
-    else if (i32_Enc1_Dp < -32768)
+    else if (s32_Enc1_Dp < -32768)
     {
-      i32_Enc1_Dp += 65536;
+      s32_Enc1_Dp += 65536;
     }
-    i32_Enc1_P1 = i32_Enc1_P0;
-    i32_Enc1_Cur += i32_Enc1_Dp;
+    s32_Enc1_P1 = s32_Enc1_P0;
+    s32_Enc1_Cur += s32_Enc1_Dp;
   }
   else
   {
-    i32_Enc1_Cur = i32_Enc1_P0;
+    s32_Enc1_Cur = s32_Enc1_P0;
   }
-  return i32_Enc1_Cur;
+  return s32_Enc1_Cur;
 }
 
-int32_t i32_ENC2_Get_Pos(void)
+int32_t s32_ENC2_Get_Pos(void)
 {
-  i32_Enc2_P0 = (int32_t)ENC2_TIM_POS->CNT;
+  s32_Enc2_P0 = (int32_t)ENC2_TIM_POS->CNT;
 
   if (!IS_TIMER_32BIT(ENC2_TIM_POS))
   {
-    i32_Enc2_Dp = i32_Enc2_P0 - i32_Enc2_P1;
-    if (i32_Enc2_Dp > 32768)
+    s32_Enc2_Dp = s32_Enc2_P0 - s32_Enc2_P1;
+    if (s32_Enc2_Dp > 32768)
     {
-      i32_Enc2_Dp -= 65536;
+      s32_Enc2_Dp -= 65536;
     }
-    else if (i32_Enc2_Dp < -32768)
+    else if (s32_Enc2_Dp < -32768)
     {
-      i32_Enc2_Dp += 65536;
+      s32_Enc2_Dp += 65536;
     }
-    i32_Enc2_P1 = i32_Enc2_P0;
-    i32_Enc2_Cur += i32_Enc2_Dp;
+    s32_Enc2_P1 = s32_Enc2_P0;
+    s32_Enc2_Cur += s32_Enc2_Dp;
   }
   else
   {
-    i32_Enc2_Cur = i32_Enc2_P0;
+    s32_Enc2_Cur = s32_Enc2_P0;
   }
-  return i32_Enc2_Cur;
+  return s32_Enc2_Cur;
 }
 
 /**
@@ -298,17 +298,17 @@ int32_t i32_ENC2_Get_Pos(void)
   */
 float flt_ENC0_Get_Angle(void)
 {
-  return (float)i32_ENC0_Get_Pos() * ENC0_ANGLE_SCALE;
+  return (float)s32_ENC0_Get_Pos() * ENC0_ANGLE_SCALE;
 }
 
 float flt_ENC1_Get_Angle(void)
 {
-  return (float)i32_ENC1_Get_Pos() * ENC1_ANGLE_SCALE;
+  return (float)s32_ENC1_Get_Pos() * ENC1_ANGLE_SCALE;
 }
 
 float flt_ENC2_Get_Angle(void)
 {
-  return (float)i32_ENC2_Get_Pos() * ENC2_ANGLE_SCALE;
+  return (float)s32_ENC2_Get_Pos() * ENC2_ANGLE_SCALE;
 }
 
 /**
@@ -319,20 +319,20 @@ float flt_ENC2_Get_Angle(void)
   */
 void v_ENC0_Reset(void)
 {
-  i32_ENC0_Get_Pos(); //for save pre variable
-  i32_Enc0_Cur = 0;
+  s32_ENC0_Get_Pos(); //for save pre variable
+  s32_Enc0_Cur = 0;
 }
 
 void v_ENC1_Reset(void)
 {
-  i32_ENC1_Get_Pos(); //for save pre variable
-  i32_Enc1_Cur = 0;
+  s32_ENC1_Get_Pos(); //for save pre variable
+  s32_Enc1_Cur = 0;
 }
 
 void v_ENC2_Reset(void)
 {
-  i32_ENC2_Get_Pos(); //for save pre variable
-  i32_Enc2_Cur = 0;
+  s32_ENC2_Get_Pos(); //for save pre variable
+  s32_Enc2_Cur = 0;
 }
 
 /**
@@ -606,6 +606,70 @@ static uint32_t u32_Timer_Get_Clock(TIM_TypeDef* TIMx)
       u32_Clock = 2 * RCC_Clocks.PCLK1_Frequency;
   }
   return u32_Clock;
+}
+/**
+  * @}
+  */
+
+/** @defgroup Gimbal Port Functions
+ *  @brief   ...
+ *
+ @verbatim
+ ===============================================================================
+                        ##### Gimbal Port Functions #####
+ ===============================================================================  
+
+ @endverbatim
+  * @{
+  */
+int32_t s32_EL_ENC_Get_Pos(void)
+{
+  return s32_ENC0_Get_Pos();
+}
+
+int32_t s32_AZ_ENC_Get_Pos(void)
+{
+  return s32_ENC1_Get_Pos();
+}
+
+float flt_EL_ENC_Get_Angle(void)
+{
+  return flt_ENC0_Get_Angle();
+}
+
+float flt_AZ_ENC_Get_Angle(void)
+{
+  return flt_ENC1_Get_Angle();
+}
+
+void v_EL_ENC_Reset(void)
+{
+  v_ENC0_Reset();
+}
+
+void v_AZ_ENC_Reset(void)
+{
+  v_ENC1_Reset();
+}
+
+void v_EL_PWM_Set_Freq(uint32_t u32_Frequency)
+{
+  v_PWM0_Set_Freq(u32_Frequency);
+}
+
+void v_AZ_PWM_Set_Freq(uint32_t u32_Frequency)
+{
+  v_PWM1_Set_Freq(u32_Frequency);
+}
+
+void v_EL_PWM_Set_Duty(int16_t s16_Duty)
+{
+  v_PWM0_Set_Duty(s16_Duty);
+}
+
+void v_AZ_PWM_Set_Duty(int16_t s16_Duty)
+{
+  v_PWM1_Set_Duty(s16_Duty);
 }
 /**
   * @}

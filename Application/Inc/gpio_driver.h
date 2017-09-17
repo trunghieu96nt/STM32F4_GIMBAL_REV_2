@@ -24,7 +24,16 @@ extern "C" {
 
 /* Exported types ------------------------------------------------------------*/
 typedef void (*PULSE_HANDLE_T)(void);
-
+typedef enum
+{
+  DI_PIN_0          = 0,
+  DI_PIN_1          = 1,
+  DI_PIN_2          = 2,
+  DI_PIN_3          = 3,
+  DI_PIN_EL_LIMIT   = 1,
+  DI_PIN_AZ_HOME    = 2,
+  DI_PIN_EL_HOME    = 3
+} ENUM_DI_PIN_T;
 /* Exported constants --------------------------------------------------------*/
 
 /** @defgroup LED Peripheral
@@ -80,7 +89,7 @@ typedef void (*PULSE_HANDLE_T)(void);
 #define AZ_EXTI_IRQn                      EXTI2_IRQn
 #define AZ_EXTI_IRQn_Handler              EXTI2_IRQHandler
 
-/* El  Limit */
+/* EL  Limit */
 #define EL_LIMIT_PULSE_PORT               GPIOC
 #define EL_LIMIT_PULSE_PORT_CLK           RCC_AHB1Periph_GPIOC
 #define EL_LIMIT_PULSE_PIN                GPIO_Pin_1
@@ -135,19 +144,22 @@ void v_Led_Set(uint16_t LEDx_Pin);
 void v_Led_Reset(uint16_t LEDx_Pin);
 void v_Led_Toggle(uint16_t LEDx_Pin);
 
+/* DI functions ***************************************************************/
+uint8_t u8_DI_Read_Pin(ENUM_DI_PIN_T enum_Pin);
+
 /* Register & Unregister interrupt handler ************************************/
-void v_El_Home_Rising_Register(PULSE_HANDLE_T f);
-void v_El_Home_Rising_Unregister(void);
-void v_El_Home_Falling_Register(PULSE_HANDLE_T f);
-void v_El_Home_Falling_Unregister(void);
-void v_Az_Home_Rising_Register(PULSE_HANDLE_T f);
-void v_Az_Home_Rising_Unregister(void);
-void v_Az_Home_Falling_Register(PULSE_HANDLE_T f);
-void v_Az_Home_Falling_Unregister(void);
-void v_El_Limit_Rising_Register(PULSE_HANDLE_T f);
-void v_El_Limit_Rising_Unregister(void);
-void v_El_Limit_Falling_Register(PULSE_HANDLE_T f);
-void v_El_Limit_Falling_Unregister(void);
+void v_EL_Home_Rising_Register(PULSE_HANDLE_T pv_Function);
+void v_EL_Home_Rising_Unregister(void);
+void v_EL_Home_Falling_Register(PULSE_HANDLE_T pv_Function);
+void v_EL_Home_Falling_Unregister(void);
+void v_AZ_Home_Rising_Register(PULSE_HANDLE_T pv_Function);
+void v_AZ_Home_Rising_Unregister(void);
+void v_AZ_Home_Falling_Register(PULSE_HANDLE_T pv_Function);
+void v_AZ_Home_Falling_Unregister(void);
+void v_EL_Limit_Rising_Register(PULSE_HANDLE_T pv_Function);
+void v_EL_Limit_Rising_Unregister(void);
+void v_EL_Limit_Falling_Register(PULSE_HANDLE_T pv_Function);
+void v_EL_Limit_Falling_Unregister(void);
 
 /* DO functions ***************************************************************/
 void v_DO_Set(uint16_t DOx_Pin);

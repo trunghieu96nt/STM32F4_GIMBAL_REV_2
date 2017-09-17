@@ -154,9 +154,9 @@ extern "C" {
 void v_Motor_Init(void);
 
 /* Encoder Functions **********************************************************/
-int32_t i32_ENC0_Get_Pos(void);
-int32_t i32_ENC1_Get_Pos(void);
-int32_t i32_ENC2_Get_Pos(void);
+int32_t s32_ENC0_Get_Pos(void);
+int32_t s32_ENC1_Get_Pos(void);
+int32_t s32_ENC2_Get_Pos(void);
 float flt_ENC0_Get_Angle(void);
 float flt_ENC1_Get_Angle(void);
 float flt_ENC2_Get_Angle(void);
@@ -169,6 +169,22 @@ void v_PWM0_Set_Freq(uint32_t u32_Frequency);
 void v_PWM1_Set_Freq(uint32_t u32_Frequency);
 void v_PWM0_Set_Duty(int16_t s16_Duty);
 void v_PWM1_Set_Duty(int16_t s16_Duty);
+
+/* Gimbal Port Functions ******************************************************/
+int32_t s32_EL_ENC_Get_Pos(void);
+int32_t s32_AZ_ENC_Get_Pos(void);
+
+float flt_EL_ENC_Get_Angle(void);
+float flt_AZ_ENC_Get_Angle(void);
+
+void v_EL_ENC_Reset(void);
+void v_AZ_ENC_Reset(void);
+
+void v_EL_PWM_Set_Freq(uint32_t u32_Frequency);
+void v_AZ_PWM_Set_Freq(uint32_t u32_Frequency);
+
+void v_EL_PWM_Set_Duty(int16_t s16_Duty);
+void v_AZ_PWM_Set_Duty(int16_t s16_Duty);
 
 #ifdef __cplusplus
 }

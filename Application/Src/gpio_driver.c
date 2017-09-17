@@ -27,19 +27,19 @@
 /* Private define ------------------------------------------------------------*/
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
-static PULSE_HANDLE_T p_El_Home_Rising_Handler = 0;
-static PULSE_HANDLE_T p_El_Home_Falling_Handler = 0;
-static PULSE_HANDLE_T p_Az_Home_Rising_Handler = 0;
-static PULSE_HANDLE_T p_Az_Home_Falling_Handler = 0;
-static PULSE_HANDLE_T p_El_Limit_Rising_Handler = 0;
-static PULSE_HANDLE_T p_El_Limit_Falling_Handler = 0;
+static PULSE_HANDLE_T pv_EL_Home_Rising_Handler = 0;
+static PULSE_HANDLE_T pv_EL_Home_Falling_Handler = 0;
+static PULSE_HANDLE_T pv_AZ_Home_Rising_Handler = 0;
+static PULSE_HANDLE_T pv_AZ_Home_Falling_Handler = 0;
+static PULSE_HANDLE_T pv_EL_Limit_Rising_Handler = 0;
+static PULSE_HANDLE_T pv_EL_Limit_Falling_Handler = 0;
 
 /* Private function prototypes -----------------------------------------------*/
 static void v_LED_Init(void);
 static void v_Button_Init(void);
 void v_DI_Init(void);
 static void v_Home_Pulse_Init(void);
-static void v_El_Limit_Init(void);
+static void v_EL_Limit_Init(void);
 static void v_DO_Init(void);
 
 /* Private functions ---------------------------------------------------------*/
@@ -73,7 +73,7 @@ void v_GPIO_Init(void)
   
   //v_DI_Init();
   v_Home_Pulse_Init();
-  v_El_Limit_Init();
+  v_EL_Limit_Init();
   
   v_DO_Init();
   v_DO_Reset(DO0_PIN);
@@ -212,8 +212,19 @@ void v_DI_Init(void)
 }
 
 /**
+  * @brief  Read Input Pin
+  * @note   It works right if enum_Pin 0 -> 7
+  * @param  enum_Pin: Specifies the port bit to read
+  * @retval The input port pin value
+  */
+uint8_t u8_DI_Read_Pin(ENUM_DI_PIN_T enum_Pin)
+{
+  return GPIO_ReadInputDataBit(DI_GPIO, 1 << enum_Pin);
+}
+
+/**
   * @brief  Init for 2 Home Pulses (Digital Input)
-  * @note   Az and El
+  * @note   AZ and EL
   * @param  none
   * @retval none
   */
@@ -283,37 +294,37 @@ static void v_Home_Pulse_Init(void)
   * @param  p_Function: Pointer to function
   * @retval none
   */
-void v_El_Home_Rising_Register(PULSE_HANDLE_T p_Function)
+void v_EL_Home_Rising_Register(PULSE_HANDLE_T pv_Function)
 {
-  p_El_Home_Rising_Handler = p_Function;
+  pv_EL_Home_Rising_Handler = pv_Function;
 }
-void El_Home_Rising_Unregister(void)
+void v_EL_Home_Rising_Unregister(void)
 {
-  p_El_Home_Rising_Handler = 0;
+  pv_EL_Home_Rising_Handler = 0;
 }
-void v_El_Home_Falling_Register(PULSE_HANDLE_T p_Function)
+void v_EL_Home_Falling_Register(PULSE_HANDLE_T pv_Function)
 {
-  p_El_Home_Falling_Handler = p_Function;
+  pv_EL_Home_Falling_Handler = pv_Function;
 }
-void v_El_Home_Falling_Unregister(void)
+void v_EL_Home_Falling_Unregister(void)
 {
-  p_El_Home_Falling_Handler = 0;
+  pv_EL_Home_Falling_Handler = 0;
 }
-void v_Az_Home_Rising_Register(PULSE_HANDLE_T p_Function)
+void v_AZ_Home_Rising_Register(PULSE_HANDLE_T pv_Function)
 {
-  p_Az_Home_Rising_Handler = p_Function;
+  pv_AZ_Home_Rising_Handler = pv_Function;
 }
-void v_Az_Home_Rising_Unregister(void)
+void v_AZ_Home_Rising_Unregister(void)
 {
-  p_Az_Home_Rising_Handler = 0;
+  pv_AZ_Home_Rising_Handler = 0;
 }
-void v_Az_Home_Falling_Register(PULSE_HANDLE_T p_Function)
+void v_AZ_Home_Falling_Register(PULSE_HANDLE_T pv_Function)
 {
-  p_Az_Home_Falling_Handler = p_Function;
+  pv_AZ_Home_Falling_Handler = pv_Function;
 }
-void v_Az_Home_Falling_Unregister(void)
+void v_AZ_Home_Falling_Unregister(void)
 {
-  p_Az_Home_Falling_Handler = 0;
+  pv_AZ_Home_Falling_Handler = 0;
 }
 
 /**
@@ -329,13 +340,13 @@ void EL_EXTI_IRQn_Handler(void)
     EXTI_ClearITPendingBit(EL_EXTI_LINE);
     if (GPIO_ReadInputDataBit(EL_HOME_PULSE_PORT, EL_HOME_PULSE_PIN))
     {
-      if (p_El_Home_Rising_Handler != 0)
-        p_El_Home_Rising_Handler();
+      if (pv_EL_Home_Rising_Handler != 0)
+        pv_EL_Home_Rising_Handler();
     }
     else
     {
-      if (p_El_Home_Falling_Handler != 0)
-        p_El_Home_Falling_Handler();
+      if (pv_EL_Home_Falling_Handler != 0)
+        pv_EL_Home_Falling_Handler();
     }
   }
 }
@@ -347,24 +358,24 @@ void AZ_EXTI_IRQn_Handler(void)
     EXTI_ClearITPendingBit(AZ_EXTI_LINE);
     if (GPIO_ReadInputDataBit(AZ_HOME_PULSE_PORT, AZ_HOME_PULSE_PIN))
     {
-      if (p_Az_Home_Rising_Handler != 0)
-        p_Az_Home_Rising_Handler();
+      if (pv_AZ_Home_Rising_Handler != 0)
+        pv_AZ_Home_Rising_Handler();
     }
     else
     {
-      if (p_Az_Home_Falling_Handler != 0)
-        p_Az_Home_Falling_Handler();
+      if (pv_AZ_Home_Falling_Handler != 0)
+        pv_AZ_Home_Falling_Handler();
     }
   }
 }
 
 /**
-  * @brief  Init El Limit pulse
+  * @brief  Init EL Limit pulse
   * @note   ...
   * @param  p_Function: Pointer to function
   * @retval none
   */
-static void v_El_Limit_Init(void)
+static void v_EL_Limit_Init(void)
 {
   EXTI_InitTypeDef   EXTI_InitStructure;
   GPIO_InitTypeDef   GPIO_InitStructure;
@@ -403,21 +414,21 @@ static void v_El_Limit_Init(void)
   * @param  with register: PULSE_HANDLE_T f (handler function)
   * @retval none
   */
-void v_El_Limit_Rising_Register(PULSE_HANDLE_T p_Function)
+void v_EL_Limit_Rising_Register(PULSE_HANDLE_T pv_Function)
 {
-  p_El_Limit_Rising_Handler = p_Function;
+  pv_EL_Limit_Rising_Handler = pv_Function;
 }
-void v_El_Limit_Rising_Unregister(void)
+void v_EL_Limit_Rising_Unregister(void)
 {
-  p_El_Limit_Rising_Handler = 0;
+  pv_EL_Limit_Rising_Handler = 0;
 }
-void v_El_Limit_Falling_Register(PULSE_HANDLE_T p_Function)
+void v_EL_Limit_Falling_Register(PULSE_HANDLE_T pv_Function)
 {
-  p_El_Limit_Falling_Handler = p_Function;
+  pv_EL_Limit_Falling_Handler = pv_Function;
 }
-void v_El_Limit_Falling_Unregister(void)
+void v_EL_Limit_Falling_Unregister(void)
 {
-  p_El_Limit_Falling_Handler = 0;
+  pv_EL_Limit_Falling_Handler = 0;
 }
 
 /**
@@ -433,13 +444,13 @@ void EL_LIMIT_EXTI_IRQn_Handler(void)
     EXTI_ClearITPendingBit(EL_LIMIT_EXTI_LINE);
     if (GPIO_ReadInputDataBit(EL_LIMIT_PULSE_PORT, EL_LIMIT_PULSE_PIN))
     {
-      if (p_El_Limit_Rising_Handler != 0)
-        p_El_Limit_Rising_Handler();
+      if (pv_EL_Limit_Rising_Handler != 0)
+        pv_EL_Limit_Rising_Handler();
     }
     else
     {
-      if (p_El_Limit_Falling_Handler != 0)
-        p_El_Limit_Falling_Handler();
+      if (pv_EL_Limit_Falling_Handler != 0)
+        pv_EL_Limit_Falling_Handler();
     }
   }
 }

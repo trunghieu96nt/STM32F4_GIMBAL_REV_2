@@ -220,7 +220,7 @@ static bool bool_I2C_ReadBytes(I2C_TypeDef* I2Cx, uint8_t *pu8_Buff,
   * @param  pu8_Buff: pointer to array that will store bytes from slave
   * @param  u8_Slave_Add: slave's address
   * @param  u8_Reg_Add: start address of the register of the slave
-  * @param  ui8len: length of the array
+  * @param  u8_Length: length of the array
   * @retval true if succeed and vice versa
   */
 static bool bool_I2C_WriteBytes(I2C_TypeDef * I2Cx, const uint8_t *pu8_Buff,

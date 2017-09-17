@@ -76,10 +76,10 @@ void v_PID_Init(STRU_PID_T *pstru_PID)
   * @brief  Calculate PID
   * @note   ...
   * @param  pstru_PID: Pointer to struct PID
-  * @param  f_Feedback: feedback value
+  * @param  flt_Feedback: feedback value
   * @retval pstru_PID->Result
   */
-float f_PID_Calc(STRU_PID_T *pstru_PID, float f_Feedback)
+float flt_PID_Calc(STRU_PID_T *pstru_PID, float flt_Feedback)
 {
 #ifdef PID_METHOD_1
   float ke, ke_, ke__;
@@ -94,7 +94,7 @@ float f_PID_Calc(STRU_PID_T *pstru_PID, float f_Feedback)
       pstru_PID->Set_Point = pstru_PID->Set_Point_Buff;
   }
   
-  pstru_PID->e = pstru_PID->Set_Point - f_Feedback;
+  pstru_PID->e = pstru_PID->Set_Point - flt_Feedback;
   if (fabsf(pstru_PID->e) < pstru_PID->Deadband) pstru_PID->e = 0;
   
   ke   = pstru_PID->Kp + (pstru_PID->Ki / 2) + pstru_PID->Kd;
@@ -125,7 +125,7 @@ float f_PID_Calc(STRU_PID_T *pstru_PID, float f_Feedback)
       pstru_PID->Set_Point = pstru_PID->Set_Point_Buff;
   }
   
-  pstru_PID->e = pstru_PID->Set_Point - f_Feedback;
+  pstru_PID->e = pstru_PID->Set_Point - flt_Feedback;
   if (fabsf(pstru_PID->e) < pstru_PID->Deadband) pstru_PID->e = 0;
   
   /* pPart */
@@ -203,23 +203,19 @@ uint8_t u8_PID_Get_Use_Set_Point_Ramp(STRU_PID_T *pstru_PID)
   * @brief  Set setpoint (Get)
   * @note   ...
   * @param  pstru_PID: Pointer to struct PID
-  * @param  f_Set_Point: Desired Set Point
-  * @param  if (Use_Set_Point_Ramp == true) 
-  *           this function must call before when call PID_Calc
-  *           for limiting the accelerometer
+  * @param  flt_Set_Point: Desired Set Point
+  * @param  u8_Use_Ramp: if true -> set through Set_Point_Buff else -> set directly Set_Point
   * @retval none (pstru_PID->Set_Point)
   */
-void v_PID_Set_Set_Point(STRU_PID_T *pstru_PID, float f_Set_Point)
+void v_PID_Set_Set_Point(STRU_PID_T *pstru_PID, float flt_Set_Point, uint8_t u8_Use_Ramp)
 {
-  if(pstru_PID->Use_Set_Point_Ramp != 0) //true
-  {
-    pstru_PID->Set_Point_Buff = f_Set_Point;
-  }
+  if (u8_Use_Ramp != 0) //true
+    pstru_PID->Set_Point_Buff = flt_Set_Point;
   else
-    pstru_PID->Set_Point = f_Set_Point;
+    pstru_PID->Set_Point = flt_Set_Point;
 }
 
-float f_PID_Get_Set_Point(STRU_PID_T *pstru_PID)
+float flt_PID_Get_Set_Point(STRU_PID_T *pstru_PID)
 {
   return pstru_PID->Set_Point;
 }
@@ -229,15 +225,15 @@ float f_PID_Get_Set_Point(STRU_PID_T *pstru_PID)
   * @note   This is only work if (Use_Set_Point_Ramp == true)
   *         when call PID_SetPoint_Set
   * @param  pstru_PID: Pointer to struct PID
-  * @param  f_Max_Set_Point_Step: Desired Value
+  * @param  flt_Max_Set_Point_Step: Desired Value
   * @retval none (pstru_PID->Max_Set_Point_Step)
   */
-void v_PID_Set_Max_Set_Point_Step(STRU_PID_T *pstru_PID, float f_Max_Set_Point_Step)
+void v_PID_Set_Max_Set_Point_Step(STRU_PID_T *pstru_PID, float flt_Max_Set_Point_Step)
 {
-  pstru_PID->Max_Set_Point_Step = f_Max_Set_Point_Step;
+  pstru_PID->Max_Set_Point_Step = flt_Max_Set_Point_Step;
 }
 
-float f_PID_Get_Max_Set_Point_Step(STRU_PID_T *pstru_PID)
+float flt_PID_Get_Max_Set_Point_Step(STRU_PID_T *pstru_PID)
 {
   return pstru_PID->Max_Set_Point_Step;
 }
@@ -246,15 +242,15 @@ float f_PID_Get_Max_Set_Point_Step(STRU_PID_T *pstru_PID)
   * @brief  Set Deadband (Get)
   * @note   Deadband of e
   * @param  pstru_PID: Pointer to struct PID
-  * @param  f_Deadband: Desired Value
+  * @param  flt_Deadband: Desired Value
   * @retval none (pstru_PID->Deadband)
   */
-void v_PID_Set_Deadband(STRU_PID_T *pstru_PID, float f_Deadband)
+void v_PID_Set_Deadband(STRU_PID_T *pstru_PID, float flt_Deadband)
 {
-  pstru_PID->Deadband = f_Deadband;
+  pstru_PID->Deadband = flt_Deadband;
 }
 
-float f_PID_Get_Deadband(STRU_PID_T *pstru_PID)
+float flt_PID_Get_Deadband(STRU_PID_T *pstru_PID)
 {
   return pstru_PID->Deadband;
 }
@@ -263,35 +259,35 @@ float f_PID_Get_Deadband(STRU_PID_T *pstru_PID)
   * @brief  Set Kp Ki Kd (Get)
   * @note   Scale in Ki Kd
   * @param  pstru_PID: Pointer to struct PID
-  * @param  f_Kx (x = p, i, d): Desired Value
+  * @param  flt_Kx (x = p, i, d): Desired Value
   * @retval none (pstru_PID->Kx)
   */
-void v_PID_Set_Kp(STRU_PID_T *pstru_PID, float f_Kp)
+void v_PID_Set_Kp(STRU_PID_T *pstru_PID, float flt_Kp)
 {
-  pstru_PID->Kp = f_Kp;
+  pstru_PID->Kp = flt_Kp;
 }
 
-float f_PID_Get_Kp(STRU_PID_T *pstru_PID)
+float flt_PID_Get_Kp(STRU_PID_T *pstru_PID)
 {
   return pstru_PID->Kp;
 }
 
-void v_PID_Set_Ki(STRU_PID_T *pstru_PID, float f_Ki)
+void v_PID_Set_Ki(STRU_PID_T *pstru_PID, float flt_Ki)
 {
-  pstru_PID->Ki = f_Ki * pstru_PID->Ts;
+  pstru_PID->Ki = flt_Ki * pstru_PID->Ts;
 }
 
-float f_PID_Get_Ki(STRU_PID_T *pstru_PID)
+float flt_PID_Get_Ki(STRU_PID_T *pstru_PID)
 {
   return pstru_PID->Ki;
 }
 
-void v_PID_Set_Kd(STRU_PID_T *pstru_PID, float f_Kd)
+void v_PID_Set_Kd(STRU_PID_T *pstru_PID, float flt_Kd)
 {
-  pstru_PID->Kd = f_Kd / pstru_PID->Ts;
+  pstru_PID->Kd = flt_Kd / pstru_PID->Ts;
 }
 
-float f_PID_Get_Kd(STRU_PID_T *pstru_PID)
+float flt_PID_Get_Kd(STRU_PID_T *pstru_PID)
 {
   return pstru_PID->Kd;
 }
@@ -300,15 +296,15 @@ float f_PID_Get_Kd(STRU_PID_T *pstru_PID)
   * @brief  Set d part alpha (get)
   * @note   This is low filter for dPart
   * @param  pstru_PID: Pointer to struct PID
-  * @param  f_dPart_Alpha: Desired Value
+  * @param  flt_dPart_Alpha: Desired Value
   * @retval none (pstru_PID->dPart_Alpha)
   */
-void v_PID_Set_dPart_Alpha(STRU_PID_T *pstru_PID, float f_dPart_Alpha)
+void v_PID_Set_dPart_Alpha(STRU_PID_T *pstru_PID, float flt_dPart_Alpha)
 {
-  pstru_PID->dPart_Alpha = f_dPart_Alpha;
+  pstru_PID->dPart_Alpha = flt_dPart_Alpha;
 }
 
-float f_PID_Get_dPart_Alpha(STRU_PID_T *pstru_PID)
+float flt_PID_Get_dPart_Alpha(STRU_PID_T *pstru_PID)
 {
   return pstru_PID->dPart_Alpha;
 }
@@ -317,15 +313,15 @@ float f_PID_Get_dPart_Alpha(STRU_PID_T *pstru_PID)
   * @brief  Set Ts (Get)
   * @note   ...
   * @param  pstru_PID: Pointer to struct PID
-  * @param  float f_Ts: Desired Value
+  * @param  float flt_Ts: Desired Value
   * @retval none (pstru_PID->Ts)
   */
-void v_PID_Set_Ts(STRU_PID_T *pstru_PID, float f_Ts)
+void v_PID_Set_Ts(STRU_PID_T *pstru_PID, float flt_Ts)
 {
-  pstru_PID->Ts = f_Ts;
+  pstru_PID->Ts = flt_Ts;
 }
 
-float f_PID_Get_Ts(STRU_PID_T *pstru_PID)
+float flt_PID_Get_Ts(STRU_PID_T *pstru_PID)
 {
   return pstru_PID->Ts;
 }
@@ -334,15 +330,15 @@ float f_PID_Get_Ts(STRU_PID_T *pstru_PID)
   * @brief  Set Max Response (Get)
   * @note   Limit the pstru_PID->Result
   * @param  pstru_PID: Pointer to struct PID
-  * @param  f_Max_Response: Desired Value
+  * @param  flt_Max_Response: Desired Value
   * @retval none (pstru_PID->Max_Response)
   */
-void v_PID_Set_Max_Response(STRU_PID_T *pstru_PID, float f_Max_Response)
+void v_PID_Set_Max_Response(STRU_PID_T *pstru_PID, float flt_Max_Response)
 {
-  pstru_PID->Max_Response = f_Max_Response;
+  pstru_PID->Max_Response = flt_Max_Response;
 }
 
-float f_PID_Get_Max_Response(STRU_PID_T *pstru_PID)
+float flt_PID_Get_Max_Response(STRU_PID_T *pstru_PID)
 {
   return pstru_PID->Max_Response;
 }

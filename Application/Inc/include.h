@@ -9,4 +9,4 @@
 #include "adis_sensor.h"
 #include "uart_comm.h"
 #include "i2c_comm.h"
-
+#include "control.h"

@@ -10,6 +10,7 @@ void Board_Init()
   v_ADIS_Init();
   v_UART_Comm_Init();
   v_I2C_Comm_Init();
+  v_Control_Init();
   
   //for testing
   v_PWM0_Set_Duty(400);
@@ -26,7 +27,6 @@ void Board_Init()
 int main(void)
 {
   Board_Init();
-  
   
   while(true)
   {
@@ -45,6 +45,8 @@ int main(void)
     if(tick_flag == true)
     {
       tick_flag = false;
+      v_Control();
+      v_Send_Data();
     }
   }
 }

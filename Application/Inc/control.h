@@ -31,21 +31,38 @@ typedef enum
   AXIS_BOTH,
 } ENUM_AXIS_T;
 
+typedef enum {
+  STATE_KEEP = -1,
+  STATE_STOP,
+  STATE_HOME,
+  STATE_MANUAL,
+  STATE_POINTING,
+  STATE_TRACKING,
+  STATE_SINE,
+} ENUM_AXIS_STATE_T;
+
 /* Exported constants --------------------------------------------------------*/
-/** @defgroup Group_1
+/** @defgroup Const in Math
   * @{
   */
-//#define somethings
+#ifndef PI
+#define PI (3.141592653589793)
+#endif
+#define RAD_TO_DEGREE       (180 / PI)
+#define DEGREE_TO_RAD       (PI / 180)
 /**
   * @}
   */
 
 /* Exported macro ------------------------------------------------------------*/
 /* Exported functions --------------------------------------------------------*/
-
 /* Initialization and Configuration functions *********************************/
+void v_Control_Init(void);
 
-/* GPIO Read and Write functions **********************************************/
+/* Control Functions **********************************************************/
+void v_Control(void);
+void v_Send_Data(void);
+
 #ifdef __cplusplus
 }
 #endif

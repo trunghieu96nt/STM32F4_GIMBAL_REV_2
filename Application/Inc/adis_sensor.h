@@ -98,6 +98,7 @@ void v_ADIS_Init(void);
 /* ADIS Read functions ********************************************************/
 bool bool_ADIS_Read(void);
 bool bool_ADIS_Read_IsTimeout(uint32_t u32_Timeout_ms);
+STRU_IMU_DATA_T stru_ADIS_Data(void);
 
 #ifdef __cplusplus
 }

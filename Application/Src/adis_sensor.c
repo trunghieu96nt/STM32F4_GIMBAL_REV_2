@@ -30,7 +30,7 @@
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
 static uint8_t au8_IMU_Rx[IMU_RXBUFF_SIZE]= {0};
-STRU_IMU_DATA_T stru_IMU_Data = {false}; //initial bool_Available value.
+static STRU_IMU_DATA_T stru_IMU_Data = {false}; //initial bool_Available value.
 
 /* Private function prototypes -----------------------------------------------*/
 static bool bool_ADIS_Parse(uint8_t *pu8_IMU_Frame);
@@ -140,7 +140,7 @@ bool bool_ADIS_Read(void)
 {
   static uint32_t u32_Idx_Pre = IMU_RXBUFF_SIZE - 1;
   uint32_t u32_Length, u32_Idx_Cur;
-  int32_t i32_Idx, i32_Cnt;
+  int32_t s32_Idx, s32_Cnt;
   uint8_t *pu8_End_Chr = NULL; //Can change to bool variable
   uint8_t au8_IMU_Frame[IMU_FRAME_LEN + 1];
   
@@ -154,27 +154,27 @@ bool bool_ADIS_Read(void)
   if (u32_Length < IMU_FRAME_LEN) return false;
   
   /* Search IMU_END_FRAME and Copy backward from au8_IMU_Rx[u32_Idx_Cur] */
-  i32_Idx = u32_Idx_Cur; i32_Cnt = IMU_FRAME_LEN - 2;
+  s32_Idx = u32_Idx_Cur; s32_Cnt = IMU_FRAME_LEN - 2;
   au8_IMU_Frame[IMU_FRAME_LEN] = 0;
   while (true)
   {
     if (pu8_End_Chr == NULL)
     {
-      if (*(au8_IMU_Rx + i32_Idx) == IMU_END_FRAME)
+      if (*(au8_IMU_Rx + s32_Idx) == IMU_END_FRAME)
       {
-        pu8_End_Chr = au8_IMU_Rx + i32_Idx;
+        pu8_End_Chr = au8_IMU_Rx + s32_Idx;
         au8_IMU_Frame[IMU_FRAME_LEN - 1] = IMU_END_FRAME;
-        u32_Idx_Cur = i32_Idx; //Save End index
+        u32_Idx_Cur = s32_Idx; //Save End index
       }
     }
     else
     {
-      au8_IMU_Frame[i32_Cnt] = *(au8_IMU_Rx + i32_Idx);
-      if (au8_IMU_Frame[i32_Cnt] == IMU_START_FRAME) break;
-      if (--i32_Cnt < 0) return false; //Over Length
+      au8_IMU_Frame[s32_Cnt] = *(au8_IMU_Rx + s32_Idx);
+      if (au8_IMU_Frame[s32_Cnt] == IMU_START_FRAME) break;
+      if (--s32_Cnt < 0) return false; //Over Length
     }
-    if (--i32_Idx < 0) i32_Idx = IMU_RXBUFF_SIZE - 1;
-    if (i32_Idx == u32_Idx_Pre) return false; //Not found
+    if (--s32_Idx < 0) s32_Idx = IMU_RXBUFF_SIZE - 1;
+    if (s32_Idx == u32_Idx_Pre) return false; //Not found
   }
   u32_Idx_Pre = u32_Idx_Cur;
   return bool_ADIS_Parse(au8_IMU_Frame);
@@ -245,6 +245,17 @@ bool bool_ADIS_Read_IsTimeout(uint32_t u32_Timeout_ms)
     stru_IMU_Data.bool_Available = true;
   }
   return false;
+}
+
+/**
+  * @brief  Get struct IMU data
+  * @note   ...
+  * @param  none
+  * @retval stru_IMU_Data
+  */
+STRU_IMU_DATA_T stru_ADIS_Data(void)
+{
+  return stru_IMU_Data;
 }
 
 /**
