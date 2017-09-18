@@ -24,6 +24,7 @@ extern "C" {
 
 /* Exported types ------------------------------------------------------------*/
 typedef void (*PULSE_HANDLE_T)(void);
+
 typedef enum
 {
   DI_PIN_0          = 0,
@@ -34,6 +35,12 @@ typedef enum
   DI_PIN_AZ_HOME    = 2,
   DI_PIN_EL_HOME    = 3
 } ENUM_DI_PIN_T;
+
+typedef enum
+{
+  SW_PIN_0          = 10,
+  SW_PIN_1          = 11,
+} ENUM_SW_PIN_T;
 /* Exported constants --------------------------------------------------------*/
 
 /** @defgroup LED Peripheral
@@ -51,10 +58,10 @@ typedef enum
 /** @defgroup Button Peripheral
   * @{
   */
-#define BTN_PERIPH_GPIO                   RCC_AHB1Periph_GPIOC
-#define BTN_GPIO                          GPIOC
-#define BTN0_PIN                          GPIO_Pin_10
-#define BTN1_PIN                          GPIO_Pin_11
+#define SW_PERIPH_GPIO                   RCC_AHB1Periph_GPIOC
+#define SW_GPIO                          GPIOC
+#define SW0_PIN                          GPIO_Pin_10
+#define SW1_PIN                          GPIO_Pin_11
 /**
   * @}
   */
@@ -130,6 +137,14 @@ typedef enum
 #define v_Blue_On()                       v_Led_Set(LED2_PIN)
 #define v_Blue_Off()                      v_Led_Reset(LED2_PIN)
 #define v_Blue_Toggle()                   v_Led_Toggle(LED2_PIN)
+
+#define v_DO0_On()                        v_DO_Reset(DO0_PIN);
+#define v_DO0_Off()                       v_DO_Set(DO0_PIN);
+#define v_DO0_Toggle()                    v_DO_Toggle(DO0_PIN);
+
+#define v_DO1_On()                        v_DO_Set(DO1_PIN);
+#define v_DO1_Off()                       v_DO_Reset(DO1_PIN);
+#define v_DO1_Toggle()                    v_DO_Toggle(DO1_PIN);
 /**
   * @}
   */
@@ -143,6 +158,9 @@ void v_GPIO_Init(void);
 void v_Led_Set(uint16_t LEDx_Pin);
 void v_Led_Reset(uint16_t LEDx_Pin);
 void v_Led_Toggle(uint16_t LEDx_Pin);
+
+/* SW functions ***************************************************************/
+uint8_t u8_SW_Read_Pin(ENUM_SW_PIN_T enum_Pin);
 
 /* DI functions ***************************************************************/
 uint8_t u8_DI_Read_Pin(ENUM_DI_PIN_T enum_Pin);

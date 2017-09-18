@@ -163,15 +163,26 @@ static void v_Button_Init(void)
 {
   GPIO_InitTypeDef GPIO_InitStructure;
   /* GPIOD Peripheral clock enable */
-  RCC_AHB1PeriphClockCmd(BTN_PERIPH_GPIO, ENABLE);
+  RCC_AHB1PeriphClockCmd(SW_PERIPH_GPIO, ENABLE);
   
   /* Configure LED1, LED2, LED3 in output pushpull mode */
-  GPIO_InitStructure.GPIO_Pin   = BTN0_PIN | BTN1_PIN;
+  GPIO_InitStructure.GPIO_Pin   = SW0_PIN | SW1_PIN;
   GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_IN;
   GPIO_InitStructure.GPIO_Speed = GPIO_Speed_2MHz;
   GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
   GPIO_InitStructure.GPIO_PuPd  = GPIO_PuPd_UP;
-  GPIO_Init(BTN_GPIO, &GPIO_InitStructure);
+  GPIO_Init(SW_GPIO, &GPIO_InitStructure);
+}
+
+/**
+  * @brief  Read Input Pin
+  * @note   It works right if enum_Pin 0 -> 7
+  * @param  enum_Pin: Specifies the port bit to read
+  * @retval The input port pin value
+  */
+uint8_t u8_SW_Read_Pin(ENUM_SW_PIN_T enum_Pin)
+{
+  return GPIO_ReadInputDataBit(SW_GPIO, 1 << enum_Pin);
 }
 
 /**

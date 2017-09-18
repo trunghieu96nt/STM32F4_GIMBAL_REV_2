@@ -308,8 +308,8 @@ static void v_Home_EL_Handler(void)
 
 static void v_Limit_El_Handler(void)
 {
-  v_Control_Change_Mode(STATE_STOP, STATE_STOP);
-  while(true); //Loop forever
+  //v_Control_Change_Mode(STATE_STOP, STATE_STOP);
+  //while(true); //Loop forever
 }
 /**
   * @}

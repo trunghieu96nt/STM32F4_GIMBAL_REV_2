@@ -13,11 +13,27 @@ void Board_Init()
   v_Control_Init();
   
   //for testing
-  v_PWM0_Set_Duty(400);
-  v_PWM1_Set_Duty(400);
+  //v_Red_On();
+  //v_Blue_On();
+  //v_Green_Toggle();
   
-  v_DO_Reset(DO0_PIN);
-  v_DO_Reset(DO1_PIN);
+  v_PWM0_Set_Duty(-800);
+  v_PWM1_Set_Duty(-500);
+  
+  v_DO0_Off();
+  v_DO1_Off();
+  
+  if(u8_SW_Read_Pin(SW_PIN_0) == 1)
+    v_DO0_Off();
+  
+  if(u8_SW_Read_Pin(SW_PIN_0) == 0)
+    v_DO0_Off();
+  
+  if(u8_SW_Read_Pin(SW_PIN_1) == 1)
+    v_DO0_Off();
+  
+  if(u8_SW_Read_Pin(SW_PIN_1) == 0)
+    v_DO0_Off();
   
   bool_CMD_Send((uint8_t *)"CMD Ok\r\n", strlen("CMD Ok\r\n"));
   bool_DATA_Send((uint8_t *)"DATA Ok\r\n", strlen("DATA Ok\r\n"));
@@ -30,7 +46,7 @@ int main(void)
   
   while(true)
   {
-    if(u32_System_Tick_Count > 500)
+    if(u32_System_Tick_Count > 1000)
     {
       u32_System_Tick_Count = 0;
       v_Red_Toggle();
@@ -39,14 +55,14 @@ int main(void)
     }
     
     v_CMD_Receive();
-    bool_ADIS_Read_IsTimeout(500);
+    bool_ADIS_Read_IsTimeout(10);
     
     //Controller
     if(tick_flag == true)
     {
       tick_flag = false;
       v_Control();
-      v_Send_Data();
+      //v_Send_Data();
     }
   }
 }
