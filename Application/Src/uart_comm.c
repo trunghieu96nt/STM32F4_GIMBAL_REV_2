@@ -31,21 +31,21 @@ static uint8_t au8_CMD_Rx[CMD_RXBUFF_SIZE]= {0};
 uint8_t au8_DATA_Rx[DATA_RXBUFF_SIZE]= {0};
 uint8_t au8_RESV_Rx[RESV_RXBUFF_SIZE]= {0};
 
-extern bool bool_None_Handler             (uint8_t *pu8_Data, uint32_t u32_Data_Cnt);
-extern bool bool_Home_Handler             (uint8_t *pu8_Data, uint32_t u32_Data_Cnt);
-extern bool bool_Stop_Handler             (uint8_t *pu8_Data, uint32_t u32_Data_Cnt);
-extern bool bool_Emergency_Stop_Handler   (uint8_t *pu8_Data, uint32_t u32_Data_Cnt);
-extern bool bool_Stabilizing_Mode_Handler (uint8_t *pu8_Data, uint32_t u32_Data_Cnt);
-extern bool bool_Set_Pos_Handler          (uint8_t *pu8_Data, uint32_t u32_Data_Cnt);
-extern bool bool_Set_Vel_Handler          (uint8_t *pu8_Data, uint32_t u32_Data_Cnt);
-extern bool bool_Set_Pos_Vel_Handler      (uint8_t *pu8_Data, uint32_t u32_Data_Cnt);
-extern bool bool_Get_Pos_Handler          (uint8_t *pu8_Data, uint32_t u32_Data_Cnt);
-extern bool bool_Set_Kp_Handler           (uint8_t *pu8_Data, uint32_t u32_Data_Cnt);
-extern bool bool_Set_Ki_Handler           (uint8_t *pu8_Data, uint32_t u32_Data_Cnt);
-extern bool bool_Set_Kd_Handler           (uint8_t *pu8_Data, uint32_t u32_Data_Cnt);
-extern bool bool_Set_Kff1_Handler         (uint8_t *pu8_Data, uint32_t u32_Data_Cnt);
-extern bool bool_Set_Kff2_Handler         (uint8_t *pu8_Data, uint32_t u32_Data_Cnt);
-extern bool bool_Get_Params_Handler       (uint8_t *pu8_Data, uint32_t u32_Data_Cnt);
+extern bool bool_None_Handler             (uint8_t u8_Msg_ID, uint8_t *pu8_Payload, uint32_t u32_Payload_Cnt);
+extern bool bool_Home_Handler             (uint8_t u8_Msg_ID, uint8_t *pu8_Payload, uint32_t u32_Payload_Cnt);
+extern bool bool_Stop_Handler             (uint8_t u8_Msg_ID, uint8_t *pu8_Payload, uint32_t u32_Payload_Cnt);
+extern bool bool_Emergency_Stop_Handler   (uint8_t u8_Msg_ID, uint8_t *pu8_Payload, uint32_t u32_Payload_Cnt);
+extern bool bool_Stabilizing_Mode_Handler (uint8_t u8_Msg_ID, uint8_t *pu8_Payload, uint32_t u32_Payload_Cnt);
+extern bool bool_Set_Pos_Handler          (uint8_t u8_Msg_ID, uint8_t *pu8_Payload, uint32_t u32_Payload_Cnt);
+extern bool bool_Set_Vel_Handler          (uint8_t u8_Msg_ID, uint8_t *pu8_Payload, uint32_t u32_Payload_Cnt);
+extern bool bool_Set_Pos_Vel_Handler      (uint8_t u8_Msg_ID, uint8_t *pu8_Payload, uint32_t u32_Payload_Cnt);
+extern bool bool_Get_Pos_Handler          (uint8_t u8_Msg_ID, uint8_t *pu8_Payload, uint32_t u32_Payload_Cnt);
+extern bool bool_Set_Kp_Handler           (uint8_t u8_Msg_ID, uint8_t *pu8_Payload, uint32_t u32_Payload_Cnt);
+extern bool bool_Set_Ki_Handler           (uint8_t u8_Msg_ID, uint8_t *pu8_Payload, uint32_t u32_Payload_Cnt);
+extern bool bool_Set_Kd_Handler           (uint8_t u8_Msg_ID, uint8_t *pu8_Payload, uint32_t u32_Payload_Cnt);
+extern bool bool_Set_Kff1_Handler         (uint8_t u8_Msg_ID, uint8_t *pu8_Payload, uint32_t u32_Payload_Cnt);
+extern bool bool_Set_Kff2_Handler         (uint8_t u8_Msg_ID, uint8_t *pu8_Payload, uint32_t u32_Payload_Cnt);
+extern bool bool_Get_Params_Handler       (uint8_t u8_Msg_ID, uint8_t *pu8_Payload, uint32_t u32_Payload_Cnt);
 
 const STRU_CMD_HANDLER_T astru_CMD_Handler[CMD_NUM_MSG_ID_MAX] =
 {
@@ -58,12 +58,12 @@ const STRU_CMD_HANDLER_T astru_CMD_Handler[CMD_NUM_MSG_ID_MAX] =
   {MSG_SET_VEL,             5,    bool_Set_Vel_Handler},
   {MSG_SET_POS_VEL,         9,    bool_Set_Pos_Vel_Handler},
   {MSG_GET_POS,             1,    bool_Get_Pos_Handler},
-  {MSG_SET_KP,              5,    bool_Set_Kp_Handler},
-  {MSG_SET_KI,              5,    bool_Set_Ki_Handler},
-  {MSG_SET_KD,              5,    bool_Set_Kd_Handler},
-  {MSG_SET_KFF1,            5,    bool_Set_Kff1_Handler},
-  {MSG_SET_KFF2,            5,    bool_Set_Kff2_Handler},
-  {MSG_GET_PARAMS,          1,    bool_Get_Params_Handler}
+  {MSG_SET_KP,              6,    bool_Set_Kp_Handler},
+  {MSG_SET_KI,              6,    bool_Set_Ki_Handler},
+  {MSG_SET_KD,              6,    bool_Set_Kd_Handler},
+  {MSG_SET_KFF1,            6,    bool_Set_Kff1_Handler},
+  {MSG_SET_KFF2,            6,    bool_Set_Kff2_Handler},
+  {MSG_GET_PARAMS,          2,    bool_Get_Params_Handler}
 };
 
 /* Private function prototypes -----------------------------------------------*/
@@ -332,6 +332,7 @@ void v_CMD_Receive(void)
   }
   
   /* Check CRC */
+  u16_CRC_Check = 0;
   u32_Length = au8_CMD_Frame[5] + 6 - 2; //Total Length except 2 byte CRC
   for (u32_Cnt = 0; u32_Cnt < u32_Length; u32_Cnt++)
   {
@@ -346,7 +347,8 @@ void v_CMD_Receive(void)
   if (astru_CMD_Handler[au8_CMD_Frame[6]].u32_Data_Num_Bytes != u32_Length) return;
   
   /* Handle Data */
-  astru_CMD_Handler[au8_CMD_Frame[6]].bool_Msg_Handler(&au8_CMD_Frame[7], u32_Length);
+  astru_CMD_Handler[au8_CMD_Frame[6]].bool_Msg_Handler(astru_CMD_Handler[au8_CMD_Frame[6]].enum_Msg_ID, 
+                                                       &au8_CMD_Frame[7], u32_Length);
 }
 
 /**

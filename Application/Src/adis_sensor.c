@@ -253,7 +253,7 @@ bool bool_ADIS_Read_IsTimeout(uint32_t u32_Timeout_ms)
   * @param  none
   * @retval stru_IMU_Data
   */
-STRU_IMU_DATA_T stru_ADIS_Data(void)
+STRU_IMU_DATA_T stru_Get_IMU_Data(void)
 {
   return stru_IMU_Data;
 }

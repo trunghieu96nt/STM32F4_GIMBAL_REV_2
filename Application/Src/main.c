@@ -1,5 +1,7 @@
 #include "include.h"
 
+int32_t a, b ,c;
+
 void Board_Init()
 {
   /* Enable SysTick at 1ms interrupt */
@@ -12,13 +14,15 @@ void Board_Init()
   v_I2C_Comm_Init();
   v_Control_Init();
   
-  //for testing
+  //v_Params_Load_All();
+  
+  /* for testing */
   //v_Red_On();
   //v_Blue_On();
   //v_Green_Toggle();
   
-  v_PWM0_Set_Duty(-800);
-  v_PWM1_Set_Duty(-500);
+  v_PWM0_Set_Duty(100);
+  v_PWM1_Set_Duty(500);
   
   v_DO0_Off();
   v_DO1_Off();
@@ -46,6 +50,10 @@ int main(void)
   
   while(true)
   {
+    a = s32_ENC0_Get_Pos();
+    b = s32_ENC1_Get_Pos();
+    c = s32_ENC2_Get_Pos();
+    
     if(u32_System_Tick_Count > 1000)
     {
       u32_System_Tick_Count = 0;

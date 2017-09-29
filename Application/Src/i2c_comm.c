@@ -26,11 +26,20 @@
 /* Private define ------------------------------------------------------------*/
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
+static const uint8_t au8_Params_Length[NUM_PARAMS_MAX] =
+{
+  /* Length. */     /* PARAMS_ID. */
+  2,                //CODE_VERSION = 0,
+  12,               //PARAMS_PID_AZ_MANUAL_POS,
+  12,               //PARAMS_PID_EL_MANUAL_POS,
+};
+
 /* Private function prototypes -----------------------------------------------*/
 static bool bool_I2C_ReadBytes(I2C_TypeDef* I2Cx, uint8_t *pu8_Buff,
                           uint8_t u8_Slave_Add, uint8_t u8_Reg_Add, uint8_t u8_Length);
 static bool bool_I2C_WriteBytes(I2C_TypeDef * I2Cx, const uint8_t *pu8_Buff,
                            uint8_t u8_Slave_Add, uint8_t u8_Reg_Add, uint8_t u8_Length);
+static uint32_t u32_Params_Get_Pos(ENUM_PARAMS_T enum_Params);
 
 /* Private functions ---------------------------------------------------------*/
 
@@ -385,6 +394,61 @@ bool bool_EEP_WriteBytes(const uint8_t* pu8_Buff, uint16_t u16_Reg_Add, uint16_t
     //delay_us(5000); //Important: Maximum write cycle time = 5ms
   }
   return true;
+}
+/**
+  * @}
+  */
+
+/** @defgroup Gimbal Params
+ *  @brief   ...
+ *
+ @verbatim
+ ===============================================================================
+                             ##### Gimbal Params #####
+ ===============================================================================  
+
+ @endverbatim
+  * @{
+  */
+
+/**
+  * @brief  Get Pos of params in real eeprom
+  * @note   ...
+  * @param  enum_Params: Desired Param
+  * @retval u32_Pos: Position of Params
+  */
+static uint32_t u32_Params_Get_Pos(ENUM_PARAMS_T enum_Params)
+{
+  uint32_t u32_Idx = 0, u32_Pos = 0;
+  for(u32_Idx = 0; u32_Idx < enum_Params; u32_Idx++)
+  {
+    u32_Pos += au8_Params_Length[u32_Idx];
+  }
+  return u32_Pos;
+}
+
+/**
+  * @brief  save params
+  * @note   ...
+  * @param  enum_Params: Desired Param
+  * @param  pu8Data: pointer of data need to save
+  * @retval true if succeed and vice versa
+  */
+bool bool_Params_Save(ENUM_PARAMS_T enum_Params, const uint8_t *pu8_Data)
+{
+  return bool_EEP_WriteBytes(pu8_Data, u32_Params_Get_Pos(enum_Params), au8_Params_Length[enum_Params]);
+}
+
+/**
+  * @brief  load params
+  * @note   ...
+  * @param  enum_Params: Desired Param
+  * @param  pu8Data: pointer of data store data loaded from eeprom
+  * @retval true if succeed and vice versa
+  */
+bool bool_Params_Load(ENUM_PARAMS_T enum_Params, uint8_t *pu8_Data)
+{
+  return bool_EEP_ReadBytes(pu8_Data, u32_Params_Get_Pos(enum_Params), au8_Params_Length[enum_Params]);
 }
 /**
   * @}

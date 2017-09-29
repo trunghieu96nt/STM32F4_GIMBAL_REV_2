@@ -51,6 +51,8 @@ void v_PID_Init(STRU_PID_T *pstru_PID)
   pstru_PID->Kp                 = 0.0f;
   pstru_PID->Ki                 = 0.0f;
   pstru_PID->Kd                 = 0.0f;
+  pstru_PID->Kff1               = 0.0f;
+  pstru_PID->Kff2               = 0.0f;
   
   pstru_PID->Use_Set_Point_Ramp = 0;
   pstru_PID->Max_Set_Point_Step = 0.0f;
@@ -256,7 +258,7 @@ float flt_PID_Get_Deadband(STRU_PID_T *pstru_PID)
 }
 
 /**
-  * @brief  Set Kp Ki Kd (Get)
+  * @brief  Set Kp Ki Kd Kff1 Kff2(Get)
   * @note   Scale in Ki Kd
   * @param  pstru_PID: Pointer to struct PID
   * @param  flt_Kx (x = p, i, d): Desired Value
@@ -279,7 +281,7 @@ void v_PID_Set_Ki(STRU_PID_T *pstru_PID, float flt_Ki)
 
 float flt_PID_Get_Ki(STRU_PID_T *pstru_PID)
 {
-  return pstru_PID->Ki;
+  return pstru_PID->Ki / pstru_PID->Ts;
 }
 
 void v_PID_Set_Kd(STRU_PID_T *pstru_PID, float flt_Kd)
@@ -289,7 +291,27 @@ void v_PID_Set_Kd(STRU_PID_T *pstru_PID, float flt_Kd)
 
 float flt_PID_Get_Kd(STRU_PID_T *pstru_PID)
 {
-  return pstru_PID->Kd;
+  return pstru_PID->Kd * pstru_PID->Ts;
+}
+
+void v_PID_Set_Kff1(STRU_PID_T *pstru_PID, float flt_Kff1)
+{
+  pstru_PID->Kff1 = flt_Kff1;
+}
+
+float flt_PID_Get_Kff1(STRU_PID_T *pstru_PID)
+{
+  return pstru_PID->Kff1;
+}
+
+void v_PID_Set_Kff2(STRU_PID_T *pstru_PID, float flt_Kff2)
+{
+  pstru_PID->Kff2 = flt_Kff2;
+}
+
+float flt_PID_Get_Kff2(STRU_PID_T *pstru_PID)
+{
+  return pstru_PID->Kff2;
 }
 
 /**

@@ -41,7 +41,7 @@ typedef enum{
   MSG_GET_PARAMS          = 0x0E
 } ENUM_MSG_ID_T;
 
-typedef bool (*CMD_HANDLER_FUNC)(uint8_t *, uint32_t);
+typedef bool (*CMD_HANDLER_FUNC)(uint8_t, uint8_t *, uint32_t);
 
 typedef struct{
   ENUM_MSG_ID_T enum_Msg_ID;

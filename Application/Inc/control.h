@@ -25,11 +25,19 @@ extern "C" {
 /* Exported types ------------------------------------------------------------*/
 typedef enum
 {
-  AXIS_INVALID = -1,
-  AXIS_A,
-  AXIS_E,
+  AXIS_INVALID = 0,
+  AXIS_AZ,
+  AXIS_EL,
   AXIS_BOTH,
 } ENUM_AXIS_T;
+
+typedef enum
+{
+  PID_ID_INVALID = 0,
+  PID_ID_MANUAL,
+  PID_ID_STABILIZING_OUTER,
+  PID_ID_STABILIZING_INNER,
+} ENUM_PID_ID_T;
 
 typedef enum {
   STATE_KEEP = -1,
@@ -62,6 +70,8 @@ void v_Control_Init(void);
 /* Control Functions **********************************************************/
 void v_Control(void);
 void v_Send_Data(void);
+void v_Params_Save_Default(void);
+void v_Params_Load_All(void);
 
 #ifdef __cplusplus
 }

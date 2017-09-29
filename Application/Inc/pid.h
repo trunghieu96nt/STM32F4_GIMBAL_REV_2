@@ -28,6 +28,8 @@ typedef struct
   float Kp;
   float Ki;
   float Kd;
+  float Kff1;
+  float Kff2;
   
   /* Considerate of saving to eeprom */
   uint8_t Use_Set_Point_Ramp; //easy to save
@@ -88,6 +90,10 @@ float flt_PID_Get_Deadband(STRU_PID_T *pstru_PID);
 float flt_PID_Get_Kp(STRU_PID_T *pstru_PID);
 float flt_PID_Get_Ki(STRU_PID_T *pstru_PID);
 float flt_PID_Get_Kd(STRU_PID_T *pstru_PID);
+void v_PID_Set_Kff1(STRU_PID_T *pstru_PID, float flt_Kff1);
+void v_PID_Set_Kff2(STRU_PID_T *pstru_PID, float flt_Kff2);
+float flt_PID_Get_Kff1(STRU_PID_T *pstru_PID);
+float flt_PID_Get_Kff2(STRU_PID_T *pstru_PID);
 float flt_PID_Get_dPart_Alpha(STRU_PID_T *pstru_PID);
 float flt_PID_Get_Ts(STRU_PID_T *pstru_PID);
 float flt_PID_Get_Max_Response(STRU_PID_T *pstru_PID);

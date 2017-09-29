@@ -23,6 +23,12 @@ extern "C" {
 #include "stdint.h"
 
 /* Exported types ------------------------------------------------------------*/
+typedef enum{
+  PARAMS_CODE_VERSION = 0,
+  PARAMS_PID_AZ_MANUAL_POS,
+  PARAMS_PID_EL_MANUAL_POS,
+} ENUM_PARAMS_T;
+
 /* Exported constants --------------------------------------------------------*/
 /** @defgroup EEP - RESV Init
   * @{
@@ -37,7 +43,7 @@ extern "C" {
 #define EEP_RESV_AF                GPIO_AF_I2C1
 #define EEP_RESV_BAUDRATE          400000  // 400kHz
 #define EEP_RESV_DATA_REG          (uint32_t)EEP_I2C + 0x10
-#define I2C_TIMEOUT           100000
+#define I2C_TIMEOUT                100000
 /**
   * @}
   */
@@ -46,9 +52,17 @@ extern "C" {
   * @{
   */
 /* Note: EEPROM AT24C04 address is 8 bits:|1010|A2|A1|Page|R/W| */
-#define EEP_ADD               0xA0
-#define EEP_PAGE_0            0x00
-#define EEP_PAGE_1            0x02
+#define EEP_ADD                    0xA0
+#define EEP_PAGE_0                 0x00
+#define EEP_PAGE_1                 0x02
+/**
+  * @}
+  */
+
+/** @defgroup Gimbal Params
+  * @{
+  */
+#define NUM_PARAMS_MAX             20
 /**
   * @}
   */
@@ -61,6 +75,10 @@ void v_I2C_Comm_Init(void);
 /* EPP Read and Write functions ***********************************************/
 bool bool_EEP_ReadBytes(uint8_t* pu8_Buff, uint16_t u16_Reg_Add, uint16_t u16_Length);
 bool bool_EEP_WriteBytes(const uint8_t* pu8_Buff, uint16_t u16_Reg_Add, uint16_t u16_Length);
+
+/* Params Save and Load Functions *********************************************/
+bool bool_Params_Save(ENUM_PARAMS_T enum_Params, const uint8_t *pu8_Data);
+bool bool_Params_Load(ENUM_PARAMS_T enum_Params, uint8_t *pu8_Data);
 
 #ifdef __cplusplus
 }
