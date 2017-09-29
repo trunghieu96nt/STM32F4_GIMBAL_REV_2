@@ -2,7 +2,7 @@
 #include "system_timetick.h"
 
 volatile uint32_t tick_count = 0; // for system
-volatile uint32_t sysTickCount = 0; // for user
+volatile uint32_t u32_System_Tick_Count = 0; // for user
 volatile uint32_t tick_flag = 0;
 
 
@@ -58,7 +58,7 @@ void SysTick_Handler(void)
 {
   tick_flag = 1;
   tick_count++;
-  sysTickCount++;
+  u32_System_Tick_Count++;
 }
 
 uint32_t SysTick_GetTick(void)
