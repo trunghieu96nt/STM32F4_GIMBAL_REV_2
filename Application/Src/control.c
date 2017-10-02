@@ -554,7 +554,7 @@ static void v_Send_Respond_Msg(uint8_t u8_Msg_ID, uint8_t *pu8_Payload, uint32_t
 {
   uint32_t u32_Idx, u32_Message_No_Checksum_Size;
   uint16_t u16_CRC_Check;
-  uint8_t au8_Respond_Message[MAX_RES_MESSAGE_LEN] = {0x47, 0x42, 0x01, 0x02, 0x00};
+  static uint8_t au8_Respond_Message[MAX_RES_MESSAGE_LEN] = {0x47, 0x42, 0x01, 0x02, 0x00};
   
   /* Total Length */
   u32_Message_No_Checksum_Size = 7 + u32_Payload_Cnt;
