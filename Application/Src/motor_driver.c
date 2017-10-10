@@ -624,52 +624,52 @@ static uint32_t u32_Timer_Get_Clock(TIM_TypeDef* TIMx)
   */
 int32_t s32_EL_ENC_Get_Pos(void)
 {
-  return s32_ENC0_Get_Pos();
+  return s32_ENC1_Get_Pos();
 }
 
 int32_t s32_AZ_ENC_Get_Pos(void)
 {
-  return s32_ENC1_Get_Pos();
+  return s32_ENC0_Get_Pos();
 }
 
 float flt_EL_ENC_Get_Angle(void)
 {
-  return flt_ENC0_Get_Angle();
+  return flt_ENC1_Get_Angle();
 }
 
 float flt_AZ_ENC_Get_Angle(void)
 {
-  return flt_ENC1_Get_Angle();
+  return flt_ENC0_Get_Angle();
 }
 
 void v_EL_ENC_Reset(void)
 {
-  v_ENC0_Reset();
+  v_ENC1_Reset();
 }
 
 void v_AZ_ENC_Reset(void)
 {
-  v_ENC1_Reset();
+  v_ENC0_Reset();
 }
 
 void v_EL_PWM_Set_Freq(uint32_t u32_Frequency)
 {
-  v_PWM0_Set_Freq(u32_Frequency);
+  v_PWM1_Set_Freq(u32_Frequency);
 }
 
 void v_AZ_PWM_Set_Freq(uint32_t u32_Frequency)
 {
-  v_PWM1_Set_Freq(u32_Frequency);
+  v_PWM0_Set_Freq(u32_Frequency);
 }
 
 void v_EL_PWM_Set_Duty(int16_t s16_Duty)
 {
-  v_PWM0_Set_Duty(s16_Duty);
+  v_PWM1_Set_Duty(s16_Duty);
 }
 
 void v_AZ_PWM_Set_Duty(int16_t s16_Duty)
 {
-  v_PWM1_Set_Duty(s16_Duty);
+  v_PWM0_Set_Duty(s16_Duty);
 }
 /**
   * @}

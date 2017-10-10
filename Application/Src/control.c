@@ -40,7 +40,7 @@
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
 static volatile ENUM_AXIS_STATE_T enum_AZ_State = STATE_HOME; //STATE_HOME STATE_SINE
-static volatile ENUM_AXIS_STATE_T enum_EL_State = STATE_STOP; //STATE_STOP
+static volatile ENUM_AXIS_STATE_T enum_EL_State = STATE_HOME; //STATE_STOP
 
 static volatile bool bool_AZ_Going_Home = false;
 static volatile bool bool_EL_Going_Home = false;
@@ -132,10 +132,14 @@ void v_Control_Init(void)
   */
 void v_Control(void)
 {
+  float flt_az_test;
   switch(enum_AZ_State)
   {
     case STATE_STOP:
     { 
+      flt_az_test = flt_AZ_ENC_Get_Angle();
+      if ((flt_az_test > 45.0f) || (flt_az_test < -45.0f))
+        v_AZ_PWM_Set_Duty(0);
       break;
     }
     case STATE_HOME:
@@ -146,7 +150,7 @@ void v_Control(void)
         v_AZ_Home_Falling_Register(v_Home_AZ_Handler);
         
         if(u8_DI_Read_Pin(DI_PIN_AZ_HOME) == 0)
-          v_AZ_PWM_Set_Duty(-75);
+          v_AZ_PWM_Set_Duty(-90);
         else
           v_AZ_PWM_Set_Duty(75);
       }
@@ -184,9 +188,9 @@ void v_Control(void)
         v_EL_Home_Falling_Register(v_Home_EL_Handler);
         
         if(u8_DI_Read_Pin(DI_PIN_EL_HOME) == 0)
-          v_EL_PWM_Set_Duty(110);
+          v_EL_PWM_Set_Duty(90);
         else
-          v_EL_PWM_Set_Duty(-110);
+          v_EL_PWM_Set_Duty(-75);
       }
       break;
     case STATE_MANUAL:
@@ -360,7 +364,13 @@ bool bool_None_Handler(uint8_t u8_Msg_ID, uint8_t *pu8_Payload, uint32_t u32_Pay
 
 bool bool_Home_Handler(uint8_t u8_Msg_ID, uint8_t *pu8_Payload, uint32_t u32_Payload_Cnt)
 {
+  uint8_t au8_Respond_Payload[MAX_SHORT_RES_PAYLOAD_LEN];
+  
   v_Control_Change_Mode((ENUM_AXIS_T)(*pu8_Payload), STATE_HOME);
+  
+  au8_Respond_Payload[0] = *pu8_Payload;
+  au8_Respond_Payload[1] = 0x00; //Ok
+  v_Send_Respond_Msg(u8_Msg_ID, au8_Respond_Payload, 2);
   return true;
 }
 
@@ -369,6 +379,8 @@ bool bool_Stop_Handler(uint8_t u8_Msg_ID, uint8_t *pu8_Payload, uint32_t u32_Pay
   uint8_t au8_Respond_Payload[MAX_SHORT_RES_PAYLOAD_LEN];
   
   v_Control_Change_Mode((ENUM_AXIS_T)(*pu8_Payload), STATE_STOP);
+  
+  v_AZ_PWM_Set_Duty(75);
   
   au8_Respond_Payload[0] = *pu8_Payload;
   au8_Respond_Payload[1] = 0x00; //Ok
@@ -391,6 +403,9 @@ bool bool_Emergency_Stop_Handler(uint8_t u8_Msg_ID, uint8_t *pu8_Payload, uint32
 bool bool_Stabilizing_Mode_Handler(uint8_t u8_Msg_ID, uint8_t *pu8_Payload, uint32_t u32_Payload_Cnt)
 {
   uint8_t au8_Respond_Payload[MAX_SHORT_RES_PAYLOAD_LEN];
+  
+  v_Control_Change_Mode((ENUM_AXIS_T)(*pu8_Payload), STATE_STOP);
+  v_AZ_PWM_Set_Duty(-90);
   
   au8_Respond_Payload[0] = *pu8_Payload;
   au8_Respond_Payload[1] = 0x00; //Ok
@@ -453,6 +468,22 @@ bool bool_Get_Pos_Handler(uint8_t u8_Msg_ID, uint8_t *pu8_Payload, uint32_t u32_
 bool bool_Set_Kp_Handler(uint8_t u8_Msg_ID, uint8_t *pu8_Payload, uint32_t u32_Payload_Cnt)
 {
   uint8_t au8_Respond_Payload[MAX_SHORT_RES_PAYLOAD_LEN];
+  STRU_PID_T *pstru_Desired_PID;
+  uint32_t u32_Desired_Value;
+  
+  if (*pu8_Payload <= AXIS_INVALID) return false;
+  if (*pu8_Payload >= AXIS_BOTH) return false;
+  if (*(pu8_Payload + 1) <= PID_ID_INVALID) return false;
+  if (*(pu8_Payload + 1) > PID_ID_STABILIZING_INNER) return false;
+  
+  pstru_Desired_PID = apstru_PID[*pu8_Payload][*(pu8_Payload + 1)];
+  
+  u32_Desired_Value = (*(pu8_Payload + 2) << 24) & 0x0ff000000;
+  u32_Desired_Value += (*(pu8_Payload + 3) << 16) & 0x0ff0000;
+  u32_Desired_Value += (*(pu8_Payload + 4) << 8) & 0x0ff00;
+  u32_Desired_Value += *(pu8_Payload + 5) & 0x0ff;
+  
+  v_PID_Set_Kp(pstru_Desired_PID, (float)u32_Desired_Value / PARAMS_SCALE);
   
   au8_Respond_Payload[0] = *pu8_Payload;
   au8_Respond_Payload[1] = 0x00; //Ok
@@ -463,6 +494,22 @@ bool bool_Set_Kp_Handler(uint8_t u8_Msg_ID, uint8_t *pu8_Payload, uint32_t u32_P
 bool bool_Set_Ki_Handler(uint8_t u8_Msg_ID, uint8_t *pu8_Payload, uint32_t u32_Payload_Cnt)
 {
   uint8_t au8_Respond_Payload[MAX_SHORT_RES_PAYLOAD_LEN];
+  STRU_PID_T *pstru_Desired_PID;
+  uint32_t u32_Desired_Value;
+  
+  if (*pu8_Payload <= AXIS_INVALID) return false;
+  if (*pu8_Payload >= AXIS_BOTH) return false;
+  if (*(pu8_Payload + 1) <= PID_ID_INVALID) return false;
+  if (*(pu8_Payload + 1) > PID_ID_STABILIZING_INNER) return false;
+  
+  pstru_Desired_PID = apstru_PID[*pu8_Payload][*(pu8_Payload + 1)];
+  
+  u32_Desired_Value = (*(pu8_Payload + 2) << 24) & 0x0ff000000;
+  u32_Desired_Value += (*(pu8_Payload + 3) << 16) & 0x0ff0000;
+  u32_Desired_Value += (*(pu8_Payload + 4) << 8) & 0x0ff00;
+  u32_Desired_Value += *(pu8_Payload + 5) & 0x0ff;
+  
+  v_PID_Set_Ki(pstru_Desired_PID, (float)u32_Desired_Value / PARAMS_SCALE);
   
   au8_Respond_Payload[0] = *pu8_Payload;
   au8_Respond_Payload[1] = 0x00; //Ok
@@ -473,6 +520,22 @@ bool bool_Set_Ki_Handler(uint8_t u8_Msg_ID, uint8_t *pu8_Payload, uint32_t u32_P
 bool bool_Set_Kd_Handler(uint8_t u8_Msg_ID, uint8_t *pu8_Payload, uint32_t u32_Payload_Cnt)
 {
   uint8_t au8_Respond_Payload[MAX_SHORT_RES_PAYLOAD_LEN];
+  STRU_PID_T *pstru_Desired_PID;
+  uint32_t u32_Desired_Value;
+  
+  if (*pu8_Payload <= AXIS_INVALID) return false;
+  if (*pu8_Payload >= AXIS_BOTH) return false;
+  if (*(pu8_Payload + 1) <= PID_ID_INVALID) return false;
+  if (*(pu8_Payload + 1) > PID_ID_STABILIZING_INNER) return false;
+  
+  pstru_Desired_PID = apstru_PID[*pu8_Payload][*(pu8_Payload + 1)];
+  
+  u32_Desired_Value = (*(pu8_Payload + 2) << 24) & 0x0ff000000;
+  u32_Desired_Value += (*(pu8_Payload + 3) << 16) & 0x0ff0000;
+  u32_Desired_Value += (*(pu8_Payload + 4) << 8) & 0x0ff00;
+  u32_Desired_Value += *(pu8_Payload + 5) & 0x0ff;
+  
+  v_PID_Set_Kd(pstru_Desired_PID, (float)u32_Desired_Value / PARAMS_SCALE);
   
   au8_Respond_Payload[0] = *pu8_Payload;
   au8_Respond_Payload[1] = 0x00; //Ok
@@ -483,6 +546,22 @@ bool bool_Set_Kd_Handler(uint8_t u8_Msg_ID, uint8_t *pu8_Payload, uint32_t u32_P
 bool bool_Set_Kff1_Handler(uint8_t u8_Msg_ID, uint8_t *pu8_Payload, uint32_t u32_Payload_Cnt)
 {
   uint8_t au8_Respond_Payload[MAX_SHORT_RES_PAYLOAD_LEN];
+  STRU_PID_T *pstru_Desired_PID;
+  uint32_t u32_Desired_Value;
+  
+  if (*pu8_Payload <= AXIS_INVALID) return false;
+  if (*pu8_Payload >= AXIS_BOTH) return false;
+  if (*(pu8_Payload + 1) <= PID_ID_INVALID) return false;
+  if (*(pu8_Payload + 1) > PID_ID_STABILIZING_INNER) return false;
+  
+  pstru_Desired_PID = apstru_PID[*pu8_Payload][*(pu8_Payload + 1)];
+  
+  u32_Desired_Value = (*(pu8_Payload + 2) << 24) & 0x0ff000000;
+  u32_Desired_Value += (*(pu8_Payload + 3) << 16) & 0x0ff0000;
+  u32_Desired_Value += (*(pu8_Payload + 4) << 8) & 0x0ff00;
+  u32_Desired_Value += *(pu8_Payload + 5) & 0x0ff;
+  
+  v_PID_Set_Kff1(pstru_Desired_PID, (float)u32_Desired_Value / PARAMS_SCALE);
   
   au8_Respond_Payload[0] = *pu8_Payload;
   au8_Respond_Payload[1] = 0x00; //Ok
@@ -493,6 +572,22 @@ bool bool_Set_Kff1_Handler(uint8_t u8_Msg_ID, uint8_t *pu8_Payload, uint32_t u32
 bool bool_Set_Kff2_Handler(uint8_t u8_Msg_ID, uint8_t *pu8_Payload, uint32_t u32_Payload_Cnt)
 {
   uint8_t au8_Respond_Payload[MAX_SHORT_RES_PAYLOAD_LEN];
+  STRU_PID_T *pstru_Desired_PID;
+  uint32_t u32_Desired_Value;
+  
+  if (*pu8_Payload <= AXIS_INVALID) return false;
+  if (*pu8_Payload >= AXIS_BOTH) return false;
+  if (*(pu8_Payload + 1) <= PID_ID_INVALID) return false;
+  if (*(pu8_Payload + 1) > PID_ID_STABILIZING_INNER) return false;
+  
+  pstru_Desired_PID = apstru_PID[*pu8_Payload][*(pu8_Payload + 1)];
+  
+  u32_Desired_Value = (*(pu8_Payload + 2) << 24) & 0x0ff000000;
+  u32_Desired_Value += (*(pu8_Payload + 3) << 16) & 0x0ff0000;
+  u32_Desired_Value += (*(pu8_Payload + 4) << 8) & 0x0ff00;
+  u32_Desired_Value += *(pu8_Payload + 5) & 0x0ff;
+  
+  v_PID_Set_Kff2(pstru_Desired_PID, (float)u32_Desired_Value / PARAMS_SCALE);
   
   au8_Respond_Payload[0] = *pu8_Payload;
   au8_Respond_Payload[1] = 0x00; //Ok
@@ -554,7 +649,7 @@ static void v_Send_Respond_Msg(uint8_t u8_Msg_ID, uint8_t *pu8_Payload, uint32_t
 {
   uint32_t u32_Idx, u32_Message_No_Checksum_Size;
   uint16_t u16_CRC_Check;
-  uint8_t au8_Respond_Message[MAX_RES_MESSAGE_LEN] = {0x47, 0x42, 0x01, 0x02, 0x00};
+  static uint8_t au8_Respond_Message[MAX_RES_MESSAGE_LEN] = {0x47, 0x42, 0x01, 0x02, 0x00};
   
   /* Total Length */
   u32_Message_No_Checksum_Size = 7 + u32_Payload_Cnt;

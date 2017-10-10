@@ -43,7 +43,7 @@ extern "C" {
 #define ENC0_B_POS                      GPIO_Pin_9
 #define ENC0_B_SOURCE_POS               GPIO_PinSource9
 #define ENC0_AF_POS                     GPIO_AF_TIM1
-#define ENC0_ANGLE_SCALE                0.0009f //360 / (1000 * 100 * 4)
+#define ENC0_ANGLE_SCALE                0.0018f //360 / (1000 * 50 * 4)
 /**
   * @}
   */

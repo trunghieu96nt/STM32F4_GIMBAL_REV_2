@@ -201,7 +201,7 @@ static void v_CMD_UART_Init(void)
 /**
   * @brief  Send message through DMA - UART
   * @note   CMD
-  * @param  pu8_Message: pointer message to send
+  * @param  pu8_Message: pointer message to send (should be static)
   * @param  u32_Message_Size: number of char to send
   * @retval true if success and vice versa
   */
@@ -459,7 +459,7 @@ static void v_DATA_UART_Init(void)
 /**
   * @brief  Send message through DMA - UART
   * @note   DATA
-  * @param  pu8_Message: pointer message to send
+  * @param  pu8_Message: pointer message to send (should be static)
   * @param  u32_Message_Size: number of char to send
   * @retval true if success and vice versa
   */
@@ -593,7 +593,7 @@ static void v_RESV_UART_Init(void)
 /**
   * @brief  Send message through DMA - UART
   * @note   RESV
-  * @param  pu8_Message: pointer message to send
+  * @param  pu8_Message: pointer message to send (should be static)
   * @param  u32_Message_Size: number of char to send
   * @retval true if success and vice versa
   */
