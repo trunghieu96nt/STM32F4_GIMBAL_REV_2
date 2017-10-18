@@ -25,24 +25,28 @@ extern "C" {
 /* Exported types ------------------------------------------------------------*/
 typedef enum
 {
-  AXIS_INVALID = 0,
+  AXIS_INVALID_L = 0,
   AXIS_AZ,
   AXIS_EL,
   AXIS_BOTH,
+  AXIS_INVALID_H,
 } ENUM_AXIS_T;
 
 typedef enum
 {
-  PID_ID_INVALID = 0,
-  PID_ID_MANUAL,
-  PID_ID_STABILIZING_OUTER,
-  PID_ID_STABILIZING_INNER,
+  PID_ID_INVALID_L      = 0,
+  PID_ID_MANUAL         = 1,
+  PID_ID_POINTING       = 2,
+  PID_ID_TRACKING       = 3,
+  PID_ID_VELOCITY       = 4,
+  PID_ID_CURRENT        = 5,
+  PID_ID_INVALID_H      = 6,
 } ENUM_PID_ID_T;
 
 typedef enum {
   STATE_KEEP = -1,
-  STATE_STOP,
   STATE_HOME,
+  STATE_STOP,
   STATE_MANUAL,
   STATE_POINTING,
   STATE_TRACKING,

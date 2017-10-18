@@ -28,14 +28,15 @@
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
 static uint8_t au8_CMD_Rx[CMD_RXBUFF_SIZE]= {0};
-uint8_t au8_DATA_Rx[DATA_RXBUFF_SIZE]= {0};
-uint8_t au8_RESV_Rx[RESV_RXBUFF_SIZE]= {0};
+static uint8_t au8_DATA_Rx[DATA_RXBUFF_SIZE]= {0};
+static uint8_t au8_RESV_Rx[RESV_RXBUFF_SIZE]= {0};
 
 extern bool bool_None_Handler             (uint8_t u8_Msg_ID, uint8_t *pu8_Payload, uint32_t u32_Payload_Cnt);
 extern bool bool_Home_Handler             (uint8_t u8_Msg_ID, uint8_t *pu8_Payload, uint32_t u32_Payload_Cnt);
 extern bool bool_Stop_Handler             (uint8_t u8_Msg_ID, uint8_t *pu8_Payload, uint32_t u32_Payload_Cnt);
 extern bool bool_Emergency_Stop_Handler   (uint8_t u8_Msg_ID, uint8_t *pu8_Payload, uint32_t u32_Payload_Cnt);
 extern bool bool_Stabilizing_Mode_Handler (uint8_t u8_Msg_ID, uint8_t *pu8_Payload, uint32_t u32_Payload_Cnt);
+extern bool bool_Get_Mode_Handler         (uint8_t u8_Msg_ID, uint8_t *pu8_Payload, uint32_t u32_Payload_Cnt);
 extern bool bool_Set_Pos_Handler          (uint8_t u8_Msg_ID, uint8_t *pu8_Payload, uint32_t u32_Payload_Cnt);
 extern bool bool_Set_Vel_Handler          (uint8_t u8_Msg_ID, uint8_t *pu8_Payload, uint32_t u32_Payload_Cnt);
 extern bool bool_Set_Pos_Vel_Handler      (uint8_t u8_Msg_ID, uint8_t *pu8_Payload, uint32_t u32_Payload_Cnt);
@@ -46,6 +47,8 @@ extern bool bool_Set_Kd_Handler           (uint8_t u8_Msg_ID, uint8_t *pu8_Paylo
 extern bool bool_Set_Kff1_Handler         (uint8_t u8_Msg_ID, uint8_t *pu8_Payload, uint32_t u32_Payload_Cnt);
 extern bool bool_Set_Kff2_Handler         (uint8_t u8_Msg_ID, uint8_t *pu8_Payload, uint32_t u32_Payload_Cnt);
 extern bool bool_Get_Params_Handler       (uint8_t u8_Msg_ID, uint8_t *pu8_Payload, uint32_t u32_Payload_Cnt);
+extern bool bool_Set_Active_Axis_Handler  (uint8_t u8_Msg_ID, uint8_t *pu8_Payload, uint32_t u32_Payload_Cnt);
+extern bool bool_Get_Active_Axis_Handler  (uint8_t u8_Msg_ID, uint8_t *pu8_Payload, uint32_t u32_Payload_Cnt);
 
 const STRU_CMD_HANDLER_T astru_CMD_Handler[CMD_NUM_MSG_ID_MAX] =
 {
@@ -54,6 +57,7 @@ const STRU_CMD_HANDLER_T astru_CMD_Handler[CMD_NUM_MSG_ID_MAX] =
   {MSG_STOP,                1,    bool_Stop_Handler},
   {MSG_EMERGENCY_STOP,      1,    bool_Emergency_Stop_Handler},
   {MSG_STABILIZING_MODE,    2,    bool_Stabilizing_Mode_Handler},
+  {MSG_GET_MODE,            1,    bool_Get_Mode_Handler},
   {MSG_SET_POS,             5,    bool_Set_Pos_Handler},
   {MSG_SET_VEL,             5,    bool_Set_Vel_Handler},
   {MSG_SET_POS_VEL,         9,    bool_Set_Pos_Vel_Handler},
@@ -63,7 +67,9 @@ const STRU_CMD_HANDLER_T astru_CMD_Handler[CMD_NUM_MSG_ID_MAX] =
   {MSG_SET_KD,              6,    bool_Set_Kd_Handler},
   {MSG_SET_KFF1,            6,    bool_Set_Kff1_Handler},
   {MSG_SET_KFF2,            6,    bool_Set_Kff2_Handler},
-  {MSG_GET_PARAMS,          2,    bool_Get_Params_Handler}
+  {MSG_GET_PARAMS,          2,    bool_Get_Params_Handler},
+  {MSG_SET_ACTIVE_AXIS,     2,    bool_Set_Active_Axis_Handler},
+  {MSG_GET_ACTIVE_AXIS,     1,    bool_Get_Active_Axis_Handler}
 };
 
 /* Private function prototypes -----------------------------------------------*/
@@ -243,7 +249,7 @@ void v_CMD_Receive(void)
   {
     if (bool_Header_Detected == true)
     {
-      if (SysTick_IsTimeout(u32_Time_Tick, 50))
+      if (SysTick_IsTimeout(u32_Time_Tick, CMD_RX_FRAME_TIMEOUT))
       {
         u32_Idx = 0;
         bool_Length_Detected = false;

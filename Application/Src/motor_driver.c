@@ -533,14 +533,14 @@ void v_PWM0_Set_Duty(int16_t s16_Duty)
 #if PWM0_USE_EN_PIN
     PWM0_EN_PORT->BSRRL = PWM0_EN;// enable
 #endif
-    PWM0_DIR_PORT->BSRRL = PWM0_DIR; //1, forward
+    PWM0_DIR_PORT->BSRRL = PWM0_DIR; //0, forward
   }
   else //(s16_Duty < 0)
   {
 #if PWM0_USE_EN_PIN    
     PWM0_EN_PORT->BSRRL = PWM0_EN; // enable
 #endif
-    PWM0_DIR_PORT->BSRRH = PWM0_DIR; //0,  backward
+    PWM0_DIR_PORT->BSRRH = PWM0_DIR; //1,  backward
     s16_Duty = -s16_Duty;
   }
   s16_Duty = ((PWM0_TIM->ARR + 1)* s16_Duty + 500)/1000;
@@ -622,52 +622,52 @@ static uint32_t u32_Timer_Get_Clock(TIM_TypeDef* TIMx)
  @endverbatim
   * @{
   */
-int32_t s32_EL_ENC_Get_Pos(void)
+int32_t s32_AZ_ENC_Get_Pos(void)
 {
   return s32_ENC0_Get_Pos();
 }
 
-int32_t s32_AZ_ENC_Get_Pos(void)
+int32_t s32_EL_ENC_Get_Pos(void)
 {
   return s32_ENC1_Get_Pos();
 }
 
-float flt_EL_ENC_Get_Angle(void)
+float flt_AZ_ENC_Get_Angle(void)
 {
   return flt_ENC0_Get_Angle();
 }
 
-float flt_AZ_ENC_Get_Angle(void)
+float flt_EL_ENC_Get_Angle(void)
 {
   return flt_ENC1_Get_Angle();
 }
 
-void v_EL_ENC_Reset(void)
+void v_AZ_ENC_Reset(void)
 {
   v_ENC0_Reset();
 }
 
-void v_AZ_ENC_Reset(void)
+void v_EL_ENC_Reset(void)
 {
   v_ENC1_Reset();
 }
 
-void v_EL_PWM_Set_Freq(uint32_t u32_Frequency)
+void v_AZ_PWM_Set_Freq(uint32_t u32_Frequency)
 {
   v_PWM0_Set_Freq(u32_Frequency);
 }
 
-void v_AZ_PWM_Set_Freq(uint32_t u32_Frequency)
+void v_EL_PWM_Set_Freq(uint32_t u32_Frequency)
 {
   v_PWM1_Set_Freq(u32_Frequency);
 }
 
-void v_EL_PWM_Set_Duty(int16_t s16_Duty)
+void v_AZ_PWM_Set_Duty(int16_t s16_Duty)
 {
   v_PWM0_Set_Duty(s16_Duty);
 }
 
-void v_AZ_PWM_Set_Duty(int16_t s16_Duty)
+void v_EL_PWM_Set_Duty(int16_t s16_Duty)
 {
   v_PWM1_Set_Duty(s16_Duty);
 }

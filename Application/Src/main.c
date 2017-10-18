@@ -1,7 +1,5 @@
 #include "include.h"
 
-int32_t a, b ,c;
-
 void Board_Init()
 {
   /* Enable SysTick at 1ms interrupt */
@@ -16,28 +14,19 @@ void Board_Init()
   
   //v_Params_Load_All();
   
-  /* for testing */
-  //v_Red_On();
-  //v_Blue_On();
-  //v_Green_Toggle();
-  
-  v_PWM0_Set_Duty(100);
-  v_PWM1_Set_Duty(500);
-  
-  v_DO0_Off();
-  v_DO1_Off();
-  
-  if(u8_SW_Read_Pin(SW_PIN_0) == 1)
-    v_DO0_Off();
-  
-  if(u8_SW_Read_Pin(SW_PIN_0) == 0)
-    v_DO0_Off();
-  
-  if(u8_SW_Read_Pin(SW_PIN_1) == 1)
-    v_DO0_Off();
-  
-  if(u8_SW_Read_Pin(SW_PIN_1) == 0)
-    v_DO0_Off();
+  /* waiting for IMU Data is available */
+//  while(stru_Get_IMU_Data().bool_Available == false)
+//  {
+//    bool_ADIS_Read_IsTimeout(10);
+//    
+//    if(u32_System_Tick_Count > 1000)
+//    {
+//      u32_System_Tick_Count = 0;
+//      //v_Red_Toggle();
+//      v_Blue_Toggle();
+//      //v_Green_Toggle();
+//    }
+//  }
   
   bool_CMD_Send((uint8_t *)"CMD Ok\r\n", strlen("CMD Ok\r\n"));
   bool_DATA_Send((uint8_t *)"DATA Ok\r\n", strlen("DATA Ok\r\n"));
@@ -50,10 +39,6 @@ int main(void)
   
   while(true)
   {
-    a = s32_ENC0_Get_Pos();
-    b = s32_ENC1_Get_Pos();
-    c = s32_ENC2_Get_Pos();
-    
     if(u32_System_Tick_Count > 1000)
     {
       u32_System_Tick_Count = 0;
