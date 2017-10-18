@@ -29,16 +29,19 @@ typedef enum{
   MSG_STOP                = 0x02,
   MSG_EMERGENCY_STOP      = 0x03,
   MSG_STABILIZING_MODE    = 0x04,
-  MSG_SET_POS             = 0x05,
-  MSG_SET_VEL             = 0x06,
-  MSG_SET_POS_VEL         = 0x07,
-  MSG_GET_POS             = 0x08,
-  MSG_SET_KP              = 0x09,
-  MSG_SET_KI              = 0x0A,
-  MSG_SET_KD              = 0x0B,
-  MSG_SET_KFF1            = 0x0C,
-  MSG_SET_KFF2            = 0x0D,
-  MSG_GET_PARAMS          = 0x0E
+  MSG_GET_MODE            = 0x05,
+  MSG_SET_POS             = 0x06,
+  MSG_SET_VEL             = 0x07,
+  MSG_SET_POS_VEL         = 0x08,
+  MSG_GET_POS             = 0x09,
+  MSG_SET_KP              = 0x0A,
+  MSG_SET_KI              = 0x0B,
+  MSG_SET_KD              = 0x0C,
+  MSG_SET_KFF1            = 0x0D,
+  MSG_SET_KFF2            = 0x0E,
+  MSG_GET_PARAMS          = 0x0F,
+  MSG_SET_ACTIVE_AXIS     = 0x10,
+  MSG_GET_ACTIVE_AXIS     = 0x11,
 } ENUM_MSG_ID_T;
 
 typedef bool (*CMD_HANDLER_FUNC)(uint8_t, uint8_t *, uint32_t);
@@ -57,7 +60,7 @@ typedef struct{
 #define CMD_NUM_MSG_ID_MAX        20
 
 #define CMD_TXBUFF_SIZE           64
-#define CMD_RXBUFF_SIZE           64
+#define CMD_RXBUFF_SIZE           512
 #define CMD_FRAME_LEN_MAX         64
 
 #define CMD_USART                 USART2
