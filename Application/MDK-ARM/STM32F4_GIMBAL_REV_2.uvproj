@@ -456,6 +456,11 @@
               <FilePath>..\Src\pid.c</FilePath>
             </File>
             <File>
+              <FileName>filter.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Src\filter.c</FilePath>
+            </File>
+            <File>
               <FileName>utils.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\Src\utils.c</FilePath>
