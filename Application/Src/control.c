@@ -28,6 +28,7 @@
 #include "pid.h"
 #include "math.h"
 #include "stdio.h"
+#include "utils.h"
 
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
@@ -36,6 +37,7 @@
 #define MAX_RES_MESSAGE_LEN                 64
 #define PARAMS_SCALE                        1000000.0f
 #define POS_VEL_SCALE                       100.0f
+#define DATA_LOG_VELOCITY_LOOP
 
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
@@ -43,6 +45,8 @@ static volatile ENUM_AXIS_STATE_T enum_AZ_State = STATE_HOME; //STATE_HOME STATE
 static volatile ENUM_AXIS_STATE_T enum_EL_State = STATE_HOME; //STATE_STOP
 static bool bool_Active_AZ = true;
 static bool bool_Active_EL = true;
+static int16_t s16_AZ_PWM_Value = 0;
+static int16_t s16_EL_PWM_Value = 0;
 
 static volatile bool bool_AZ_Going_Home = false;
 static volatile bool bool_EL_Going_Home = false;
@@ -74,7 +78,6 @@ static void v_Control_Change_Mode(ENUM_AXIS_T enum_Axis, ENUM_AXIS_STATE_T enum_
 static void v_Home_AZ_Handler(void);
 static void v_Home_EL_Handler(void);
 static void v_Limit_El_Handler(void);
-static void v_Int_To_Str_N(int32_t s32_Number, uint8_t *pu8_Str, uint32_t u32_N);
 static void v_Send_Response(uint8_t u8_Msg_ID, uint8_t *pu8_Payload, uint32_t u32_Payload_Cnt);
 
 /* Private functions ---------------------------------------------------------*/
@@ -107,11 +110,11 @@ void v_Control_Init(void)
   
   /* AZ Manual PID */
   v_PID_Init(&stru_PID_AZ_Manual);
-  v_PID_Set_Kp(&stru_PID_AZ_Manual, 40);
-  v_PID_Set_Ki(&stru_PID_AZ_Manual, 0.3);
-  v_PID_Set_Kd(&stru_PID_AZ_Manual, 0.01);
+  v_PID_Set_Kp(&stru_PID_AZ_Manual, 100);
+  v_PID_Set_Ki(&stru_PID_AZ_Manual, 40);
+  v_PID_Set_Kd(&stru_PID_AZ_Manual, 0.5);
   v_PID_Set_Use_Set_Point_Ramp(&stru_PID_AZ_Manual, 1);
-  v_PID_Set_Max_Set_Point_Step(&stru_PID_AZ_Manual, 0.01);
+  v_PID_Set_Max_Set_Point_Step(&stru_PID_AZ_Manual, 0.05);
   
   /* EL Manual PID */
   v_PID_Init(&stru_PID_EL_Manual);
@@ -122,10 +125,17 @@ void v_Control_Init(void)
   v_PID_Set_Max_Set_Point_Step(&stru_PID_EL_Manual, 0.01);
   v_PID_Set_Max_Response(&stru_PID_EL_Manual, 500);
   
+  /* AZ Velocity PID */
+  v_PID_Init(&stru_PID_AZ_Velocity);
+  v_PID_Set_Kp(&stru_PID_AZ_Velocity, 0.10);
+  v_PID_Set_Ki(&stru_PID_AZ_Velocity, 20);
+  v_PID_Set_Kd(&stru_PID_AZ_Velocity, 0.0004);
+  v_PID_Set_Use_Set_Point_Ramp(&stru_PID_AZ_Velocity, 0);
+  v_PID_Set_Set_Point(&stru_PID_AZ_Velocity, 0.0f, 0);
+  
   /* Need to determine */
   v_PID_Init(&stru_PID_AZ_Pointing);
   //v_PID_Init(&stru_PID_AZ_Tracking);
-  v_PID_Init(&stru_PID_AZ_Velocity);
   v_PID_Init(&stru_PID_AZ_Current);
   
   v_PID_Init(&stru_PID_EL_Pointing);
@@ -143,90 +153,116 @@ void v_Control_Init(void)
   */
 void v_Control(void)
 {
-  /* Azimuth Axis */
-  if (bool_Active_AZ == true)
+  static float flt_Euler_Angle[3], flt_Euler_Rate[3], flt_Body_Rate[3];
+  
+  /* Position Loop */
+  switch(enum_AZ_State)
   {
-    switch(enum_AZ_State)
-    {
-      case STATE_STOP:
-      { 
-        break;
-      }
-      case STATE_HOME:
-        if(bool_AZ_Going_Home == false)
-        {
-          bool_AZ_Going_Home = true;
-          v_AZ_Home_Rising_Register(v_Home_AZ_Handler);
-          v_AZ_Home_Falling_Register(v_Home_AZ_Handler);
-          
-          if(u8_DI_Read_Pin(DI_PIN_AZ_HOME) == 0)
-            v_AZ_PWM_Set_Duty(75);
-          else
-            v_AZ_PWM_Set_Duty(-75);
-        }
-        break;
-      case STATE_MANUAL:
-        flt_PID_Calc(&stru_PID_AZ_Manual, flt_AZ_ENC_Get_Angle());
-        
-        /* Output PWM 1 - AZ */
-        v_AZ_PWM_Set_Duty(stru_PID_AZ_Manual.Result + 0.5f);
-        break;
-      case STATE_POINTING:
-//        flt_PID_Calc(&stru_PID_AZ_Stabilizing_Inner, stru_Get_IMU_Data().flt_Gyro_z);
-//        //stru_PID_AZ_Pointing_Inner.Result = -stru_PID_AZ_Pointing_Inner.Kp * struIMUData.gyro_z;
-//        flt_PID_Calc(&stru_PID_AZ_Stabilizing_Inner, stru_Get_IMU_Data().flt_Gyro_z);
-//        //Output PWM 1 - AZ
-//        v_AZ_PWM_Set_Duty(stru_PID_AZ_Stabilizing_Inner.Result / cos(flt_AZ_ENC_Get_Angle() * DEGREE_TO_RAD) + 0.5f);
-        break;
-      case STATE_TRACKING:
-        break;
-      case STATE_SINE:
-        v_AZ_PWM_Set_Duty(300 * sin(2 * PI * u32_AZ_Sine_Idx / 5000));
-        if(++u32_AZ_Sine_Idx == 5000) u32_AZ_Sine_Idx = 0;
-        break;
-      default:
-        break;
+    case STATE_STOP:
+    { 
+      s16_AZ_PWM_Value = 0;
+      break;
     }
+    case STATE_HOME:
+      if(bool_AZ_Going_Home == false)
+      {
+        bool_AZ_Going_Home = true;
+        v_AZ_Home_Rising_Register(v_Home_AZ_Handler);
+        v_AZ_Home_Falling_Register(v_Home_AZ_Handler);
+        
+        if(u8_DI_Read_Pin(DI_PIN_AZ_HOME) == 0)
+          s16_AZ_PWM_Value = 75;
+        else
+          s16_AZ_PWM_Value = -75;
+      }
+      break;
+    case STATE_MANUAL:
+      s16_AZ_PWM_Value = 0.5f + flt_PID_Calc(&stru_PID_AZ_Manual, flt_AZ_ENC_Get_Angle());
+      break;
+    case STATE_POINTING:
+      flt_Euler_Rate[YAW] = flt_PID_Calc(&stru_PID_AZ_Pointing, stru_Get_IMU_Data().flt_Euler_z);
+      break;
+    case STATE_TRACKING:
+      break;
+    case STATE_SINE:
+      v_AZ_PWM_Set_Duty(300 * sin(2 * PI * u32_AZ_Sine_Idx / 5000));
+      if(++u32_AZ_Sine_Idx == 5000) u32_AZ_Sine_Idx = 0;
+      break;
+    default:
+      break;
   }
   
-  if (bool_Active_EL == true)
+  switch(enum_EL_State)
   {
-    switch(enum_EL_State)
-    {
-      case STATE_STOP:
-        break;
-      case STATE_HOME:
-        if(bool_EL_Going_Home == false)
-        {
-          bool_EL_Going_Home = true;
-          v_EL_Home_Rising_Register(v_Home_EL_Handler);
-          v_EL_Home_Falling_Register(v_Home_EL_Handler);
-          
-          if(u8_DI_Read_Pin(DI_PIN_EL_HOME) == 0)
-            v_EL_PWM_Set_Duty(-75);
-          else
-            v_EL_PWM_Set_Duty(75);
-        }
-        break;
-      case STATE_MANUAL:
-        flt_PID_Calc(&stru_PID_EL_Manual, flt_EL_ENC_Get_Angle());
+    case STATE_STOP:
+      s16_EL_PWM_Value = 0;
+      break;
+    case STATE_HOME:
+      if(bool_EL_Going_Home == false)
+      {
+        bool_EL_Going_Home = true;
+        v_EL_Home_Rising_Register(v_Home_EL_Handler);
+        v_EL_Home_Falling_Register(v_Home_EL_Handler);
         
-        //Output PWM 0 - EL
-        v_EL_PWM_Set_Duty(stru_PID_EL_Manual.Result + 0.5f);
-        break;
-      case STATE_POINTING:
-        break;
-      case STATE_TRACKING:
-        break;
-      case STATE_SINE:
-        v_EL_PWM_Set_Duty(200 * sin(2 * PI * u32_EL_Sine_Idx / 5000));
-        if(++u32_EL_Sine_Idx == 5000) u32_EL_Sine_Idx = 0;
-        break;
-      default:
-        break;
-    }
+        if(u8_DI_Read_Pin(DI_PIN_EL_HOME) == 0)
+          s16_EL_PWM_Value = -75;
+        else
+          s16_EL_PWM_Value = 75;
+      }
+      break;
+    case STATE_MANUAL:
+      s16_EL_PWM_Value = 0.5f + flt_PID_Calc(&stru_PID_EL_Manual, flt_EL_ENC_Get_Angle());
+      break;
+    case STATE_POINTING:
+      flt_Euler_Rate[PITCH] = flt_PID_Calc(&stru_PID_EL_Pointing, stru_Get_IMU_Data().flt_Euler_y);
+      break;
+    case STATE_TRACKING:
+      break;
+    case STATE_SINE:
+      v_EL_PWM_Set_Duty(200 * sin(2 * PI * u32_EL_Sine_Idx / 5000));
+      if(++u32_EL_Sine_Idx == 5000) u32_EL_Sine_Idx = 0;
+      break;
+    default:
+      break;
   }
 
+
+  /* Velocity Loop */
+  switch(enum_AZ_State)
+  {
+    case STATE_POINTING:
+      v_Euler_To_Body_Rate(flt_Euler_Angle, flt_Euler_Rate, flt_Body_Rate);
+      v_PID_Set_Set_Point(&stru_PID_AZ_Velocity, flt_Body_Rate[YAW], 0);
+    case STATE_TRACKING:
+      s16_AZ_PWM_Value = 0.5f + flt_PID_Calc(&stru_PID_AZ_Velocity, stru_Get_IMU_Data().flt_Gyro_z) * cos(flt_AZ_ENC_Get_Angle() * DEGREE_TO_RAD);
+      break;
+    default:
+      break;
+  }
+  
+  switch(enum_EL_State)
+  {
+    case STATE_POINTING:
+      v_PID_Set_Set_Point(&stru_PID_EL_Velocity, flt_Body_Rate[PITCH], 0);
+    case STATE_TRACKING:
+      s16_EL_PWM_Value = 0.5f + flt_PID_Calc(&stru_PID_EL_Velocity, stru_Get_IMU_Data().flt_Gyro_y);
+      break;
+    default:
+      break;
+  }
+  
+  /* Write PWM */
+  if (bool_Active_AZ == true)
+    v_AZ_PWM_Set_Duty(s16_AZ_PWM_Value);
+  else
+    v_AZ_PWM_Set_Duty(0);
+  
+  if (bool_Active_EL == true)
+    v_EL_PWM_Set_Duty(s16_EL_PWM_Value);
+  else
+    v_EL_PWM_Set_Duty(0);
+  
+  
 }
 
 /**
@@ -261,6 +297,8 @@ static void v_Control_Change_Mode(ENUM_AXIS_T enum_Axis, ENUM_AXIS_STATE_T enum_
         case STATE_POINTING:
           break;
         case STATE_TRACKING:
+          v_PID_Reset(&stru_PID_AZ_Velocity);
+          v_PID_Set_Set_Point(&stru_PID_AZ_Velocity, 0.0f, 0);
           break;
         case STATE_SINE:
           u32_AZ_Sine_Idx = 0;
@@ -292,6 +330,7 @@ static void v_Control_Change_Mode(ENUM_AXIS_T enum_Axis, ENUM_AXIS_STATE_T enum_
         case STATE_POINTING:
           break;
         case STATE_TRACKING:
+          v_PID_Set_Set_Point(&stru_PID_EL_Velocity, 0.0f, 0);
           break;
         case STATE_SINE:
           u32_EL_Sine_Idx = 0;
@@ -425,11 +464,11 @@ bool bool_Stabilizing_Mode_Handler(uint8_t u8_Msg_ID, uint8_t *pu8_Payload, uint
   
   if (*pu8_Payload != 0x03) return false; //must be set 2 axis
   
-  if (*pu8_Payload == 0x00)
+  if (*(pu8_Payload + 1) == 0x00)
     v_Control_Change_Mode(AXIS_BOTH, STATE_MANUAL);
-  else if (*pu8_Payload == 0x02)
+  else if (*(pu8_Payload + 1) == 0x02)
     v_Control_Change_Mode(AXIS_BOTH, STATE_POINTING);
-  else if (*pu8_Payload == 0x01)
+  else if (*(pu8_Payload + 1) == 0x01)
     v_Control_Change_Mode(AXIS_BOTH, STATE_TRACKING);
   
   au8_Respond_Payload[0] = *pu8_Payload;
@@ -478,6 +517,35 @@ bool bool_Get_Mode_Handler(uint8_t u8_Msg_ID, uint8_t *pu8_Payload, uint32_t u32
 bool bool_Set_Pos_Handler(uint8_t u8_Msg_ID, uint8_t *pu8_Payload, uint32_t u32_Payload_Cnt)
 {
   uint8_t au8_Respond_Payload[MAX_SHORT_RES_PAYLOAD_LEN];
+  int32_t s32_Pos_Value;
+  
+  s32_Pos_Value = (*(pu8_Payload + 1) << 24) & 0x0ff000000;
+  s32_Pos_Value += (*(pu8_Payload + 2) << 16) & 0x0ff0000;
+  s32_Pos_Value += (*(pu8_Payload + 3) << 8) & 0x0ff00;
+  s32_Pos_Value += *(pu8_Payload + 4) & 0x0ff;
+  
+  if (*pu8_Payload == 0x01)
+  {
+    switch (enum_AZ_State)
+    {
+      case STATE_MANUAL:
+        v_PID_Set_Set_Point(&stru_PID_AZ_Manual, (float)s32_Pos_Value / 100.0f, 1);
+        break;
+      default:
+        break;
+    }
+  }
+  else if (*pu8_Payload == 0x02)
+  {
+    switch (enum_EL_State)
+    {
+      case STATE_MANUAL:
+        v_PID_Set_Set_Point(&stru_PID_EL_Manual, (float)s32_Pos_Value / 100.0f, 1);
+        break;
+      default:
+        break;
+    }
+  }
   
   au8_Respond_Payload[0] = *pu8_Payload;
   au8_Respond_Payload[1] = 0x00; //Ok
@@ -488,6 +556,40 @@ bool bool_Set_Pos_Handler(uint8_t u8_Msg_ID, uint8_t *pu8_Payload, uint32_t u32_
 bool bool_Set_Vel_Handler(uint8_t u8_Msg_ID, uint8_t *pu8_Payload, uint32_t u32_Payload_Cnt)
 {
   uint8_t au8_Respond_Payload[MAX_SHORT_RES_PAYLOAD_LEN];
+  int32_t s32_Vel_Value;
+  float flt_Vel_Value;
+  
+  s32_Vel_Value = (*(pu8_Payload + 1) << 24) & 0x0ff000000;
+  s32_Vel_Value += (*(pu8_Payload + 2) << 16) & 0x0ff0000;
+  s32_Vel_Value += (*(pu8_Payload + 3) << 8) & 0x0ff00;
+  s32_Vel_Value += *(pu8_Payload + 4) & 0x0ff;
+  flt_Vel_Value = (float)s32_Vel_Value / POS_VEL_SCALE;
+  
+  if (*pu8_Payload == 0x01)
+  {
+    switch (enum_AZ_State)
+    {
+      case STATE_MANUAL:
+        v_PID_Set_Max_Set_Point_Step(&stru_PID_AZ_Manual, flt_Vel_Value / 1000.0f);
+        break;
+      case STATE_TRACKING:
+        v_PID_Set_Set_Point(&stru_PID_AZ_Velocity, flt_Vel_Value * DEGREE_TO_MRAD, 0);
+        break;
+      default:
+        break;
+    }
+  }
+  else if (*pu8_Payload == 0x02)
+  {
+    switch (enum_EL_State)
+    {
+      case STATE_MANUAL:
+        v_PID_Set_Set_Point(&stru_PID_EL_Manual, (float)s32_Vel_Value / POS_VEL_SCALE / 1000.0f, 1);
+        break;
+      default:
+        break;
+    }
+  }
   
   au8_Respond_Payload[0] = *pu8_Payload;
   au8_Respond_Payload[1] = 0x00; //Ok
@@ -827,6 +929,7 @@ static void v_Send_Response(uint8_t u8_Msg_ID, uint8_t *pu8_Payload, uint32_t u3
   */
 void v_Send_Data(void)
 {
+#ifdef DATA_LOG_GENERAL
   uint8_t u8_Tx_Buff[DATA_TXBUFF_SIZE];
   uint32_t u32_Cnt = 0;
   int32_t s32_Temp = 0;
@@ -844,41 +947,40 @@ void v_Send_Data(void)
   u32_Cnt += 7;
   u8_Tx_Buff[u32_Cnt++] = ' ';
   
+  s32_Temp = (int32_t)(flt_EL_ENC_Get_Angle() * 100);
+  v_Int_To_Str_N(s32_Temp, &u8_Tx_Buff[u32_Cnt], 7);
+  u32_Cnt += 7;
+  u8_Tx_Buff[u32_Cnt++] = ' ';
+  
   u8_Tx_Buff[u32_Cnt++] = 0x0d;
   
   bool_DATA_Send(u8_Tx_Buff, u32_Cnt);
 }
+#endif
 
-/**
-  * @brief  IntToStrN
-  * @note   convert int to str with n char, the first char is sign
-            If n < lenOfStr(number), final len will be lenOfStr(number) + 1
-            Example IntToStrN(10, str, 5)   -> str: 0010
-                    IntToStrN(-10, str, 5)  -> str:-0010
-                    IntToStrN(-0, str, 6)   -> str: 00000
-                    IntToStrN(3000, str, 2) -> str: 3000
-                    IntToStrN(-200, str, 3) -> str:-200
-  * @param  s32_Number: input number
-  * @param  *pu8_Str: pointer to stored string
-  * @param  u32_N: Length of output string
-  * @retval none
-  */
-static void v_Int_To_Str_N(int32_t s32_Number, uint8_t *pu8_Str, uint32_t u32_N)
-{
-  uint8_t u8_Mask[10];
-  if(s32_Number < 0)
-  {
-    pu8_Str[0] = '-';
-    s32_Number = -s32_Number;
-  }
-  else
-  {
-    pu8_Str[0] = ' ';
-  }
-  sprintf((char *)u8_Mask, "%%0%dd", u32_N - 1);
-  sprintf((char *)(pu8_Str + 1), (char *)u8_Mask, s32_Number);
+#ifdef DATA_LOG_VELOCITY_LOOP
+  uint8_t u8_Tx_Buff[DATA_TXBUFF_SIZE];
+  uint32_t u32_Cnt = 0;
+  int32_t s32_Temp = 0;
+  
+  u8_Tx_Buff[0] = 0x0a;
+  u32_Cnt = 1;
+  
+  s32_Temp = (int32_t)s16_AZ_PWM_Value;
+  v_Int_To_Str_N(s32_Temp, &u8_Tx_Buff[u32_Cnt], 5);
+  u32_Cnt += 5;
+  u8_Tx_Buff[u32_Cnt++] = ' ';
+  
+  s32_Temp = (int32_t)(stru_Get_IMU_Data().flt_Gyro_z * 10);
+  v_Int_To_Str_N(s32_Temp, &u8_Tx_Buff[u32_Cnt], 7);
+  u32_Cnt += 7;
+  u8_Tx_Buff[u32_Cnt++] = ' ';
+  
+  u8_Tx_Buff[u32_Cnt++] = 0x0d;
+  
+  bool_DATA_Send(u8_Tx_Buff, u32_Cnt);
 }
-
+#endif
 /**
   * @}
   */

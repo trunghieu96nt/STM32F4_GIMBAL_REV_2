@@ -105,7 +105,7 @@ typedef struct{
 #define DATA_RX                   GPIO_Pin_11
 #define DATA_RX_SOURCE            GPIO_PinSource11
 #define DATA_AF                   GPIO_AF_USART3
-#define DATA_BAUDRATE             (uint32_t)115200 //921600 //115200
+#define DATA_BAUDRATE             (uint32_t)921600 //921600 //115200
 
 #define DATA_AHB_PERIPH_DMA       RCC_AHB1Periph_DMA1
 #define DATA_DATA_REG             (uint32_t)DATA_USART + 0x04
