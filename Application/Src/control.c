@@ -47,11 +47,13 @@ static const uint8_t au8_Code_Version[2] = {7, 7}; //Major.Minor
 static volatile ENUM_AXIS_STATE_T enum_AZ_State = STATE_HOME; //STATE_HOME STATE_SINE
 static volatile ENUM_AXIS_STATE_T enum_EL_State = STATE_HOME; //STATE_STOP
 
-static bool bool_Active_AZ = true;
-static bool bool_Active_EL = false;
+static bool bool_Active_AZ = false;
+static bool bool_Active_EL = true;
 
 static int16_t s16_AZ_PWM_Value = 0;
 static int16_t s16_EL_PWM_Value = 0;
+static float s16_AZ_PWM_Value_Raw = 0;
+static float s16_EL_PWM_Value_Raw = 0;
 
 static volatile bool bool_AZ_Going_Home = false;
 static volatile bool bool_EL_Going_Home = false;
@@ -134,11 +136,11 @@ void v_Control_Init(void)
   
   /* EL Manual PID */
   v_PID_Init(&stru_PID_EL_Manual);
-  v_PID_Set_Kp(&stru_PID_EL_Manual, 41);
-  v_PID_Set_Ki(&stru_PID_EL_Manual, 0.5);
-  v_PID_Set_Kd(&stru_PID_EL_Manual, 0.01);
+  v_PID_Set_Kp(&stru_PID_EL_Manual, 100);
+  v_PID_Set_Ki(&stru_PID_EL_Manual, 40);
+  v_PID_Set_Kd(&stru_PID_EL_Manual, 0.5);
   v_PID_Set_Use_Set_Point_Ramp(&stru_PID_EL_Manual, 1);
-  v_PID_Set_Max_Set_Point_Step(&stru_PID_EL_Manual, 0.01);
+  v_PID_Set_Max_Set_Point_Step(&stru_PID_EL_Manual, 0.02);
   v_PID_Set_Max_Response(&stru_PID_EL_Manual, 500);
   
   /* AZ Velocity PID */
@@ -149,11 +151,35 @@ void v_Control_Init(void)
   v_PID_Set_Use_Set_Point_Ramp(&stru_PID_AZ_Velocity, 0);
   v_PID_Set_Set_Point(&stru_PID_AZ_Velocity, 0.0f, 0);
   
+  /* EL Velocity PID */
+  v_PID_Init(&stru_PID_EL_Velocity);
+  v_PID_Set_Kp(&stru_PID_EL_Velocity, 0.10);
+  v_PID_Set_Ki(&stru_PID_EL_Velocity, 20);
+  v_PID_Set_Kd(&stru_PID_EL_Velocity, 0.0004);
+  v_PID_Set_Use_Set_Point_Ramp(&stru_PID_EL_Velocity, 0);
+  v_PID_Set_Set_Point(&stru_PID_EL_Velocity, 0.0f, 0);
+  
   /* AZ, EL Velocity IIR filter */
-  aflt_a[0] = 1.0f; // fs = 1000Hz, fc = 100Hz (10ms), Butterworth first order
-  aflt_a[1] = -0.509525449494429;
-  aflt_b[0] = 0.245237275252786;
-  aflt_b[1] = 0.245237275252786;
+//  aflt_a[0] = 1.0f; // fs = 1000Hz, fc = 20Hz, Butterworth first order
+//  aflt_a[1] = -0.881618592363189;
+//  aflt_b[0] = 0.059190703818405;
+//  aflt_b[1] = 0.059190703818405;
+  
+//  aflt_a[0] = 1.0f; // fs = 1000Hz, fc = 15Hz, Butterworth first order
+//  aflt_a[1] = -0.909929988177738;
+//  aflt_b[0] = 0.045035005911131;
+//  aflt_b[1] = 0.045035005911131;
+  
+//  aflt_a[0] = 1.0f; // fs = 1000Hz, fc = 10Hz, Butterworth first order
+//  aflt_a[1] = -0.939062505817492;
+//  aflt_b[0] = 0.030468747091254;
+//  aflt_b[1] = 0.030468747091254;
+  
+  aflt_a[0] = 1.0f; // fs = 1000Hz, fc = 5Hz, Butterworth first order
+  aflt_a[1] = -0.969067417193793;
+  aflt_b[0] = 0.015466291403103;
+  aflt_b[1] = 0.015466291403103;
+  
   v_IIR_Filter_Init(&stru_IIR_AZ_Velocity_SP, 1, aflt_a, aflt_b);
   v_IIR_Filter_Set_Enable(&stru_IIR_AZ_Velocity_SP, 1);
   
@@ -164,11 +190,12 @@ void v_Control_Init(void)
   aflt_a[1] = -0.969067417193793;
   aflt_b[0] = 0.015466291403103;
   aflt_b[1] = 0.015466291403103;
+  
   v_IIR_Filter_Init(&stru_IIR_AZ_Velocity_PWM, 1, aflt_a, aflt_b);
-  v_IIR_Filter_Set_Enable(&stru_IIR_AZ_Velocity_PWM, 1);
+  v_IIR_Filter_Set_Enable(&stru_IIR_AZ_Velocity_PWM, 0);
   
   v_IIR_Filter_Init(&stru_IIR_EL_Velocity_PWM, 1, aflt_a, aflt_b);
-  v_IIR_Filter_Set_Enable(&stru_IIR_EL_Velocity_PWM, 1);
+  v_IIR_Filter_Set_Enable(&stru_IIR_EL_Velocity_PWM, 0);
   
   /* Need to determine */
   v_PID_Init(&stru_PID_AZ_Pointing);
@@ -177,7 +204,6 @@ void v_Control_Init(void)
   
   v_PID_Init(&stru_PID_EL_Pointing);
   //v_PID_Init(&stru_PID_EL_Tracking);
-  v_PID_Init(&stru_PID_EL_Velocity);
   v_PID_Init(&stru_PID_EL_Current);
   
 }
@@ -190,8 +216,6 @@ void v_Control_Init(void)
   */
 void v_Control(void)
 {
-  static float s16_AZ_PWM_Value_Raw, s16_EL_PWM_Value_Raw;
-  
   /* Position Loop */
   switch(enum_AZ_State)
   {
@@ -291,7 +315,7 @@ void v_Control(void)
       v_PID_Set_Set_Point(&stru_PID_EL_Velocity, flt_Filtered_Body_Rate[PITCH], 0);
       
       s16_EL_PWM_Value_Raw = flt_PID_Calc(&stru_PID_EL_Velocity, stru_Get_IMU_Data().flt_Gyro_y);
-      s16_AZ_PWM_Value = 0.5f + flt_IIR_Filter_Calc(&stru_IIR_EL_Velocity_PWM, s16_EL_PWM_Value_Raw);
+      s16_EL_PWM_Value = 0.5f + flt_IIR_Filter_Calc(&stru_IIR_EL_Velocity_PWM, s16_EL_PWM_Value_Raw);
       break;
     default:
       break;
@@ -648,7 +672,7 @@ bool bool_Set_Vel_Handler(uint8_t u8_Msg_ID, uint8_t *pu8_Payload, uint32_t u32_
     {
       case STATE_MANUAL:
         if (flt_Vel_Value < 0) flt_Vel_Value = -flt_Vel_Value;
-        v_PID_Set_Set_Point(&stru_PID_EL_Manual, (float)s32_Vel_Value / POS_VEL_SCALE / 1000.0f, 1);
+        v_PID_Set_Max_Set_Point_Step(&stru_PID_EL_Manual, flt_Vel_Value / 1000.0f);
         break;
       case STATE_TRACKING:
         flt_Body_Rate[PITCH] = flt_Vel_Value * DEGREE_TO_MRAD;
@@ -1031,22 +1055,50 @@ void v_Send_Data(void)
   u8_Tx_Buff[0] = 0x0a;
   u32_Cnt = 1;
   
+  /* s16_AZ_PWM_Value */
   s32_Temp = (int32_t)s16_AZ_PWM_Value;
   v_Int_To_Str_N(s32_Temp, &u8_Tx_Buff[u32_Cnt], 5);
   u32_Cnt += 5;
   u8_Tx_Buff[u32_Cnt++] = ' ';
   
+  /* flt_Body_Rate[YAW] */
   s32_Temp = (int32_t)(flt_Body_Rate[YAW] * 10);
   v_Int_To_Str_N(s32_Temp, &u8_Tx_Buff[u32_Cnt], 7);
   u32_Cnt += 7;
   u8_Tx_Buff[u32_Cnt++] = ' ';
   
+  /* flt_Filtered_Body_Rate[YAW] */
   s32_Temp = (int32_t)(flt_Filtered_Body_Rate[YAW] * 10);
   v_Int_To_Str_N(s32_Temp, &u8_Tx_Buff[u32_Cnt], 7);
   u32_Cnt += 7;
   u8_Tx_Buff[u32_Cnt++] = ' ';
   
+  /* stru_Get_IMU_Data().flt_Gyro_z */
   s32_Temp = (int32_t)(stru_Get_IMU_Data().flt_Gyro_z * 10);
+  v_Int_To_Str_N(s32_Temp, &u8_Tx_Buff[u32_Cnt], 7);
+  u32_Cnt += 7;
+  u8_Tx_Buff[u32_Cnt++] = ' ';
+  
+  /* s16_EL_PWM_Value */
+  s32_Temp = (int32_t)s16_EL_PWM_Value;
+  v_Int_To_Str_N(s32_Temp, &u8_Tx_Buff[u32_Cnt], 5);
+  u32_Cnt += 5;
+  u8_Tx_Buff[u32_Cnt++] = ' ';
+  
+  /* flt_Body_Rate[PITCH] */
+  s32_Temp = (int32_t)(flt_Body_Rate[PITCH] * 10);
+  v_Int_To_Str_N(s32_Temp, &u8_Tx_Buff[u32_Cnt], 7);
+  u32_Cnt += 7;
+  u8_Tx_Buff[u32_Cnt++] = ' ';
+  
+  /* flt_Filtered_Body_Rate[PITCH] */
+  s32_Temp = (int32_t)(flt_Filtered_Body_Rate[PITCH] * 10);
+  v_Int_To_Str_N(s32_Temp, &u8_Tx_Buff[u32_Cnt], 7);
+  u32_Cnt += 7;
+  u8_Tx_Buff[u32_Cnt++] = ' ';
+  
+  /* stru_Get_IMU_Data().flt_Gyro_y */
+  s32_Temp = (int32_t)(stru_Get_IMU_Data().flt_Gyro_y * 10);
   v_Int_To_Str_N(s32_Temp, &u8_Tx_Buff[u32_Cnt], 7);
   u32_Cnt += 7;
   u8_Tx_Buff[u32_Cnt++] = ' ';
@@ -1054,7 +1106,6 @@ void v_Send_Data(void)
   u8_Tx_Buff[u32_Cnt++] = 0x0d;
   
   bool_DATA_Send(u8_Tx_Buff, u32_Cnt);
-
 #endif
 }
 /**
