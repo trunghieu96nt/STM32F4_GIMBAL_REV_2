@@ -53,19 +53,13 @@ typedef enum {
   STATE_SINE,
 } ENUM_AXIS_STATE_T;
 
-/* Exported constants --------------------------------------------------------*/
-/** @defgroup Const in Math
-  * @{
-  */
-#ifndef PI
-#define PI (3.141592653589793)
-#endif
-#define RAD_TO_DEGREE       (180 / PI)
-#define DEGREE_TO_RAD       (PI / 180)
-/**
-  * @}
-  */
+typedef enum {
+  ROLL = 0,
+  PITCH = 1,
+  YAW = 2,
+} ENUM_ROTATION_T;
 
+/* Exported constants --------------------------------------------------------*/
 /* Exported macro ------------------------------------------------------------*/
 /* Exported functions --------------------------------------------------------*/
 /* Initialization and Configuration functions *********************************/

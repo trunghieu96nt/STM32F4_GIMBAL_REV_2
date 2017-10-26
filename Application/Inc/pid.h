@@ -50,7 +50,6 @@ typedef struct
   float dPart;
   float dPart_Raw;
   float Result;
-  float Result_Raw;
 } STRU_PID_T;
 /* Exported constants --------------------------------------------------------*/
 /** @defgroup PID
@@ -97,6 +96,7 @@ float flt_PID_Get_Kff2(STRU_PID_T *pstru_PID);
 float flt_PID_Get_dPart_Alpha(STRU_PID_T *pstru_PID);
 float flt_PID_Get_Ts(STRU_PID_T *pstru_PID);
 float flt_PID_Get_Max_Response(STRU_PID_T *pstru_PID);
+float flt_PID_Get_Result(STRU_PID_T *pstru_PID);
 
 #ifdef __cplusplus
 }

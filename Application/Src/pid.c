@@ -71,7 +71,6 @@ void v_PID_Init(STRU_PID_T *pstru_PID)
   pstru_PID->dPart              = 0.0f;
   pstru_PID->dPart_Raw          = 0.0f;
   pstru_PID->Result             = 0.0f;
-  pstru_PID->Result_Raw         = 0.0f;
 }
 
 /**
@@ -181,7 +180,6 @@ void v_PID_Reset(STRU_PID_T *pstru_PID)
   pstru_PID->dPart      = 0.0f;
   pstru_PID->dPart_Raw  = 0.0f;
   pstru_PID->Result     = 0.0f;
-  pstru_PID->Result_Raw = 0.0f;
 }
 
 /**
@@ -363,6 +361,17 @@ void v_PID_Set_Max_Response(STRU_PID_T *pstru_PID, float flt_Max_Response)
 float flt_PID_Get_Max_Response(STRU_PID_T *pstru_PID)
 {
   return pstru_PID->Max_Response;
+}
+
+/**
+  * @brief  Get Result
+  * @note   ...
+  * @param  pstru_PID: Pointer to struct PID
+  * @retval pstru_PID->Result
+  */
+float flt_PID_Get_Result(STRU_PID_T *pstru_PID)
+{
+  return pstru_PID->Result;
 }
 /**
   * @}
