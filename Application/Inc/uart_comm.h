@@ -47,9 +47,9 @@ typedef enum{
 typedef bool (*CMD_HANDLER_FUNC)(uint8_t, uint8_t *, uint32_t);
 
 typedef struct{
-  ENUM_MSG_ID_T enum_Msg_ID;
-  uint32_t u32_Data_Num_Bytes;
-  CMD_HANDLER_FUNC bool_Msg_Handler;
+  ENUM_MSG_ID_T enum_msg_id;
+  uint32_t u32_data_num_bytes;
+  CMD_HANDLER_FUNC bool_msg_handler;
 } STRU_CMD_HANDLER_T;
 
 /* Exported constants --------------------------------------------------------*/
@@ -164,9 +164,9 @@ typedef struct{
 void v_UART_Comm_Init(void);
 
 /* Communication functions ****************************************************/
-bool bool_DATA_Send(const uint8_t *pu8_Message, uint32_t u32_Message_Size);
-bool bool_CMD_Send(const uint8_t *pu8_Message, uint32_t u32_Message_Size);
-bool bool_RESV_Send(const uint8_t *pu8_Message, uint32_t u32_Message_Size);
+bool bool_DATA_Send(const uint8_t *pu8_message, uint32_t u32_message_size);
+bool bool_CMD_Send(const uint8_t *pu8_message, uint32_t u32_message_size);
+bool bool_RESV_Send(const uint8_t *pu8_message, uint32_t u32_message_size);
 
 void v_CMD_Receive(void);
 

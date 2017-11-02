@@ -25,16 +25,16 @@ extern "C" {
 /* Exported types ------------------------------------------------------------*/
 typedef struct
 {
-  bool bool_Available;
-  float flt_Euler_x;
-  float flt_Euler_y;
-  float flt_Euler_z;
-  float flt_Gyro_x;
-  float flt_Gyro_y;
-  float flt_Gyro_z;
-  float flt_Acc_x;
-  float flt_Acc_y;
-  float flt_Acc_z;
+  bool bool_available;
+  float flt_euler_x;
+  float flt_euler_y;
+  float flt_euler_z;
+  float flt_gyro_x;
+  float flt_gyro_y;
+  float flt_gyro_z;
+  float flt_acc_x;
+  float flt_acc_y;
+  float flt_acc_z;
 } STRU_IMU_DATA_T;
 
 /* Exported constants --------------------------------------------------------*/
@@ -97,7 +97,7 @@ void v_ADIS_Init(void);
 
 /* ADIS Read functions ********************************************************/
 bool bool_ADIS_Read(void);
-bool bool_ADIS_Read_IsTimeout(uint32_t u32_Timeout_ms);
+bool bool_ADIS_Read_IsTimeout(uint32_t u32_timeout_ms);
 STRU_IMU_DATA_T stru_Get_IMU_Data(void);
 
 #ifdef __cplusplus

@@ -35,15 +35,15 @@ typedef struct
 /* Exported macro ------------------------------------------------------------*/
 /* Exported functions --------------------------------------------------------*/
 /* IIR functions **************************************************************/
-void v_IIR_Filter_Init(STRU_IIR_FILTER_T *pstru_IIR_Filter, uint8_t u8_Order, 
-  float flt_Denominator[10], float flt_Numerator[10]);
+void v_IIR_Filter_Init(STRU_IIR_FILTER_T *pstru_iir_filter, uint8_t u8_order, 
+  float aflt_denominator[10], float aflt_numerator[10]);
 
-float flt_IIR_Filter_Calc(STRU_IIR_FILTER_T *pstru_IIR_Filter, float x);
+float flt_IIR_Filter_Calc(STRU_IIR_FILTER_T *pstru_iir_filter, float x);
 
-void v_IIR_Filter_Reset(STRU_IIR_FILTER_T *pstru_IIR_Filter);
+void v_IIR_Filter_Reset(STRU_IIR_FILTER_T *pstru_iir_filter);
 
-void v_IIR_Filter_Set_Enable(STRU_IIR_FILTER_T *pstru_IIR_Filter, uint8_t u8_Enable);
-uint8_t v_IIR_Filter_Get_Enable(STRU_IIR_FILTER_T *pstru_IIR_Filter);
+void v_IIR_Filter_Set_Enable(STRU_IIR_FILTER_T *pstru_iir_filter, uint8_t u8_enable);
+uint8_t v_IIR_Filter_Get_Enable(STRU_IIR_FILTER_T *pstru_iir_filter);
 
 #ifdef __cplusplus
 }

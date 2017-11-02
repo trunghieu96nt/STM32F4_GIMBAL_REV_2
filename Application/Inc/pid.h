@@ -32,24 +32,24 @@ typedef struct
   float Kff2;
   
   /* Considerate of saving to eeprom */
-  uint8_t Use_Set_Point_Ramp; //easy to save
-  float Max_Set_Point_Step;
-  float Deadband;
-  float dPart_Alpha; //for filtering
+  uint8_t use_setpoint_ramp; //easy to save
+  float max_setpoint_step;
+  float deadband;
+  float d_part_alpha; //for filtering
   float Ts;
-  float Max_Response;
+  float max_response;
   
   /* No need to save to eeprom */
-  float Set_Point;
-  float Set_Point_Buff;
+  float setpoint;
+  float setpoint_buff;
   float e;
   float e_;
   float e__;
-  float pPart;
-  float iPart;
-  float dPart;
-  float dPart_Raw;
-  float Result;
+  float p_part;
+  float i_part;
+  float d_part;
+  float d_part_raw;
+  float result;
 } STRU_PID_T;
 /* Exported constants --------------------------------------------------------*/
 /** @defgroup PID
@@ -66,37 +66,37 @@ typedef struct
 /* Exported macro ------------------------------------------------------------*/
 /* Exported functions --------------------------------------------------------*/
 /* PID Functions **************************************************************/
-void v_PID_Init(STRU_PID_T *pstru_PID);
+void v_PID_Init(STRU_PID_T *pstru_pid);
 
-float flt_PID_Calc(STRU_PID_T *pstru_PID, float flt_Feedback);
-void v_PID_Reset(STRU_PID_T *pstru_PID);
+float flt_PID_Calc(STRU_PID_T *pstru_pid, float flt_feedback);
+void v_PID_Reset(STRU_PID_T *pstru_pid);
 
-void v_PID_Set_Use_Set_Point_Ramp(STRU_PID_T *pstru_PID, uint8_t u8_Use_Set_Point_Ramp);
-void v_PID_Set_Set_Point(STRU_PID_T *pstru_PID, float flt_Set_Point, uint8_t u8_Use_Ramp);
-void v_PID_Set_Max_Set_Point_Step(STRU_PID_T *pstru_PID, float flt_Max_Set_Point_Step);
-void v_PID_Set_Deadband(STRU_PID_T *pstru_PID, float flt_Deadband);
-void v_PID_Set_Kp(STRU_PID_T *pstru_PID, float flt_Kp);
-void v_PID_Set_Ki(STRU_PID_T *pstru_PID, float flt_Ki);
-void v_PID_Set_Kd(STRU_PID_T *pstru_PID, float flt_Kd);
-void v_PID_Set_dPart_Alpha(STRU_PID_T *pstru_PID, float flt_dPart_Alpha);
-void v_PID_Set_Ts(STRU_PID_T *pstru_PID, float flt_Ts);
-void v_PID_Set_Max_Response(STRU_PID_T *pstru_PID, float flt_Max_Response);
+void v_PID_Set_Use_Setpoint_Ramp(STRU_PID_T *pstru_pid, uint8_t u8_use_setpoint_ramp);
+void v_PID_Set_Setpoint(STRU_PID_T *pstru_pid, float flt_setpoint, uint8_t u8_use_ramp);
+void v_PID_Set_Max_Setpoint_Step(STRU_PID_T *pstru_pid, float flt_max_setpoint_step);
+void v_PID_Set_Deadband(STRU_PID_T *pstru_pid, float flt_deadband);
+void v_PID_Set_Kp(STRU_PID_T *pstru_pid, float flt_Kp);
+void v_PID_Set_Ki(STRU_PID_T *pstru_pid, float flt_Ki);
+void v_PID_Set_Kd(STRU_PID_T *pstru_pid, float flt_Kd);
+void v_PID_Set_Kff1(STRU_PID_T *pstru_pid, float flt_Kff1);
+void v_PID_Set_Kff2(STRU_PID_T *pstru_pid, float flt_Kff2);
+void v_PID_Set_d_Part_Alpha(STRU_PID_T *pstru_pid, float flt_d_part_alpha);
+void v_PID_Set_Ts(STRU_PID_T *pstru_pid, float flt_Ts);
+void v_PID_Set_Max_Response(STRU_PID_T *pstru_pid, float flt_max_response);
 
-uint8_t u8_PID_Get_Use_Set_Point_Ramp(STRU_PID_T *pstru_PID);
-float flt_PID_Get_Set_Point(STRU_PID_T *pstru_PID);
-float flt_PID_Get_Max_Set_Point_Step(STRU_PID_T *pstru_PID);
-float flt_PID_Get_Deadband(STRU_PID_T *pstru_PID);
-float flt_PID_Get_Kp(STRU_PID_T *pstru_PID);
-float flt_PID_Get_Ki(STRU_PID_T *pstru_PID);
-float flt_PID_Get_Kd(STRU_PID_T *pstru_PID);
-void v_PID_Set_Kff1(STRU_PID_T *pstru_PID, float flt_Kff1);
-void v_PID_Set_Kff2(STRU_PID_T *pstru_PID, float flt_Kff2);
-float flt_PID_Get_Kff1(STRU_PID_T *pstru_PID);
-float flt_PID_Get_Kff2(STRU_PID_T *pstru_PID);
-float flt_PID_Get_dPart_Alpha(STRU_PID_T *pstru_PID);
-float flt_PID_Get_Ts(STRU_PID_T *pstru_PID);
-float flt_PID_Get_Max_Response(STRU_PID_T *pstru_PID);
-float flt_PID_Get_Result(STRU_PID_T *pstru_PID);
+uint8_t u8_PID_Get_Use_Setpoint_Ramp(STRU_PID_T *pstru_pid);
+float flt_PID_Get_Setpoint(STRU_PID_T *pstru_pid);
+float flt_PID_Get_Max_Setpoint_Step(STRU_PID_T *pstru_pid);
+float flt_PID_Get_Deadband(STRU_PID_T *pstru_pid);
+float flt_PID_Get_Kp(STRU_PID_T *pstru_pid);
+float flt_PID_Get_Ki(STRU_PID_T *pstru_pid);
+float flt_PID_Get_Kd(STRU_PID_T *pstru_pid);
+float flt_PID_Get_Kff1(STRU_PID_T *pstru_pid);
+float flt_PID_Get_Kff2(STRU_PID_T *pstru_pid);
+float flt_PID_Get_d_Part_Alpha(STRU_PID_T *pstru_pid);
+float flt_PID_Get_Ts(STRU_PID_T *pstru_pid);
+float flt_PID_Get_Max_Response(STRU_PID_T *pstru_pid);
+float flt_PID_Get_Result(STRU_PID_T *pstru_pid);
 
 #ifdef __cplusplus
 }

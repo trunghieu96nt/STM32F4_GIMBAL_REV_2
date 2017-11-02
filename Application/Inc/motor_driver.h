@@ -165,10 +165,10 @@ void v_ENC1_Reset(void);
 void v_ENC2_Reset(void);
 
 /* PWM Functions **************************************************************/
-void v_PWM0_Set_Freq(uint32_t u32_Frequency);
-void v_PWM1_Set_Freq(uint32_t u32_Frequency);
-void v_PWM0_Set_Duty(int16_t s16_Duty);
-void v_PWM1_Set_Duty(int16_t s16_Duty);
+void v_PWM0_Set_Freq(uint32_t u32_frequency);
+void v_PWM1_Set_Freq(uint32_t u32_frequency);
+void v_PWM0_Set_Duty(int16_t s16_duty);
+void v_PWM1_Set_Duty(int16_t s16_duty);
 
 /* Gimbal Port Functions ******************************************************/
 int32_t s32_EL_ENC_Get_Pos(void);
@@ -180,11 +180,11 @@ float flt_AZ_ENC_Get_Angle(void);
 void v_EL_ENC_Reset(void);
 void v_AZ_ENC_Reset(void);
 
-void v_EL_PWM_Set_Freq(uint32_t u32_Frequency);
-void v_AZ_PWM_Set_Freq(uint32_t u32_Frequency);
+void v_EL_PWM_Set_Freq(uint32_t u32_frequency);
+void v_AZ_PWM_Set_Freq(uint32_t u32_frequency);
 
-void v_EL_PWM_Set_Duty(int16_t s16_Duty);
-void v_AZ_PWM_Set_Duty(int16_t s16_Duty);
+void v_EL_PWM_Set_Duty(int16_t s16_duty);
+void v_AZ_PWM_Set_Duty(int16_t s16_duty);
 
 #ifdef __cplusplus
 }

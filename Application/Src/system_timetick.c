@@ -2,7 +2,7 @@
 #include "system_timetick.h"
 
 volatile uint32_t tick_count = 0; // for system
-volatile uint32_t u32_System_Tick_Count = 0; // for user
+volatile uint32_t u32_system_tick_count = 0; // for user
 volatile uint32_t tick_flag = 0;
 
 
@@ -58,7 +58,7 @@ void SysTick_Handler(void)
 {
   tick_flag = 1;
   tick_count++;
-  u32_System_Tick_Count++;
+  u32_system_tick_count++;
 }
 
 uint32_t SysTick_GetTick(void)
@@ -66,7 +66,7 @@ uint32_t SysTick_GetTick(void)
   return tick_count;
 }
 
-bool SysTick_IsTimeout(uint32_t ui32StartTime_ms, uint32_t ui32TimeOut_ms)
+bool SysTick_IsTimeout(uint32_t u32_start_time_ms, uint32_t u32_time_out_ms)
 {
-  return (tick_count - ui32StartTime_ms > ui32TimeOut_ms * F_CTRL / 1000);
+  return (tick_count - u32_start_time_ms > u32_time_out_ms * F_CTRL / 1000);
 }

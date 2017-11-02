@@ -45,96 +45,96 @@
   * @note   H(z) = num/den
   *         When Init the filter is enable
   * @param  STRU_IIR_FILTER_T: Pointer to struct IIR Filter
-  * @param  u8_Order: Order of filter
-  * @param  flt_Denominator[10]: Array of denominator (size must be greater than or equal to order)
-  * @param  flt_Numerator[10]: Array of numerator (size must be greater than or equal to order)
+  * @param  u8_order: Order of filter
+  * @param  aflt_denominator[10]: Array of denominator (size must be greater than or equal to order)
+  * @param  aflt_numerator[10]: Array of numerator (size must be greater than or equal to order)
   * @retval none
   */
-void v_IIR_Filter_Init(STRU_IIR_FILTER_T *pstru_IIR_Filter, uint8_t u8_Order, float flt_Denominator[10], float flt_Numerator[10])
+void v_IIR_Filter_Init(STRU_IIR_FILTER_T *pstru_iir_filter, uint8_t u8_order, float aflt_denominator[10], float aflt_numerator[10])
 {
-  uint32_t u32_Idx;
+  uint32_t u32_idx;
   
-  pstru_IIR_Filter->enable = 0; //By default, filter is enable when initialize
-  pstru_IIR_Filter->n = u8_Order;
+  pstru_iir_filter->enable = 0; //By default, filter is enable when initialize
+  pstru_iir_filter->n = u8_order;
   
-  for (u32_Idx = 0; u32_Idx <= u8_Order; u32_Idx++)
+  for (u32_idx = 0; u32_idx <= u8_order; u32_idx++)
   {
-    pstru_IIR_Filter->a[u32_Idx] = flt_Denominator[u32_Idx];
-    pstru_IIR_Filter->b[u32_Idx] = flt_Numerator[u32_Idx];
+    pstru_iir_filter->a[u32_idx] = aflt_denominator[u32_idx];
+    pstru_iir_filter->b[u32_idx] = aflt_numerator[u32_idx];
   }
 }
 
 /**
   * @brief  Calculate IIR
   * @note   ...
-  * @param  pstru_IIR_Filter: Pointer to struct IIR
+  * @param  pstru_iir_filter: Pointer to struct IIR
   * @param  x: input
-  * @retval pstru_IIR_Filter->y (result)
+  * @retval pstru_iir_filter->y (result)
   */
-float flt_IIR_Filter_Calc(STRU_IIR_FILTER_T *pstru_IIR_Filter, float x)
+float flt_IIR_Filter_Calc(STRU_IIR_FILTER_T *pstru_iir_filter, float x)
 {
-  uint32_t u32_Idx;
+  uint32_t u32_idx;
   
-  if (pstru_IIR_Filter->enable != 0) //enable
+  if (pstru_iir_filter->enable != 0) //enable
   {
     /* w[0] = x[0] - a[1]*w[-1] - a[2]*w[-2] - ... */
-    pstru_IIR_Filter->w[0] = x;
-    for (u32_Idx = 1; u32_Idx <= pstru_IIR_Filter->n; u32_Idx++)
+    pstru_iir_filter->w[0] = x;
+    for (u32_idx = 1; u32_idx <= pstru_iir_filter->n; u32_idx++)
     {
-      pstru_IIR_Filter->w[0] -= pstru_IIR_Filter->a[u32_Idx] * pstru_IIR_Filter->w[u32_Idx];
+      pstru_iir_filter->w[0] -= pstru_iir_filter->a[u32_idx] * pstru_iir_filter->w[u32_idx];
     }
     
     /* y[0] = b[0]*w[0] + b[1]*w[-1] + ... */
-    pstru_IIR_Filter->y = 0;
-    for (u32_Idx = 0; u32_Idx <= pstru_IIR_Filter->n; u32_Idx++)
+    pstru_iir_filter->y = 0;
+    for (u32_idx = 0; u32_idx <= pstru_iir_filter->n; u32_idx++)
     {
-      pstru_IIR_Filter->y += pstru_IIR_Filter->b[u32_Idx] * pstru_IIR_Filter->w[u32_Idx];
+      pstru_iir_filter->y += pstru_iir_filter->b[u32_idx] * pstru_iir_filter->w[u32_idx];
     }
     
     /* update w */
-    for (u32_Idx = pstru_IIR_Filter->n; u32_Idx > 0; u32_Idx--)
+    for (u32_idx = pstru_iir_filter->n; u32_idx > 0; u32_idx--)
     {
-      pstru_IIR_Filter->w[u32_Idx] = pstru_IIR_Filter->w[u32_Idx - 1];
+      pstru_iir_filter->w[u32_idx] = pstru_iir_filter->w[u32_idx - 1];
     }
   }
   else //disable
   {
-    pstru_IIR_Filter->y = x;
+    pstru_iir_filter->y = x;
   }
-  return pstru_IIR_Filter->y;
+  return pstru_iir_filter->y;
 }
 
 /**
   * @brief  Reset IIR Filter
   * @note   ...
-  * @param  pstru_IIR_Filter: Pointer to struct IIR Filter
+  * @param  pstru_iir_filter: Pointer to struct IIR Filter
   * @retval none
   */
-void v_IIR_Filter_Reset(STRU_IIR_FILTER_T *pstru_IIR_Filter)
+void v_IIR_Filter_Reset(STRU_IIR_FILTER_T *pstru_iir_filter)
 {
-  uint32_t u32_Idx;
+  uint32_t u32_idx;
   
-  for (u32_Idx = 0; u32_Idx <= pstru_IIR_Filter->n; u32_Idx++)
+  for (u32_idx = 0; u32_idx <= pstru_iir_filter->n; u32_idx++)
   {
-    pstru_IIR_Filter->w[u32_Idx] = 0;
+    pstru_iir_filter->w[u32_idx] = 0;
   }
 }
 
 /**
   * @brief  Set Enable/Disable (Get)
   * @note   Disable when init function (By default)
-  * @param  pstru_PID: Pointer to struct IIR Filter
-  * @param  u8_Enable: Desired Enable Value (1: Enable, 0: Disable)
-  * @retval none (pstru_IIR_Filter->enable)
+  * @param  pstru_pid: Pointer to struct IIR Filter
+  * @param  u8_enable: Desired Enable Value (1: Enable, 0: Disable)
+  * @retval none (pstru_iir_filter->enable)
   */
-void v_IIR_Filter_Set_Enable(STRU_IIR_FILTER_T *pstru_IIR_Filter, uint8_t u8_Enable)
+void v_IIR_Filter_Set_Enable(STRU_IIR_FILTER_T *pstru_iir_filter, uint8_t u8_enable)
 {
-  pstru_IIR_Filter->enable = u8_Enable;
+  pstru_iir_filter->enable = u8_enable;
 }
 
-uint8_t v_IIR_Filter_Get_Enable(STRU_IIR_FILTER_T *pstru_IIR_Filter)
+uint8_t v_IIR_Filter_Get_Enable(STRU_IIR_FILTER_T *pstru_iir_filter)
 {
-  return pstru_IIR_Filter->enable;
+  return pstru_iir_filter->enable;
 }
 
 /**

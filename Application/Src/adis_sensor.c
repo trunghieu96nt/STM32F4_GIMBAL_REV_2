@@ -29,11 +29,11 @@
 /* Private define ------------------------------------------------------------*/
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
-static uint8_t au8_IMU_Rx[IMU_RXBUFF_SIZE]= {0};
-static STRU_IMU_DATA_T stru_IMU_Data = {false}; //initial bool_Available value.
+static uint8_t au8_IMU_rx[IMU_RXBUFF_SIZE]= {0};
+static STRU_IMU_DATA_T stru_IMU_data = {false}; //initial bool_available value.
 
 /* Private function prototypes -----------------------------------------------*/
-static bool bool_ADIS_Parse(uint8_t *pu8_IMU_Frame);
+static bool bool_ADIS_Parse(uint8_t *pu8_IMU_frame);
 
 /* Private functions ---------------------------------------------------------*/
 
@@ -91,7 +91,7 @@ void v_ADIS_Init(void)
   DMA_DeInit(IMU_RX_DMA_STREAM);  
   DMA_InitStructure.DMA_Channel            = IMU_RX_DMA_CHANNEL;
   DMA_InitStructure.DMA_DIR                = DMA_DIR_PeripheralToMemory;
-  DMA_InitStructure.DMA_Memory0BaseAddr    = (uint32_t)&au8_IMU_Rx[0];
+  DMA_InitStructure.DMA_Memory0BaseAddr    = (uint32_t)&au8_IMU_rx[0];
   DMA_InitStructure.DMA_PeripheralBaseAddr = IMU_DATA_REG;
   DMA_InitStructure.DMA_PeripheralDataSize = DMA_PeripheralDataSize_Byte;
   DMA_InitStructure.DMA_MemoryDataSize     = DMA_MemoryDataSize_Byte;
@@ -131,93 +131,93 @@ void v_ADIS_Init(void)
   * @brief  Read ADIS
   * @note   get raw IMU frame and call Gimbal_ADIS_Parse()
   *         Frame: _123_
-  *         u32_Idx_Pre -> _
-  *         u32_Idx_Cur -> 3
+  *         u32_idx_pre -> _
+  *         u32_idx_cur -> 3
   * @param  none
   * @retval true if get correctly and vice versa
   */
 bool bool_ADIS_Read(void)
 {
-  static uint32_t u32_Idx_Pre = IMU_RXBUFF_SIZE - 1;
-  uint32_t u32_Length, u32_Idx_Cur;
-  int32_t s32_Idx, s32_Cnt;
-  uint8_t *pu8_End_Chr = NULL; //Can change to bool variable
-  uint8_t au8_IMU_Frame[IMU_FRAME_LEN + 1];
+  static uint32_t u32_idx_pre = IMU_RXBUFF_SIZE - 1;
+  uint32_t u32_length, u32_idx_cur;
+  int32_t s32_idx, s32_cnt;
+  uint8_t *pu8_end_chr = NULL; //Can change to bool variable
+  uint8_t au8_IMU_frame[IMU_FRAME_LEN + 1];
   
-  if (IMU_RX_DMA_STREAM->NDTR == IMU_RXBUFF_SIZE) u32_Idx_Cur = IMU_RXBUFF_SIZE - 1;
-  else u32_Idx_Cur = IMU_RXBUFF_SIZE - IMU_RX_DMA_STREAM->NDTR - 1;
+  if (IMU_RX_DMA_STREAM->NDTR == IMU_RXBUFF_SIZE) u32_idx_cur = IMU_RXBUFF_SIZE - 1;
+  else u32_idx_cur = IMU_RXBUFF_SIZE - IMU_RX_DMA_STREAM->NDTR - 1;
   
-  if (u32_Idx_Cur >= u32_Idx_Pre) u32_Length = u32_Idx_Cur - u32_Idx_Pre;
-  else u32_Length = IMU_RXBUFF_SIZE - (u32_Idx_Pre - u32_Idx_Cur);
+  if (u32_idx_cur >= u32_idx_pre) u32_length = u32_idx_cur - u32_idx_pre;
+  else u32_length = IMU_RXBUFF_SIZE - (u32_idx_pre - u32_idx_cur);
   
   /* Check enough lengh */
-  if (u32_Length < IMU_FRAME_LEN) return false;
+  if (u32_length < IMU_FRAME_LEN) return false;
   
-  /* Search IMU_END_FRAME and Copy backward from au8_IMU_Rx[u32_Idx_Cur] */
-  s32_Idx = u32_Idx_Cur; s32_Cnt = IMU_FRAME_LEN - 2;
-  au8_IMU_Frame[IMU_FRAME_LEN] = 0;
+  /* Search IMU_END_FRAME and Copy backward from au8_IMU_rx[u32_idx_cur] */
+  s32_idx = u32_idx_cur; s32_cnt = IMU_FRAME_LEN - 2;
+  au8_IMU_frame[IMU_FRAME_LEN] = 0;
   while (true)
   {
-    if (pu8_End_Chr == NULL)
+    if (pu8_end_chr == NULL)
     {
-      if (*(au8_IMU_Rx + s32_Idx) == IMU_END_FRAME)
+      if (*(au8_IMU_rx + s32_idx) == IMU_END_FRAME)
       {
-        pu8_End_Chr = au8_IMU_Rx + s32_Idx;
-        au8_IMU_Frame[IMU_FRAME_LEN - 1] = IMU_END_FRAME;
-        u32_Idx_Cur = s32_Idx; //Save End index
+        pu8_end_chr = au8_IMU_rx + s32_idx;
+        au8_IMU_frame[IMU_FRAME_LEN - 1] = IMU_END_FRAME;
+        u32_idx_cur = s32_idx; //Save End index
       }
     }
     else
     {
-      au8_IMU_Frame[s32_Cnt] = *(au8_IMU_Rx + s32_Idx);
-      if (au8_IMU_Frame[s32_Cnt] == IMU_START_FRAME) break;
-      if (--s32_Cnt < 0) return false; //Over Length
+      au8_IMU_frame[s32_cnt] = *(au8_IMU_rx + s32_idx);
+      if (au8_IMU_frame[s32_cnt] == IMU_START_FRAME) break;
+      if (--s32_cnt < 0) return false; //Over Length
     }
-    if (--s32_Idx < 0) s32_Idx = IMU_RXBUFF_SIZE - 1;
-    if (s32_Idx == u32_Idx_Pre) return false; //Not found
+    if (--s32_idx < 0) s32_idx = IMU_RXBUFF_SIZE - 1;
+    if (s32_idx == u32_idx_pre) return false; //Not found
   }
-  u32_Idx_Pre = u32_Idx_Cur;
-  return bool_ADIS_Parse(au8_IMU_Frame);
+  u32_idx_pre = u32_idx_cur;
+  return bool_ADIS_Parse(au8_IMU_frame);
 }
 
 /**
   * @brief  parse raw IMU frame
   * @note   ...
-  * @param  pu8_IMU_Frame: pointer to IMU frame
+  * @param  pu8_IMU_frame: pointer to IMU frame
   * @retval true if parse correctly and vice versa
   */
-static bool bool_ADIS_Parse(uint8_t *pu8_IMU_Frame)
+static bool bool_ADIS_Parse(uint8_t *pu8_IMU_frame)
 {
-  uint32_t u32_Idx = 0;
-  uint8_t *pu8_End = NULL, *pu8_Start = pu8_IMU_Frame + 2;
+  uint32_t u32_idx = 0;
+  uint8_t *pu8_end = NULL, *pu8_start = pu8_IMU_frame + 2;
   
-  if(strlen((char *)pu8_IMU_Frame) != IMU_FRAME_LEN) return false;
+  if(strlen((char *)pu8_IMU_frame) != IMU_FRAME_LEN) return false;
   //get euler
-  for(u32_Idx = 0; u32_Idx < 3; u32_Idx++)
+  for(u32_idx = 0; u32_idx < 3; u32_idx++)
   {
-    pu8_End = memchr(pu8_Start, ' ', IMU_ELEMENT_MAX_LEN);
-    if(pu8_End == NULL) return false;
-    *pu8_End = 0;
-    *(&stru_IMU_Data.flt_Euler_x + u32_Idx) = (float)atoi((char *)pu8_Start - 1) * IMU_SCALE_EULER_UNIT;
-    pu8_Start = pu8_End + 2;
+    pu8_end = memchr(pu8_start, ' ', IMU_ELEMENT_MAX_LEN);
+    if(pu8_end == NULL) return false;
+    *pu8_end = 0;
+    *(&stru_IMU_data.flt_euler_x + u32_idx) = (float)atoi((char *)pu8_start - 1) * IMU_SCALE_EULER_UNIT;
+    pu8_start = pu8_end + 2;
   }
   //get gyro
-  for(u32_Idx = 0; u32_Idx < 3; u32_Idx++)
+  for(u32_idx = 0; u32_idx < 3; u32_idx++)
   {
-    pu8_End = memchr(pu8_Start, ' ', IMU_ELEMENT_MAX_LEN);
-    if(pu8_End == NULL) return false;
-    *pu8_End = 0;
-    *(&stru_IMU_Data.flt_Gyro_x + u32_Idx) = (float)atoi((char *)pu8_Start - 1) * IMU_SCALE_GYRO_UNIT;
-    pu8_Start = pu8_End + 2;
+    pu8_end = memchr(pu8_start, ' ', IMU_ELEMENT_MAX_LEN);
+    if(pu8_end == NULL) return false;
+    *pu8_end = 0;
+    *(&stru_IMU_data.flt_gyro_x + u32_idx) = (float)atoi((char *)pu8_start - 1) * IMU_SCALE_GYRO_UNIT;
+    pu8_start = pu8_end + 2;
   }
   //get acc
-  for(u32_Idx = 0; u32_Idx < 3; u32_Idx++)
+  for(u32_idx = 0; u32_idx < 3; u32_idx++)
   {
-    pu8_End = memchr(pu8_Start, ' ', IMU_ELEMENT_MAX_LEN);
-    if(pu8_End == NULL) return false;
-    *pu8_End = 0;
-    *(&stru_IMU_Data.flt_Acc_x + u32_Idx) = (float)atoi((char *)pu8_Start - 1) * IMU_SCALE_ACC_UNIT;
-    pu8_Start = pu8_End + 2;
+    pu8_end = memchr(pu8_start, ' ', IMU_ELEMENT_MAX_LEN);
+    if(pu8_end == NULL) return false;
+    *pu8_end = 0;
+    *(&stru_IMU_data.flt_acc_x + u32_idx) = (float)atoi((char *)pu8_start - 1) * IMU_SCALE_ACC_UNIT;
+    pu8_start = pu8_end + 2;
   }
   return true;
 }
@@ -225,24 +225,24 @@ static bool bool_ADIS_Parse(uint8_t *pu8_IMU_Frame)
 /**
   * @brief  Read ADIS with timeout
   * @note   call bool_ADIS_Read() with timeout
-  * @param  u32_Timeout_ms: Desired timeout 
+  * @param  u32_timeout_ms: Desired timeout 
   * @retval true if timeout and vice versa (do not use return if do not understand)
   */
-bool bool_ADIS_Read_IsTimeout(uint32_t u32_Timeout_ms)
+bool bool_ADIS_Read_IsTimeout(uint32_t u32_timeout_ms)
 {
-  static uint32_t u32_Read_Done_Time = 0;
+  static uint32_t u32_read_done_time = 0;
   if(bool_ADIS_Read() == false)
   {
-    if(SysTick_IsTimeout(u32_Read_Done_Time, u32_Timeout_ms) == true)
+    if(SysTick_IsTimeout(u32_read_done_time, u32_timeout_ms) == true)
     {
-      stru_IMU_Data.bool_Available = false;
+      stru_IMU_data.bool_available = false;
       return true;
     }
   }
   else
   {
-    u32_Read_Done_Time = SysTick_GetTick();
-    stru_IMU_Data.bool_Available = true;
+    u32_read_done_time = SysTick_GetTick();
+    stru_IMU_data.bool_available = true;
   }
   return false;
 }
@@ -251,11 +251,11 @@ bool bool_ADIS_Read_IsTimeout(uint32_t u32_Timeout_ms)
   * @brief  Get struct IMU data
   * @note   ...
   * @param  none
-  * @retval stru_IMU_Data
+  * @retval stru_IMU_data
   */
 STRU_IMU_DATA_T stru_Get_IMU_Data(void)
 {
-  return stru_IMU_Data;
+  return stru_IMU_data;
 }
 
 /**

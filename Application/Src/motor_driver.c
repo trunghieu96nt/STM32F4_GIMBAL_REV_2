@@ -30,17 +30,17 @@
 
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
-static volatile int32_t s32_Enc0_Cur = 0;
-static volatile int32_t s32_Enc0_Dp = 0;
-static volatile int32_t s32_Enc0_P0 = 0, s32_Enc0_P1 = 0;
+static volatile int32_t s32_enc0_cur = 0;
+static volatile int32_t s32_enc0_dp = 0;
+static volatile int32_t s32_enc0_p0 = 0, s32_enc0_p1 = 0;
 
-static volatile int32_t s32_Enc1_Cur = 0;
-static volatile int32_t s32_Enc1_Dp = 0;
-static volatile int32_t s32_Enc1_P0 = 0, s32_Enc1_P1 = 0;
+static volatile int32_t s32_enc1_cur = 0;
+static volatile int32_t s32_enc1_dp = 0;
+static volatile int32_t s32_enc1_p0 = 0, s32_enc1_p1 = 0;
 
-static volatile int32_t s32_Enc2_Cur = 0;
-static volatile int32_t s32_Enc2_Dp = 0;
-static volatile int32_t s32_Enc2_P0 = 0, s32_Enc2_P1 = 0;
+static volatile int32_t s32_enc2_cur = 0;
+static volatile int32_t s32_enc2_dp = 0;
+static volatile int32_t s32_enc2_p0 = 0, s32_enc2_p1 = 0;
 
 /* Private function prototypes -----------------------------------------------*/
 static void v_ENC0_Init(void);
@@ -217,77 +217,77 @@ static void v_ENC2_Init(void)
   */
 int32_t s32_ENC0_Get_Pos(void)
 {
-  s32_Enc0_P0 = (int32_t)ENC0_TIM_POS->CNT;
+  s32_enc0_p0 = (int32_t)ENC0_TIM_POS->CNT;
 
   if (!IS_TIMER_32BIT(ENC0_TIM_POS))
   {
-    s32_Enc0_Dp = s32_Enc0_P0 - s32_Enc0_P1;
-    if (s32_Enc0_Dp > 32768)
+    s32_enc0_dp = s32_enc0_p0 - s32_enc0_p1;
+    if (s32_enc0_dp > 32768)
     {
-      s32_Enc0_Dp -= 65536;
+      s32_enc0_dp -= 65536;
     }
-    else if (s32_Enc0_Dp < -32768)
+    else if (s32_enc0_dp < -32768)
     {
-      s32_Enc0_Dp += 65536;
+      s32_enc0_dp += 65536;
     }
-    s32_Enc0_P1 = s32_Enc0_P0;
-    s32_Enc0_Cur += s32_Enc0_Dp;
+    s32_enc0_p1 = s32_enc0_p0;
+    s32_enc0_cur += s32_enc0_dp;
   }
   else
   {
-    s32_Enc0_Cur = s32_Enc0_P0;
+    s32_enc0_cur = s32_enc0_p0;
   }
-  return s32_Enc0_Cur;
+  return s32_enc0_cur;
 }
 
 int32_t s32_ENC1_Get_Pos(void)
 {
-  s32_Enc1_P0 = (int32_t)ENC1_TIM_POS->CNT;
+  s32_enc1_p0 = (int32_t)ENC1_TIM_POS->CNT;
 
   if (!IS_TIMER_32BIT(ENC1_TIM_POS))
   {
-    s32_Enc1_Dp = s32_Enc1_P0 - s32_Enc1_P1;
-    if (s32_Enc1_Dp > 32768)
+    s32_enc1_dp = s32_enc1_p0 - s32_enc1_p1;
+    if (s32_enc1_dp > 32768)
     {
-      s32_Enc1_Dp -= 65536;
+      s32_enc1_dp -= 65536;
     }
-    else if (s32_Enc1_Dp < -32768)
+    else if (s32_enc1_dp < -32768)
     {
-      s32_Enc1_Dp += 65536;
+      s32_enc1_dp += 65536;
     }
-    s32_Enc1_P1 = s32_Enc1_P0;
-    s32_Enc1_Cur += s32_Enc1_Dp;
+    s32_enc1_p1 = s32_enc1_p0;
+    s32_enc1_cur += s32_enc1_dp;
   }
   else
   {
-    s32_Enc1_Cur = s32_Enc1_P0;
+    s32_enc1_cur = s32_enc1_p0;
   }
-  return s32_Enc1_Cur;
+  return s32_enc1_cur;
 }
 
 int32_t s32_ENC2_Get_Pos(void)
 {
-  s32_Enc2_P0 = (int32_t)ENC2_TIM_POS->CNT;
+  s32_enc2_p0 = (int32_t)ENC2_TIM_POS->CNT;
 
   if (!IS_TIMER_32BIT(ENC2_TIM_POS))
   {
-    s32_Enc2_Dp = s32_Enc2_P0 - s32_Enc2_P1;
-    if (s32_Enc2_Dp > 32768)
+    s32_enc2_dp = s32_enc2_p0 - s32_enc2_p1;
+    if (s32_enc2_dp > 32768)
     {
-      s32_Enc2_Dp -= 65536;
+      s32_enc2_dp -= 65536;
     }
-    else if (s32_Enc2_Dp < -32768)
+    else if (s32_enc2_dp < -32768)
     {
-      s32_Enc2_Dp += 65536;
+      s32_enc2_dp += 65536;
     }
-    s32_Enc2_P1 = s32_Enc2_P0;
-    s32_Enc2_Cur += s32_Enc2_Dp;
+    s32_enc2_p1 = s32_enc2_p0;
+    s32_enc2_cur += s32_enc2_dp;
   }
   else
   {
-    s32_Enc2_Cur = s32_Enc2_P0;
+    s32_enc2_cur = s32_enc2_p0;
   }
-  return s32_Enc2_Cur;
+  return s32_enc2_cur;
 }
 
 /**
@@ -320,19 +320,19 @@ float flt_ENC2_Get_Angle(void)
 void v_ENC0_Reset(void)
 {
   s32_ENC0_Get_Pos(); //for save pre variable
-  s32_Enc0_Cur = 0;
+  s32_enc0_cur = 0;
 }
 
 void v_ENC1_Reset(void)
 {
   s32_ENC1_Get_Pos(); //for save pre variable
-  s32_Enc1_Cur = 0;
+  s32_enc1_cur = 0;
 }
 
 void v_ENC2_Reset(void)
 {
   s32_ENC2_Get_Pos(); //for save pre variable
-  s32_Enc2_Cur = 0;
+  s32_enc2_cur = 0;
 }
 
 /**
@@ -484,99 +484,99 @@ static void v_PWM1_Init(void)
 /**
   * @brief  Set frequency PWM
   * @note   ...
-  * @param  u32_Frequency: Desired frequency
+  * @param  u32_frequency: Desired frequency
   * @retval none
   */
-void v_PWM0_Set_Freq(uint32_t u32_Frequency)
+void v_PWM0_Set_Freq(uint32_t u32_frequency)
 {
-  uint32_t u32_Period;
-  u32_Period = u32_Timer_Get_Clock(PWM0_TIM) / (u32_Frequency * (PWM0_TIM->PSC + 1)) - 1;
-  if ((!IS_TIMER_32BIT(PWM0_TIM)) && (u32_Period > 0xffff))
+  uint32_t u32_period;
+  u32_period = u32_Timer_Get_Clock(PWM0_TIM) / (u32_frequency * (PWM0_TIM->PSC + 1)) - 1;
+  if ((!IS_TIMER_32BIT(PWM0_TIM)) && (u32_period > 0xffff))
   {
-    u32_Period = 0xffff;
+    u32_period = 0xffff;
   }
-  PWM0_TIM->ARR = u32_Period;
+  PWM0_TIM->ARR = u32_period;
 }
 
-void v_PWM1_Set_Freq(uint32_t u32_Frequency)
+void v_PWM1_Set_Freq(uint32_t u32_frequency)
 {
-  uint32_t u32_Period;
-  u32_Period = u32_Timer_Get_Clock(PWM1_TIM) / (u32_Frequency * (PWM1_TIM->PSC + 1)) - 1;
-  if ((!IS_TIMER_32BIT(PWM1_TIM)) && (u32_Period > 0xffff))
+  uint32_t u32_period;
+  u32_period = u32_Timer_Get_Clock(PWM1_TIM) / (u32_frequency * (PWM1_TIM->PSC + 1)) - 1;
+  if ((!IS_TIMER_32BIT(PWM1_TIM)) && (u32_period > 0xffff))
   {
-    u32_Period = 0xffff;
+    u32_period = 0xffff;
   }
-  PWM1_TIM->ARR = u32_Period;
+  PWM1_TIM->ARR = u32_period;
 }
 
 /**
   * @brief  Set Duty PWM
   * @note   ...
-  * @param  s16_Duty: signed duty cycle of PWM
+  * @param  s16_duty: signed duty cycle of PWM
   * @retval none
   */
-void v_PWM0_Set_Duty(int16_t s16_Duty)
+void v_PWM0_Set_Duty(int16_t s16_duty)
 {
-  if (s16_Duty<-900)
-    s16_Duty = -900;
-  else if (s16_Duty>900)
-    s16_Duty = 900;
+  if (s16_duty<-900)
+    s16_duty = -900;
+  else if (s16_duty>900)
+    s16_duty = 900;
   // DIR = 1: OPEN (FORWARD); DIR = 0: CLOSE (BACKWARD)
-  if (s16_Duty == 0)
+  if (s16_duty == 0)
   {
 #if PWM0_USE_EN_PIN
     PWM0_EN_PORT->BSRRH = PWM0_EN;// disable
 #endif
   }
-  else if (s16_Duty > 0)
+  else if (s16_duty > 0)
   {
 #if PWM0_USE_EN_PIN
     PWM0_EN_PORT->BSRRL = PWM0_EN;// enable
 #endif
     PWM0_DIR_PORT->BSRRL = PWM0_DIR; //0, forward
   }
-  else //(s16_Duty < 0)
+  else //(s16_duty < 0)
   {
 #if PWM0_USE_EN_PIN    
     PWM0_EN_PORT->BSRRL = PWM0_EN; // enable
 #endif
     PWM0_DIR_PORT->BSRRH = PWM0_DIR; //1,  backward
-    s16_Duty = -s16_Duty;
+    s16_duty = -s16_duty;
   }
-  s16_Duty = ((PWM0_TIM->ARR + 1)* s16_Duty + 500)/1000;
-  PWM0_TIM->CCR1 = (uint32_t)s16_Duty;
+  s16_duty = ((PWM0_TIM->ARR + 1)* s16_duty + 500)/1000;
+  PWM0_TIM->CCR1 = (uint32_t)s16_duty;
 }
 
-void v_PWM1_Set_Duty(int16_t s16_Duty)
+void v_PWM1_Set_Duty(int16_t s16_duty)
 {
-  if (s16_Duty<-900)
-    s16_Duty = -900;
-  else if (s16_Duty>900)
-    s16_Duty = 900;
+  if (s16_duty<-900)
+    s16_duty = -900;
+  else if (s16_duty>900)
+    s16_duty = 900;
   // DIR = 1: OPEN (FORWARD); DIR = 0: CLOSE (BACKWARD)
-  if (s16_Duty == 0)
+  if (s16_duty == 0)
   {
 #if PWM1_USE_EN_PIN
     PWM1_EN_PORT->BSRRH = PWM1_EN; // disable
 #endif
   }
-  else if (s16_Duty > 0)
+  else if (s16_duty > 0)
   {
 #if PWM1_USE_EN_PIN
     PWM1_EN_PORT->BSRRL = PWM1_EN; // enable
 #endif
     PWM1_DIR_PORT->BSRRL = PWM1_DIR; //0,  backward
   }
-  else // (s16_Duty < 0)
+  else // (s16_duty < 0)
   {
 #if PWM1_USE_EN_PIN
     PWM1_EN_PORT->BSRRL = PWM1_EN; // enable
 #endif
     PWM1_DIR_PORT->BSRRH = PWM1_DIR; //1, forward
-    s16_Duty = -s16_Duty;
+    s16_duty = -s16_duty;
   }
-  s16_Duty = ((PWM1_TIM->ARR + 1) * s16_Duty + 500) / 1000;
-  PWM1_TIM->CCR1 = (uint32_t)s16_Duty;
+  s16_duty = ((PWM1_TIM->ARR + 1) * s16_duty + 500) / 1000;
+  PWM1_TIM->CCR1 = (uint32_t)s16_duty;
 }
 
 /**
@@ -587,25 +587,25 @@ void v_PWM1_Set_Duty(int16_t s16_Duty)
   */
 static uint32_t u32_Timer_Get_Clock(TIM_TypeDef* TIMx)
 {
-  uint32_t u32_Clock;
+  uint32_t u32_clock;
   RCC_ClocksTypeDef RCC_Clocks;  
   /* Get system clocks */
   RCC_GetClocksFreq(&RCC_Clocks);
   if(IS_APB2_TIMER(TIMx))
   {
     if (RCC_Clocks.HCLK_Frequency == RCC_Clocks.PCLK2_Frequency)//prescaler 1
-      u32_Clock = RCC_Clocks.PCLK2_Frequency;
+      u32_clock = RCC_Clocks.PCLK2_Frequency;
     else
-      u32_Clock = 2 * RCC_Clocks.PCLK2_Frequency;
+      u32_clock = 2 * RCC_Clocks.PCLK2_Frequency;
   }
   else//APB1 timer
   {
     if (RCC_Clocks.HCLK_Frequency == RCC_Clocks.PCLK1_Frequency)//prescaler 1
-      u32_Clock = RCC_Clocks.PCLK1_Frequency;
+      u32_clock = RCC_Clocks.PCLK1_Frequency;
     else
-      u32_Clock = 2 * RCC_Clocks.PCLK1_Frequency;
+      u32_clock = 2 * RCC_Clocks.PCLK1_Frequency;
   }
-  return u32_Clock;
+  return u32_clock;
 }
 /**
   * @}
@@ -652,24 +652,24 @@ void v_EL_ENC_Reset(void)
   v_ENC1_Reset();
 }
 
-void v_AZ_PWM_Set_Freq(uint32_t u32_Frequency)
+void v_AZ_PWM_Set_Freq(uint32_t u32_frequency)
 {
-  v_PWM0_Set_Freq(u32_Frequency);
+  v_PWM0_Set_Freq(u32_frequency);
 }
 
-void v_EL_PWM_Set_Freq(uint32_t u32_Frequency)
+void v_EL_PWM_Set_Freq(uint32_t u32_frequency)
 {
-  v_PWM1_Set_Freq(u32_Frequency);
+  v_PWM1_Set_Freq(u32_frequency);
 }
 
-void v_AZ_PWM_Set_Duty(int16_t s16_Duty)
+void v_AZ_PWM_Set_Duty(int16_t s16_duty)
 {
-  v_PWM0_Set_Duty(s16_Duty);
+  v_PWM0_Set_Duty(s16_duty);
 }
 
-void v_EL_PWM_Set_Duty(int16_t s16_Duty)
+void v_EL_PWM_Set_Duty(int16_t s16_duty)
 {
-  v_PWM1_Set_Duty(s16_Duty);
+  v_PWM1_Set_Duty(s16_duty);
 }
 /**
   * @}

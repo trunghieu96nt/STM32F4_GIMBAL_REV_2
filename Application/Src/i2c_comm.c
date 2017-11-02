@@ -26,7 +26,7 @@
 /* Private define ------------------------------------------------------------*/
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
-static const uint8_t au8_Params_Length[NUM_PARAMS_MAX] =
+static const uint8_t au8_params_length[NUM_PARAMS_MAX] =
 {
   /* Length. */     /* PARAMS_ID. */
   2,                //CODE_VERSION = 0,
@@ -35,11 +35,11 @@ static const uint8_t au8_Params_Length[NUM_PARAMS_MAX] =
 };
 
 /* Private function prototypes -----------------------------------------------*/
-static bool bool_I2C_ReadBytes(I2C_TypeDef* I2Cx, uint8_t *pu8_Buff,
-                          uint8_t u8_Slave_Add, uint8_t u8_Reg_Add, uint8_t u8_Length);
-static bool bool_I2C_WriteBytes(I2C_TypeDef * I2Cx, const uint8_t *pu8_Buff,
-                           uint8_t u8_Slave_Add, uint8_t u8_Reg_Add, uint8_t u8_Length);
-static uint32_t u32_Params_Get_Pos(ENUM_PARAMS_T enum_Params);
+static bool bool_I2C_ReadBytes(I2C_TypeDef* I2Cx, uint8_t *pu8_buff,
+                          uint8_t u8_slave_add, uint8_t u8_reg_add, uint8_t u8_length);
+static bool bool_I2C_WriteBytes(I2C_TypeDef * I2Cx, const uint8_t *pu8_buff,
+                           uint8_t u8_slave_add, uint8_t u8_reg_add, uint8_t u8_length);
+static uint32_t u32_Params_Get_Pos(ENUM_PARAMS_T enum_params);
 
 /* Private functions ---------------------------------------------------------*/
 
@@ -107,82 +107,82 @@ void v_I2C_Comm_Init(void)
 /**
   * @brief  bool_I2C_ReadBytes
   * @note   ...
-  * @param  pu8_Buff: pointer to array that will store bytes from slave
-  * @param  u8_Slave_Add: slave's address
-  * @param  u8_Reg_Add: start address of the register of the slave
-  * @param  u8_Length: length of the array
+  * @param  pu8_buff: pointer to array that will store bytes from slave
+  * @param  u8_slave_add: slave's address
+  * @param  u8_reg_add: start address of the register of the slave
+  * @param  u8_length: length of the array
   * @retval true if succeed and vice versa
   */
-static bool bool_I2C_ReadBytes(I2C_TypeDef* I2Cx, uint8_t *pu8_Buff,
-                          uint8_t u8_Slave_Add, uint8_t u8_Reg_Add, uint8_t u8_Length)
+static bool bool_I2C_ReadBytes(I2C_TypeDef* I2Cx, uint8_t *pu8_buff,
+                          uint8_t u8_slave_add, uint8_t u8_reg_add, uint8_t u8_length)
 {
-  uint32_t u32_Time;
+  uint32_t u32_time;
 
-  if (u8_Length == 0)   return false;
+  if (u8_length == 0)   return false;
 
   /* While the bus is busy */
-  u32_Time = I2C_TIMEOUT;
+  u32_time = I2C_TIMEOUT;
   while(I2C_GetFlagStatus(I2Cx, I2C_FLAG_BUSY))
   {
-    if((u32_Time--) == 0) return false;
+    if((u32_time--) == 0) return false;
   }
 
   /* Send START condition */
   I2C_GenerateSTART(I2Cx, ENABLE);
 
   /* Test on EV5 and clear it (cleared by reading SR1 then writing to DR) */
-  u32_Time = I2C_TIMEOUT;
+  u32_time = I2C_TIMEOUT;
   while(!I2C_CheckEvent(I2Cx, I2C_EVENT_MASTER_MODE_SELECT))
   {
-    if((u32_Time--) == 0) return false;
+    if((u32_time--) == 0) return false;
   }
 
   /* Send Slave address for write */
-  I2C_Send7bitAddress(I2Cx, u8_Slave_Add, I2C_Direction_Transmitter);
+  I2C_Send7bitAddress(I2Cx, u8_slave_add, I2C_Direction_Transmitter);
       
   /* Test on EV6 and clear it */
-  u32_Time = I2C_TIMEOUT;
+  u32_time = I2C_TIMEOUT;
   while(!I2C_CheckEvent(I2Cx, I2C_EVENT_MASTER_TRANSMITTER_MODE_SELECTED))
   {
-    if((u32_Time--) == 0) return false;
+    if((u32_time--) == 0) return false;
   }
 
   /* Send the Register address to read from: Only one byte address */
-  I2C_SendData(I2Cx, u8_Reg_Add);  
+  I2C_SendData(I2Cx, u8_reg_add);  
 
   /* Test on EV8 and clear it */
-  u32_Time = I2C_TIMEOUT;
+  u32_time = I2C_TIMEOUT;
   while(!I2C_CheckEvent(I2Cx, I2C_EVENT_MASTER_BYTE_TRANSMITTED)) 
   {
-    if((u32_Time--) == 0) return false;
+    if((u32_time--) == 0) return false;
   }
 
   /* Send START condition a second time to RESTART bus */
   I2C_GenerateSTART(I2Cx, ENABLE);
 
   /* Test on EV5 and clear it (cleared by reading SR1 then writing to DR) */
-  u32_Time = I2C_TIMEOUT;
+  u32_time = I2C_TIMEOUT;
   while(!I2C_CheckEvent(I2Cx, I2C_EVENT_MASTER_MODE_SELECT))
   {
-    if((u32_Time--) == 0) return false;
+    if((u32_time--) == 0) return false;
   } 
 
   /* Send Slave address for read */
-  I2C_Send7bitAddress(I2Cx, u8_Slave_Add, I2C_Direction_Receiver);  
+  I2C_Send7bitAddress(I2Cx, u8_slave_add, I2C_Direction_Receiver);  
 
   /* SHOULD DISABLE INTERRUPT HERE, IF NOT IT MAY BE CORRUPT I2C TRANSACTION */
   __disable_irq();
 
   /* Test on EV6 and clear it */
-  u32_Time = I2C_TIMEOUT;
+  u32_time = I2C_TIMEOUT;
   while(!I2C_CheckEvent(I2Cx, I2C_EVENT_MASTER_RECEIVER_MODE_SELECTED))
   {
-      if ((u32_Time--) == 0) return false;
+      if ((u32_time--) == 0) return false;
   }
 
-  while(u8_Length)
+  while(u8_length)
   {
-    if(u8_Length == 1)
+    if(u8_length == 1)
     {
         /* This configuration should be in the last second transfer byte */
         /* Disable Acknowledgement */
@@ -193,26 +193,26 @@ static bool bool_I2C_ReadBytes(I2C_TypeDef* I2Cx, uint8_t *pu8_Buff,
     }
 
     /* Test on EV7 and clear it */
-    u32_Time = I2C_TIMEOUT;
+    u32_time = I2C_TIMEOUT;
     while(!I2C_CheckEvent(I2Cx, I2C_EVENT_MASTER_BYTE_RECEIVED))
     {
-      if ((u32_Time--) == 0) return false;
+      if ((u32_time--) == 0) return false;
     }
 
     /* Read the byte received from the Sensor */
     /* Point to the next location where the byte read will be saved */
-    *pu8_Buff = I2C_ReceiveData(I2Cx);
-    pu8_Buff++;
+    *pu8_buff = I2C_ReceiveData(I2Cx);
+    pu8_buff++;
     
     /* Decrease the read bytes counter */
-    u8_Length--;
+    u8_length--;
   }
 
   /* Wait to make sure that STOP control bit has been cleared */
-  u32_Time = I2C_TIMEOUT;
+  u32_time = I2C_TIMEOUT;
   while(I2Cx->CR1 & I2C_CR1_STOP)
   {
-      if((u32_Time--) == 0) return false;
+      if((u32_time--) == 0) return false;
   }
 
   /* Re-Enable Acknowledgement to be ready for another reception */
@@ -226,67 +226,67 @@ static bool bool_I2C_ReadBytes(I2C_TypeDef* I2Cx, uint8_t *pu8_Buff,
 /**
   * @brief  bool_I2C_WriteBytes
   * @note   ...
-  * @param  pu8_Buff: pointer to array that will store bytes from slave
-  * @param  u8_Slave_Add: slave's address
-  * @param  u8_Reg_Add: start address of the register of the slave
-  * @param  u8_Length: length of the array
+  * @param  pu8_buff: pointer to array that will store bytes from slave
+  * @param  u8_slave_add: slave's address
+  * @param  u8_reg_add: start address of the register of the slave
+  * @param  u8_length: length of the array
   * @retval true if succeed and vice versa
   */
-static bool bool_I2C_WriteBytes(I2C_TypeDef * I2Cx, const uint8_t *pu8_Buff,
-                           uint8_t u8_Slave_Add, uint8_t u8_Reg_Add, uint8_t u8_Length)
+static bool bool_I2C_WriteBytes(I2C_TypeDef * I2Cx, const uint8_t *pu8_buff,
+                           uint8_t u8_slave_add, uint8_t u8_reg_add, uint8_t u8_length)
 {
-  uint32_t u32_Time;
+  uint32_t u32_time;
   I2C_AcknowledgeConfig(I2Cx, ENABLE); 
   /* While the bus is busy */
-  u32_Time = I2C_TIMEOUT;
+  u32_time = I2C_TIMEOUT;
   while(I2C_GetFlagStatus(I2Cx, I2C_FLAG_BUSY))
   {
-    if((u32_Time--) == 0) return false;
+    if((u32_time--) == 0) return false;
   }
 
   /* Send START condition */
   I2C_GenerateSTART(I2Cx, ENABLE);
 
   /* Test on EV5 and clear it (cleared by reading SR1 then writing to DR) */
-  u32_Time = I2C_TIMEOUT;
+  u32_time = I2C_TIMEOUT;
   while(!I2C_CheckEvent(I2Cx, I2C_EVENT_MASTER_MODE_SELECT))
   {
-    if((u32_Time--) == 0) return false;
+    if((u32_time--) == 0) return false;
   }
 
   /* Send Slave address for write */
-  I2C_Send7bitAddress(I2Cx, u8_Slave_Add, I2C_Direction_Transmitter);
+  I2C_Send7bitAddress(I2Cx, u8_slave_add, I2C_Direction_Transmitter);
 
   /* Test on EV6 and clear it */
-  u32_Time = I2C_TIMEOUT;
+  u32_time = I2C_TIMEOUT;
   while(!I2C_CheckEvent(I2Cx, I2C_EVENT_MASTER_TRANSMITTER_MODE_SELECTED))
   {
-    if((u32_Time--) == 0) return false;
+    if((u32_time--) == 0) return false;
   }
 
   /* Send the Register address to read from: Only one byte address */
-  I2C_SendData(I2Cx, u8_Reg_Add);  
+  I2C_SendData(I2Cx, u8_reg_add);  
 
   /* Test on EV8 and clear it */
-  u32_Time = I2C_TIMEOUT;
+  u32_time = I2C_TIMEOUT;
   while(!I2C_CheckEvent(I2Cx, I2C_EVENT_MASTER_BYTE_TRANSMITTED))
   {
-      if (u32_Time-- == 0) return false;
+      if (u32_time-- == 0) return false;
   }
     
   /* SHOULD DISABLE INTERRUPT HERE, IF NOT IT MAY BE CORRUPT I2C TRANSACTION */
   __disable_irq();
-  while(u8_Length)
+  while(u8_length)
   {
     /* Send the data & increase the pointer of write buffer */
-    I2C_SendData(I2Cx, *pu8_Buff); 
-    pu8_Buff++;
-    u8_Length--;  
+    I2C_SendData(I2Cx, *pu8_buff); 
+    pu8_buff++;
+    u8_length--;  
     /* Test on EV8_2 to ensure data is transmitted, can used EV_8 for faster transmission*/
-    u32_Time = I2C_TIMEOUT;
+    u32_time = I2C_TIMEOUT;
     while(!I2C_CheckEvent(I2Cx, I2C_EVENT_MASTER_BYTE_TRANSMITTED))
     {
-      if ((u32_Time--) == 0) return false;
+      if ((u32_time--) == 0) return false;
     }
   }
 
@@ -314,41 +314,41 @@ static bool bool_I2C_WriteBytes(I2C_TypeDef * I2Cx, const uint8_t *pu8_Buff,
 /**
   * @brief  bool_EEP_ReadBytes
   * @note   ...
-  * @param  pu8_Buff: pointer to array that will store bytes from EEP
-  * @param  u16_Reg_Add: start regiter address from 0 to 511 
+  * @param  pu8_buff: pointer to array that will store bytes from EEP
+  * @param  u16_reg_add: start regiter address from 0 to 511 
   *         (EEPROM 24C04: 512 bytes/address)
   *         And it is divided into 2 pages (256 bytes/page)
-  * @param  u16_Length: length of data to read
+  * @param  u16_length: length of data to read
   * @retval true if succeed and vice versa
   */
-bool bool_EEP_ReadBytes(uint8_t* pu8_Buff, uint16_t u16_Reg_Add, uint16_t u16_Length)
+bool bool_EEP_ReadBytes(uint8_t* pu8_buff, uint16_t u16_reg_add, uint16_t u16_length)
 {
-  uint16_t u16_Reg_Add_Buff;
-  uint8_t u8_EEP_Add_Buff;
-  uint16_t u16_Idx;
+  uint16_t u16_reg_add_buff;
+  uint8_t u8_eep_add_buff;
+  uint16_t u16_idx;
     
-  for(u16_Idx = 0; u16_Idx < u16_Length; u16_Idx++)
+  for(u16_idx = 0; u16_idx < u16_length; u16_idx++)
   {
-    u8_EEP_Add_Buff = EEP_ADD;
-    u16_Reg_Add_Buff = u16_Reg_Add + u16_Idx;
+    u8_eep_add_buff = EEP_ADD;
+    u16_reg_add_buff = u16_reg_add + u16_idx;
     
-    if(u16_Reg_Add_Buff > 511) return false; // Out of range
-    else if(u16_Reg_Add_Buff > 255)
+    if(u16_reg_add_buff > 511) return false; // Out of range
+    else if(u16_reg_add_buff > 255)
     {
       /* Page 1: insert bit page 1 in eeprom address */
-      u16_Reg_Add_Buff -= 256;
-      u8_EEP_Add_Buff |= EEP_PAGE_1;
+      u16_reg_add_buff -= 256;
+      u8_eep_add_buff |= EEP_PAGE_1;
     }
     /*
-    else if(u16_Reg_Add_Buff < 255) Page 0: do nothing
+    else if(u16_reg_add_buff < 255) Page 0: do nothing
     */
       
     /* Random read 1 byte */
-    if(bool_I2C_ReadBytes(EEP_RESV_I2C, pu8_Buff, u8_EEP_Add_Buff, u16_Reg_Add_Buff, 1) == false) 
+    if(bool_I2C_ReadBytes(EEP_RESV_I2C, pu8_buff, u8_eep_add_buff, u16_reg_add_buff, 1) == false) 
     {
       return false;
     }
-    pu8_Buff++;
+    pu8_buff++;
   }
   return true;
 }
@@ -356,41 +356,41 @@ bool bool_EEP_ReadBytes(uint8_t* pu8_Buff, uint16_t u16_Reg_Add, uint16_t u16_Le
 /**
   * @brief  bool_EEP_WriteBytes
   * @note   ...
-  * @param  pu8_Buff: pointer to write array data
-  * @param  u16_Reg_Add: start regiter address from 0 to 511 
+  * @param  pu8_buff: pointer to write array data
+  * @param  u16_reg_add: start regiter address from 0 to 511 
   *         (EEPROM 24C04: 512 bytes/address)
   *         And it is divided into 2 pages (256 bytes/page)
-  * @param  u16_Length: length of data to write
+  * @param  u16_length: length of data to write
   * @retval true if succeed and vice versa
   */
-bool bool_EEP_WriteBytes(const uint8_t* pu8_Buff, uint16_t u16_Reg_Add, uint16_t u16_Length)
+bool bool_EEP_WriteBytes(const uint8_t* pu8_buff, uint16_t u16_reg_add, uint16_t u16_length)
 {
-  uint16_t u16_Reg_Add_Buff;
-  uint8_t u8_EEP_Add_Buff;
-  uint16_t u16_Idx;
+  uint16_t u16_reg_add_buff;
+  uint8_t u8_eep_add_buff;
+  uint16_t u16_idx;
     
-  for(u16_Idx = 0; u16_Idx < u16_Length; u16_Idx++)
+  for(u16_idx = 0; u16_idx < u16_length; u16_idx++)
   {
-    u8_EEP_Add_Buff = EEP_ADD;
-    u16_Reg_Add_Buff = u16_Reg_Add + u16_Idx;
+    u8_eep_add_buff = EEP_ADD;
+    u16_reg_add_buff = u16_reg_add + u16_idx;
 
-    if(u16_Reg_Add_Buff > 511) return false; // Out of range
-    else if(u16_Reg_Add_Buff > 255)
+    if(u16_reg_add_buff > 511) return false; // Out of range
+    else if(u16_reg_add_buff > 255)
     {
       /* Page 1: insert bit page 1 in eeprom address */
-      u16_Reg_Add_Buff -= 256;
-      u8_EEP_Add_Buff |= EEP_PAGE_1;
+      u16_reg_add_buff -= 256;
+      u8_eep_add_buff |= EEP_PAGE_1;
     }
     /*
     else if(reg_add < 255) page 0: do nothing
     */
 
     // Random write 1 byte into eeprom
-    if (bool_I2C_WriteBytes(EEP_RESV_I2C, pu8_Buff, u8_EEP_Add_Buff, u16_Reg_Add_Buff, 1) == false)
+    if (bool_I2C_WriteBytes(EEP_RESV_I2C, pu8_buff, u8_eep_add_buff, u16_reg_add_buff, 1) == false)
     {
       return false;
     }
-    pu8_Buff++;
+    pu8_buff++;
     //delay_us(5000); //Important: Maximum write cycle time = 5ms
   }
   return true;
@@ -414,41 +414,41 @@ bool bool_EEP_WriteBytes(const uint8_t* pu8_Buff, uint16_t u16_Reg_Add, uint16_t
 /**
   * @brief  Get Pos of params in real eeprom
   * @note   ...
-  * @param  enum_Params: Desired Param
-  * @retval u32_Pos: Position of Params
+  * @param  enum_params: Desired Param
+  * @retval u32_pos: Position of Params
   */
-static uint32_t u32_Params_Get_Pos(ENUM_PARAMS_T enum_Params)
+static uint32_t u32_Params_Get_Pos(ENUM_PARAMS_T enum_params)
 {
-  uint32_t u32_Idx = 0, u32_Pos = 0;
-  for(u32_Idx = 0; u32_Idx < enum_Params; u32_Idx++)
+  uint32_t u32_idx = 0, u32_pos = 0;
+  for(u32_idx = 0; u32_idx < enum_params; u32_idx++)
   {
-    u32_Pos += au8_Params_Length[u32_Idx];
+    u32_pos += au8_params_length[u32_idx];
   }
-  return u32_Pos;
+  return u32_pos;
 }
 
 /**
   * @brief  save params
   * @note   ...
-  * @param  enum_Params: Desired Param
+  * @param  enum_params: Desired Param
   * @param  pu8Data: pointer of data need to save
   * @retval true if succeed and vice versa
   */
-bool bool_Params_Save(ENUM_PARAMS_T enum_Params, const uint8_t *pu8_Data)
+bool bool_Params_Save(ENUM_PARAMS_T enum_params, const uint8_t *pu8_data)
 {
-  return bool_EEP_WriteBytes(pu8_Data, u32_Params_Get_Pos(enum_Params), au8_Params_Length[enum_Params]);
+  return bool_EEP_WriteBytes(pu8_data, u32_Params_Get_Pos(enum_params), au8_params_length[enum_params]);
 }
 
 /**
   * @brief  load params
   * @note   ...
-  * @param  enum_Params: Desired Param
+  * @param  enum_params: Desired Param
   * @param  pu8Data: pointer of data store data loaded from eeprom
   * @retval true if succeed and vice versa
   */
-bool bool_Params_Load(ENUM_PARAMS_T enum_Params, uint8_t *pu8_Data)
+bool bool_Params_Load(ENUM_PARAMS_T enum_params, uint8_t *pu8_data)
 {
-  return bool_EEP_ReadBytes(pu8_Data, u32_Params_Get_Pos(enum_Params), au8_Params_Length[enum_Params]);
+  return bool_EEP_ReadBytes(pu8_data, u32_Params_Get_Pos(enum_params), au8_params_length[enum_params]);
 }
 /**
   * @}

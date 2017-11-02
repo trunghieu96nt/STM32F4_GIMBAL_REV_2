@@ -1,6 +1,6 @@
 #include "include.h"
 
-void Board_Init()
+void v_Board_Init()
 {
   /* Enable SysTick at 1ms interrupt */
   SysTick_Config(SystemCoreClock / F_CTRL);
@@ -15,13 +15,13 @@ void Board_Init()
   //v_Params_Load_All();
   
   /* waiting for IMU Data is available */
-  while(stru_Get_IMU_Data().bool_Available == false)
+  while(stru_Get_IMU_Data().bool_available == false)
   {
     bool_ADIS_Read_IsTimeout(10);
     
-    if(u32_System_Tick_Count > 1000)
+    if(u32_system_tick_count > 1000)
     {
-      u32_System_Tick_Count = 0;
+      u32_system_tick_count = 0;
       //v_Red_Toggle();
       v_Blue_Toggle();
       //v_Green_Toggle();
@@ -36,13 +36,13 @@ void Board_Init()
 
 int main(void)
 {
-  Board_Init();
+  v_Board_Init();
   
   while(true)
   {
-    if(u32_System_Tick_Count > 1000)
+    if(u32_system_tick_count > 1000)
     {
-      u32_System_Tick_Count = 0;
+      u32_system_tick_count = 0;
       //v_Red_Toggle();
       //v_Blue_Toggle();
       v_Green_Toggle();
@@ -57,6 +57,12 @@ int main(void)
       tick_flag = false;
       v_Control();
       v_Send_Data();
+      if (DMA_GetCmdStatus(DMA1_Stream3) == DISABLE)
+      {
+        v_Red_On();
+      }
+      else
+        v_Red_Off();
     }
   }
 }

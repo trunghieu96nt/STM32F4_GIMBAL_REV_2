@@ -73,12 +73,12 @@ typedef enum{
 void v_I2C_Comm_Init(void);
 
 /* EPP Read and Write functions ***********************************************/
-bool bool_EEP_ReadBytes(uint8_t* pu8_Buff, uint16_t u16_Reg_Add, uint16_t u16_Length);
-bool bool_EEP_WriteBytes(const uint8_t* pu8_Buff, uint16_t u16_Reg_Add, uint16_t u16_Length);
+bool bool_EEP_ReadBytes(uint8_t* pu8_buff, uint16_t u16_reg_add, uint16_t u16_length);
+bool bool_EEP_WriteBytes(const uint8_t* pu8_buff, uint16_t u16_reg_add, uint16_t u16_length);
 
 /* Params Save and Load Functions *********************************************/
-bool bool_Params_Save(ENUM_PARAMS_T enum_Params, const uint8_t *pu8_Data);
-bool bool_Params_Load(ENUM_PARAMS_T enum_Params, uint8_t *pu8_Data);
+bool bool_Params_Save(ENUM_PARAMS_T enum_params, const uint8_t *pu8_data);
+bool bool_Params_Load(ENUM_PARAMS_T enum_params, uint8_t *pu8_data);
 
 #ifdef __cplusplus
 }

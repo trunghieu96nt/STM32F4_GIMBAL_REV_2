@@ -27,30 +27,31 @@
 /* Private define ------------------------------------------------------------*/
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
-static uint8_t au8_CMD_Rx[CMD_RXBUFF_SIZE]= {0};
-static uint8_t au8_DATA_Rx[DATA_RXBUFF_SIZE]= {0};
-static uint8_t au8_RESV_Rx[RESV_RXBUFF_SIZE]= {0};
+static uint8_t au8_CMD_rx[CMD_RXBUFF_SIZE]= {0};
+static uint8_t au8_DATA_rx[DATA_RXBUFF_SIZE]= {0};
+static uint8_t au8_DATA_tx[DATA_TXBUFF_SIZE]= {0};
+static uint8_t au8_RESV_rx[RESV_RXBUFF_SIZE]= {0};
 
-extern bool bool_None_Handler             (uint8_t u8_Msg_ID, uint8_t *pu8_Payload, uint32_t u32_Payload_Cnt);
-extern bool bool_Home_Handler             (uint8_t u8_Msg_ID, uint8_t *pu8_Payload, uint32_t u32_Payload_Cnt);
-extern bool bool_Stop_Handler             (uint8_t u8_Msg_ID, uint8_t *pu8_Payload, uint32_t u32_Payload_Cnt);
-extern bool bool_Emergency_Stop_Handler   (uint8_t u8_Msg_ID, uint8_t *pu8_Payload, uint32_t u32_Payload_Cnt);
-extern bool bool_Stabilizing_Mode_Handler (uint8_t u8_Msg_ID, uint8_t *pu8_Payload, uint32_t u32_Payload_Cnt);
-extern bool bool_Get_Mode_Handler         (uint8_t u8_Msg_ID, uint8_t *pu8_Payload, uint32_t u32_Payload_Cnt);
-extern bool bool_Set_Pos_Handler          (uint8_t u8_Msg_ID, uint8_t *pu8_Payload, uint32_t u32_Payload_Cnt);
-extern bool bool_Set_Vel_Handler          (uint8_t u8_Msg_ID, uint8_t *pu8_Payload, uint32_t u32_Payload_Cnt);
-extern bool bool_Set_Pos_Vel_Handler      (uint8_t u8_Msg_ID, uint8_t *pu8_Payload, uint32_t u32_Payload_Cnt);
-extern bool bool_Get_Pos_Handler          (uint8_t u8_Msg_ID, uint8_t *pu8_Payload, uint32_t u32_Payload_Cnt);
-extern bool bool_Set_Kp_Handler           (uint8_t u8_Msg_ID, uint8_t *pu8_Payload, uint32_t u32_Payload_Cnt);
-extern bool bool_Set_Ki_Handler           (uint8_t u8_Msg_ID, uint8_t *pu8_Payload, uint32_t u32_Payload_Cnt);
-extern bool bool_Set_Kd_Handler           (uint8_t u8_Msg_ID, uint8_t *pu8_Payload, uint32_t u32_Payload_Cnt);
-extern bool bool_Set_Kff1_Handler         (uint8_t u8_Msg_ID, uint8_t *pu8_Payload, uint32_t u32_Payload_Cnt);
-extern bool bool_Set_Kff2_Handler         (uint8_t u8_Msg_ID, uint8_t *pu8_Payload, uint32_t u32_Payload_Cnt);
-extern bool bool_Get_Params_Handler       (uint8_t u8_Msg_ID, uint8_t *pu8_Payload, uint32_t u32_Payload_Cnt);
-extern bool bool_Set_Active_Axis_Handler  (uint8_t u8_Msg_ID, uint8_t *pu8_Payload, uint32_t u32_Payload_Cnt);
-extern bool bool_Get_Active_Axis_Handler  (uint8_t u8_Msg_ID, uint8_t *pu8_Payload, uint32_t u32_Payload_Cnt);
+extern bool bool_None_Handler             (uint8_t u8_msg_id, uint8_t *pu8_payload, uint32_t u32_payload_cnt);
+extern bool bool_Home_Handler             (uint8_t u8_msg_id, uint8_t *pu8_payload, uint32_t u32_payload_cnt);
+extern bool bool_Stop_Handler             (uint8_t u8_msg_id, uint8_t *pu8_payload, uint32_t u32_payload_cnt);
+extern bool bool_Emergency_Stop_Handler   (uint8_t u8_msg_id, uint8_t *pu8_payload, uint32_t u32_payload_cnt);
+extern bool bool_Stabilizing_Mode_Handler (uint8_t u8_msg_id, uint8_t *pu8_payload, uint32_t u32_payload_cnt);
+extern bool bool_Get_Mode_Handler         (uint8_t u8_msg_id, uint8_t *pu8_payload, uint32_t u32_payload_cnt);
+extern bool bool_Set_Pos_Handler          (uint8_t u8_msg_id, uint8_t *pu8_payload, uint32_t u32_payload_cnt);
+extern bool bool_Set_Vel_Handler          (uint8_t u8_msg_id, uint8_t *pu8_payload, uint32_t u32_payload_cnt);
+extern bool bool_Set_Pos_Vel_Handler      (uint8_t u8_msg_id, uint8_t *pu8_payload, uint32_t u32_payload_cnt);
+extern bool bool_Get_Pos_Handler          (uint8_t u8_msg_id, uint8_t *pu8_payload, uint32_t u32_payload_cnt);
+extern bool bool_Set_Kp_Handler           (uint8_t u8_msg_id, uint8_t *pu8_payload, uint32_t u32_payload_cnt);
+extern bool bool_Set_Ki_Handler           (uint8_t u8_msg_id, uint8_t *pu8_payload, uint32_t u32_payload_cnt);
+extern bool bool_Set_Kd_Handler           (uint8_t u8_msg_id, uint8_t *pu8_payload, uint32_t u32_payload_cnt);
+extern bool bool_Set_Kff1_Handler         (uint8_t u8_msg_id, uint8_t *pu8_payload, uint32_t u32_payload_cnt);
+extern bool bool_Set_Kff2_Handler         (uint8_t u8_msg_id, uint8_t *pu8_payload, uint32_t u32_payload_cnt);
+extern bool bool_Get_Params_Handler       (uint8_t u8_msg_id, uint8_t *pu8_payload, uint32_t u32_payload_cnt);
+extern bool bool_Set_Active_Axis_Handler  (uint8_t u8_msg_id, uint8_t *pu8_payload, uint32_t u32_payload_cnt);
+extern bool bool_Get_Active_Axis_Handler  (uint8_t u8_msg_id, uint8_t *pu8_payload, uint32_t u32_payload_cnt);
 
-const STRU_CMD_HANDLER_T astru_CMD_Handler[CMD_NUM_MSG_ID_MAX] =
+const STRU_CMD_HANDLER_T astru_CMD_handler[CMD_NUM_MSG_ID_MAX] =
 {
   {MSG_NONE,                0,    bool_None_Handler},
   {MSG_HOME,                1,    bool_Home_Handler},
@@ -159,7 +160,7 @@ static void v_CMD_UART_Init(void)
   DMA_DeInit(CMD_RX_DMA_STREAM);  
   DMA_InitStructure.DMA_Channel            = CMD_RX_DMA_CHANNEL;
   DMA_InitStructure.DMA_DIR                = DMA_DIR_PeripheralToMemory;
-  DMA_InitStructure.DMA_Memory0BaseAddr    = (uint32_t)&au8_CMD_Rx[0];
+  DMA_InitStructure.DMA_Memory0BaseAddr    = (uint32_t)&au8_CMD_rx[0];
   DMA_InitStructure.DMA_PeripheralBaseAddr = CMD_DATA_REG;
   DMA_InitStructure.DMA_PeripheralDataSize = DMA_PeripheralDataSize_Byte;
   DMA_InitStructure.DMA_MemoryDataSize     = DMA_MemoryDataSize_Byte;
@@ -207,13 +208,13 @@ static void v_CMD_UART_Init(void)
 /**
   * @brief  Send message through DMA - UART
   * @note   CMD
-  * @param  pu8_Message: pointer message to send (should be static)
-  * @param  u32_Message_Size: number of char to send
+  * @param  pu8_message: pointer message to send (should be static)
+  * @param  u32_message_size: number of char to send
   * @retval true if success and vice versa
   */
-bool bool_CMD_Send(const uint8_t *pu8_Message, uint32_t u32_Message_Size)
+bool bool_CMD_Send(const uint8_t *pu8_message, uint32_t u32_message_size)
 {
-  if(u32_Message_Size > CMD_TXBUFF_SIZE)
+  if(u32_message_size > CMD_TXBUFF_SIZE)
   {
     return false;
   }
@@ -221,8 +222,8 @@ bool bool_CMD_Send(const uint8_t *pu8_Message, uint32_t u32_Message_Size)
   {
     //clear flag
     DMA_ClearFlag(CMD_TX_DMA_STREAM, CMD_TX_DMA_FLAG);
-    DMA_MemoryTargetConfig(CMD_TX_DMA_STREAM, (uint32_t)pu8_Message, DMA_Memory_0);
-    DMA_SetCurrDataCounter(CMD_TX_DMA_STREAM, u32_Message_Size);
+    DMA_MemoryTargetConfig(CMD_TX_DMA_STREAM, (uint32_t)pu8_message, DMA_Memory_0);
+    DMA_SetCurrDataCounter(CMD_TX_DMA_STREAM, u32_message_size);
     //STM_TX_DMA_STREAM->NDTR = BUFF_SIZE;
     DMA_Cmd(CMD_TX_DMA_STREAM, ENABLE);
     return true;
@@ -237,124 +238,124 @@ bool bool_CMD_Send(const uint8_t *pu8_Message, uint32_t u32_Message_Size)
   */
 void v_CMD_Receive(void)
 {
-  static uint32_t u32_Idx_Pre = 0, u32_Idx = 0, u32_Time_Tick = 0;
-  static bool bool_Header_Detected = false, bool_Length_Detected = false;
-  static uint8_t au8_CMD_Frame[CMD_FRAME_LEN_MAX] = {'G', 'B', 0x02, 0x01};
-  uint32_t u32_Length, u32_Idx_Cur, u32_Cnt;
-  uint16_t u16_CRC_Check;
+  static uint32_t u32_idx_pre = 0, u32_idx = 0, u32_time_tick = 0;
+  static bool bool_header_detected = false, bool_length_detected = false;
+  static uint8_t au8_CMD_frame[CMD_FRAME_LEN_MAX] = {'G', 'B', 0x02, 0x01};
+  uint32_t u32_length, u32_idx_cur, u32_cnt;
+  uint16_t u16_crc_check;
   
-  u32_Idx_Cur = CMD_RXBUFF_SIZE - CMD_RX_DMA_STREAM->NDTR;
+  u32_idx_cur = CMD_RXBUFF_SIZE - CMD_RX_DMA_STREAM->NDTR;
   
-  if (u32_Idx_Cur == u32_Idx_Pre)
+  if (u32_idx_cur == u32_idx_pre)
   {
-    if (bool_Header_Detected == true)
+    if (bool_header_detected == true)
     {
-      if (SysTick_IsTimeout(u32_Time_Tick, CMD_RX_FRAME_TIMEOUT))
+      if (SysTick_IsTimeout(u32_time_tick, CMD_RX_FRAME_TIMEOUT))
       {
-        u32_Idx = 0;
-        bool_Length_Detected = false;
-        bool_Header_Detected = false;
+        u32_idx = 0;
+        bool_length_detected = false;
+        bool_header_detected = false;
       }
     }
     return;
   }
   
-  u32_Time_Tick = SysTick_GetTick();
+  u32_time_tick = SysTick_GetTick();
   
   /* Search Header "GB" */
-  if (bool_Header_Detected == false)
+  if (bool_header_detected == false)
   {
     while (true)
     {
-      if (u32_Idx_Cur >= u32_Idx_Pre) u32_Length = u32_Idx_Cur - u32_Idx_Pre;
-      else u32_Length = CMD_RXBUFF_SIZE - (u32_Idx_Pre - u32_Idx_Cur);
+      if (u32_idx_cur >= u32_idx_pre) u32_length = u32_idx_cur - u32_idx_pre;
+      else u32_length = CMD_RXBUFF_SIZE - (u32_idx_pre - u32_idx_cur);
       
-      if (u32_Length < 2) return;
+      if (u32_length < 2) return;
       
-      if (*(au8_CMD_Rx + u32_Idx_Pre) == 'G')
+      if (*(au8_CMD_rx + u32_idx_pre) == 'G')
       {
-        if (++u32_Idx_Pre >= CMD_RXBUFF_SIZE) u32_Idx_Pre = 0;
-        if (*(au8_CMD_Rx + u32_Idx_Pre) == 'B')
+        if (++u32_idx_pre >= CMD_RXBUFF_SIZE) u32_idx_pre = 0;
+        if (*(au8_CMD_rx + u32_idx_pre) == 'B')
         {
-          if (++u32_Idx_Pre >= CMD_RXBUFF_SIZE) u32_Idx_Pre = 0;
-          bool_Header_Detected = true;
+          if (++u32_idx_pre >= CMD_RXBUFF_SIZE) u32_idx_pre = 0;
+          bool_header_detected = true;
           break;
         }
       }
       else
       {
-        if (++u32_Idx_Pre >= CMD_RXBUFF_SIZE) u32_Idx_Pre = 0;
+        if (++u32_idx_pre >= CMD_RXBUFF_SIZE) u32_idx_pre = 0;
       }
     }
   }
   
   /* Search Length of Frame*/
-  if (bool_Length_Detected == false)
+  if (bool_length_detected == false)
   {
-    if (u32_Idx_Cur >= u32_Idx_Pre) u32_Length = u32_Idx_Cur - u32_Idx_Pre;
-    else u32_Length = CMD_RXBUFF_SIZE - (u32_Idx_Pre - u32_Idx_Cur);
+    if (u32_idx_cur >= u32_idx_pre) u32_length = u32_idx_cur - u32_idx_pre;
+    else u32_length = CMD_RXBUFF_SIZE - (u32_idx_pre - u32_idx_cur);
     
-    if (u32_Length < 5) return;
+    if (u32_length < 5) return;
     
     /* Check DEST_ID - ID_GIMBAL_CONTROLER */
-    if (au8_CMD_Rx[u32_Idx_Pre] != 0x02) 
+    if (au8_CMD_rx[u32_idx_pre] != 0x02) 
     {
-      bool_Header_Detected = false;
+      bool_header_detected = false;
       return;
     }
-    if (++u32_Idx_Pre == CMD_RXBUFF_SIZE) u32_Idx_Pre = 0;
+    if (++u32_idx_pre == CMD_RXBUFF_SIZE) u32_idx_pre = 0;
     
     /* Check SRC_ID - ID_GUI_SOFTWARE */
-    if (au8_CMD_Rx[u32_Idx_Pre] != 0x01) 
+    if (au8_CMD_rx[u32_idx_pre] != 0x01) 
     {
-      bool_Header_Detected = false;
+      bool_header_detected = false;
       return;
     }
-    if (++u32_Idx_Pre == CMD_RXBUFF_SIZE) u32_Idx_Pre = 0;
+    if (++u32_idx_pre == CMD_RXBUFF_SIZE) u32_idx_pre = 0;
     
     /* Get Seq */
-    au8_CMD_Frame[4] = au8_CMD_Rx[u32_Idx_Pre];
-    if (++u32_Idx_Pre == CMD_RXBUFF_SIZE) u32_Idx_Pre = 0;
+    au8_CMD_frame[4] = au8_CMD_rx[u32_idx_pre];
+    if (++u32_idx_pre == CMD_RXBUFF_SIZE) u32_idx_pre = 0;
     
     /* Get Length */
-    bool_Length_Detected = true;
-    au8_CMD_Frame[5] = au8_CMD_Rx[u32_Idx_Pre];
-    if (++u32_Idx_Pre == CMD_RXBUFF_SIZE) u32_Idx_Pre = 0;
+    bool_length_detected = true;
+    au8_CMD_frame[5] = au8_CMD_rx[u32_idx_pre];
+    if (++u32_idx_pre == CMD_RXBUFF_SIZE) u32_idx_pre = 0;
   }
   
   /* Getting Frame */
   while (true)
   {
-    au8_CMD_Frame[u32_Idx + 6] = *(au8_CMD_Rx + u32_Idx_Pre);
-    if (++u32_Idx_Pre >= CMD_RXBUFF_SIZE) u32_Idx_Pre = 0;
-    if (++u32_Idx == au8_CMD_Frame[5])
+    au8_CMD_frame[u32_idx + 6] = *(au8_CMD_rx + u32_idx_pre);
+    if (++u32_idx_pre >= CMD_RXBUFF_SIZE) u32_idx_pre = 0;
+    if (++u32_idx == au8_CMD_frame[5])
     {
-      u32_Idx = 0;
-      bool_Length_Detected = false;
-      bool_Header_Detected = false;
+      u32_idx = 0;
+      bool_length_detected = false;
+      bool_header_detected = false;
       break;
     }
-    if (u32_Idx_Pre == u32_Idx_Cur) return;
+    if (u32_idx_pre == u32_idx_cur) return;
   }
   
   /* Check CRC */
-  u16_CRC_Check = 0;
-  u32_Length = au8_CMD_Frame[5] + 6 - 2; //Total Length except 2 byte CRC
-  for (u32_Cnt = 0; u32_Cnt < u32_Length; u32_Cnt++)
+  u16_crc_check = 0;
+  u32_length = au8_CMD_frame[5] + 6 - 2; //Total Length except 2 byte CRC
+  for (u32_cnt = 0; u32_cnt < u32_length; u32_cnt++)
   {
-    u16_CRC_Check += au8_CMD_Frame[u32_Cnt];
+    u16_crc_check += au8_CMD_frame[u32_cnt];
   }
-  u16_CRC_Check = ~u16_CRC_Check;
-  if (((u16_CRC_Check >> 8) & 0x0FF) != au8_CMD_Frame[u32_Length]) return;
-  if ((u16_CRC_Check & 0x0FF) != au8_CMD_Frame[u32_Length + 1]) return;
+  u16_crc_check = ~u16_crc_check;
+  if (((u16_crc_check >> 8) & 0x0FF) != au8_CMD_frame[u32_length]) return;
+  if ((u16_crc_check & 0x0FF) != au8_CMD_frame[u32_length + 1]) return;
   
   /* Check enough length */
-  u32_Length = au8_CMD_Frame[5] - 3; //Length Payload
-  if (astru_CMD_Handler[au8_CMD_Frame[6]].u32_Data_Num_Bytes != u32_Length) return;
+  u32_length = au8_CMD_frame[5] - 3; //Length Payload
+  if (astru_CMD_handler[au8_CMD_frame[6]].u32_data_num_bytes != u32_length) return;
   
   /* Handle Data */
-  astru_CMD_Handler[au8_CMD_Frame[6]].bool_Msg_Handler(astru_CMD_Handler[au8_CMD_Frame[6]].enum_Msg_ID, 
-                                                       &au8_CMD_Frame[7], u32_Length);
+  astru_CMD_handler[au8_CMD_frame[6]].bool_msg_handler(astru_CMD_handler[au8_CMD_frame[6]].enum_msg_id, 
+                                                       &au8_CMD_frame[7], u32_length);
 }
 
 /**
@@ -415,7 +416,7 @@ static void v_DATA_UART_Init(void)
   DMA_DeInit(DATA_RX_DMA_STREAM);  
   DMA_InitStructure.DMA_Channel            = DATA_RX_DMA_CHANNEL;
   DMA_InitStructure.DMA_DIR                = DMA_DIR_PeripheralToMemory;
-  DMA_InitStructure.DMA_Memory0BaseAddr    = (uint32_t)&au8_DATA_Rx[0];
+  DMA_InitStructure.DMA_Memory0BaseAddr    = (uint32_t)&au8_DATA_rx[0];
   DMA_InitStructure.DMA_PeripheralBaseAddr = DATA_DATA_REG;
   DMA_InitStructure.DMA_PeripheralDataSize = DMA_PeripheralDataSize_Byte;
   DMA_InitStructure.DMA_MemoryDataSize     = DMA_MemoryDataSize_Byte;
@@ -438,7 +439,7 @@ static void v_DATA_UART_Init(void)
   DMA_DeInit(DATA_TX_DMA_STREAM);
   DMA_InitStructure.DMA_Channel            = DATA_TX_DMA_CHANNEL;
   DMA_InitStructure.DMA_DIR                = DMA_DIR_MemoryToPeripheral;
-  DMA_InitStructure.DMA_Memory0BaseAddr    = 0;
+  DMA_InitStructure.DMA_Memory0BaseAddr    = (uint32_t)&au8_DATA_tx[0];
   DMA_InitStructure.DMA_PeripheralBaseAddr = DATA_DATA_REG;
   DMA_InitStructure.DMA_PeripheralDataSize = DMA_PeripheralDataSize_Byte;
   DMA_InitStructure.DMA_MemoryDataSize     = DMA_MemoryDataSize_Byte;
@@ -465,22 +466,30 @@ static void v_DATA_UART_Init(void)
 /**
   * @brief  Send message through DMA - UART
   * @note   DATA
-  * @param  pu8_Message: pointer message to send (should be static)
-  * @param  u32_Message_Size: number of char to send
+  * @param  pu8_message: pointer message to send (should be static)
+  * @param  u32_message_size: number of char to send
   * @retval true if success and vice versa
   */
-bool bool_DATA_Send(const uint8_t *pu8_Message, uint32_t u32_Message_Size)
+bool bool_DATA_Send(const uint8_t *pu8_message, uint32_t u32_message_size)
 {
-  if(u32_Message_Size > DATA_TXBUFF_SIZE)
+  uint32_t u32_idx;
+  
+  if(u32_message_size > DATA_TXBUFF_SIZE)
   {
     return false;
   }
   else
   {
+    //copy buff
+    for (u32_idx = 0; u32_idx < u32_message_size; u32_idx++)
+    {
+      au8_DATA_tx[u32_idx] = *(pu8_message + u32_idx);
+    }
+    
     //clear flag
     DMA_ClearFlag(DATA_TX_DMA_STREAM, DATA_TX_DMA_FLAG);
-    DMA_MemoryTargetConfig(DATA_TX_DMA_STREAM, (uint32_t)pu8_Message, DMA_Memory_0);
-    DMA_SetCurrDataCounter(DATA_TX_DMA_STREAM, u32_Message_Size);
+    //DMA_MemoryTargetConfig(DATA_TX_DMA_STREAM, (uint32_t)au8_DATA_tx, DMA_Memory_0);
+    DMA_SetCurrDataCounter(DATA_TX_DMA_STREAM, u32_message_size);
     //DATA_TX_DMA_STREAM->NDTR = BUFF_SIZE;
     DMA_Cmd(DATA_TX_DMA_STREAM, ENABLE);
     return true;
@@ -551,7 +560,7 @@ static void v_RESV_UART_Init(void)
   DMA_DeInit(RESV_RX_DMA_STREAM);  
   DMA_InitStructure.DMA_Channel            = RESV_RX_DMA_CHANNEL;
   DMA_InitStructure.DMA_DIR                = DMA_DIR_PeripheralToMemory;
-  DMA_InitStructure.DMA_Memory0BaseAddr    = (uint32_t)&au8_RESV_Rx[0];
+  DMA_InitStructure.DMA_Memory0BaseAddr    = (uint32_t)&au8_RESV_rx[0];
   DMA_InitStructure.DMA_PeripheralBaseAddr = RESV_DATA_REG;
   DMA_InitStructure.DMA_PeripheralDataSize = DMA_PeripheralDataSize_Byte;
   DMA_InitStructure.DMA_MemoryDataSize     = DMA_MemoryDataSize_Byte;
@@ -599,13 +608,13 @@ static void v_RESV_UART_Init(void)
 /**
   * @brief  Send message through DMA - UART
   * @note   RESV
-  * @param  pu8_Message: pointer message to send (should be static)
-  * @param  u32_Message_Size: number of char to send
+  * @param  pu8_message: pointer message to send (should be static)
+  * @param  u32_message_size: number of char to send
   * @retval true if success and vice versa
   */
-bool bool_RESV_Send(const uint8_t *pu8_Message, uint32_t u32_Message_Size)
+bool bool_RESV_Send(const uint8_t *pu8_message, uint32_t u32_message_size)
 {
-  if(u32_Message_Size > RESV_TXBUFF_SIZE)
+  if(u32_message_size > RESV_TXBUFF_SIZE)
   {
     return false;
   }
@@ -613,8 +622,8 @@ bool bool_RESV_Send(const uint8_t *pu8_Message, uint32_t u32_Message_Size)
   {
     //clear flag
     DMA_ClearFlag(RESV_TX_DMA_STREAM, RESV_TX_DMA_FLAG);
-    DMA_MemoryTargetConfig(RESV_TX_DMA_STREAM, (uint32_t)pu8_Message, DMA_Memory_0);
-    DMA_SetCurrDataCounter(RESV_TX_DMA_STREAM, u32_Message_Size);
+    DMA_MemoryTargetConfig(RESV_TX_DMA_STREAM, (uint32_t)pu8_message, DMA_Memory_0);
+    DMA_SetCurrDataCounter(RESV_TX_DMA_STREAM, u32_message_size);
     //STM_TX_DMA_STREAM->NDTR = BUFF_SIZE;
     DMA_Cmd(RESV_TX_DMA_STREAM, ENABLE);
     return true;

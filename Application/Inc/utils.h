@@ -38,8 +38,8 @@ extern "C" {
 
 /* Exported macro ------------------------------------------------------------*/
 /* Exported functions --------------------------------------------------------*/
-void v_Int_To_Str_N(int32_t s32_Number, uint8_t *pu8_Str, uint32_t u32_N);
-void v_Euler_To_Body_Rate(float flt_Euler_Angle[3], float flt_Euler_Rate[3], float flt_Body_Rate[3]);
+void v_Int_To_Str_N(int32_t s32_number, uint8_t *pu8_str, uint32_t u32_n);
+void v_Euler_To_Body_Rate(float flt_euler_angle[3], float flt_euler_rate[3], float flt_body_rate[3]);
 
 #ifdef __cplusplus
 }
