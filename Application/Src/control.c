@@ -38,7 +38,7 @@
 #define MAX_RES_MESSAGE_LEN                 64
 #define PARAMS_SCALE                        1000000.0f
 #define POS_VEL_SCALE                       100.0f
-#define DATA_LOG_AZ_VELOCITY_LOOP
+#define DATA_LOG_GENERAL
 
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
@@ -170,15 +170,15 @@ void v_Control_Init(void)
 //  aflt_b[0] = 0.045035005911131;
 //  aflt_b[1] = 0.045035005911131;
   
-//  aflt_a[0] = 1.0f; // fs = 1000Hz, fc = 10Hz, Butterworth first order
-//  aflt_a[1] = -0.939062505817492;
-//  aflt_b[0] = 0.030468747091254;
-//  aflt_b[1] = 0.030468747091254;
+  aflt_a[0] = 1.0f; // fs = 1000Hz, fc = 10Hz, Butterworth first order
+  aflt_a[1] = -0.939062505817492;
+  aflt_b[0] = 0.030468747091254;
+  aflt_b[1] = 0.030468747091254;
   
-  aflt_a[0] = 1.0f; // fs = 1000Hz, fc = 5Hz, Butterworth first order
-  aflt_a[1] = -0.969067417193793;
-  aflt_b[0] = 0.015466291403103;
-  aflt_b[1] = 0.015466291403103;
+//  aflt_a[0] = 1.0f; // fs = 1000Hz, fc = 5Hz, Butterworth first order
+//  aflt_a[1] = -0.969067417193793;
+//  aflt_b[0] = 0.015466291403103;
+//  aflt_b[1] = 0.015466291403103;
   
   v_IIR_Filter_Init(&stru_iir_az_velocity_sp, 1, aflt_a, aflt_b);
   v_IIR_Filter_Set_Enable(&stru_iir_az_velocity_sp, 1);
@@ -1038,17 +1038,52 @@ void v_Send_Data(void)
   au8_tx_buff[0] = 0x0a;
   u32_cnt = 1;
   
-  s32_temp = (int32_t)(flt_AZ_ENC_Get_Angle() * 100);
+  s32_temp = (int32_t)(flt_AZ_ENC_Get_Angle() * 1000);
+  v_Int_To_Str_N(s32_temp, &au8_tx_buff[u32_cnt], 7);
+  u32_cnt += 7;
+  au8_tx_buff[u32_cnt++] = ' ';
+	
+	s32_temp = (int32_t)(flt_EL_ENC_Get_Angle() * 1000);
   v_Int_To_Str_N(s32_temp, &au8_tx_buff[u32_cnt], 7);
   u32_cnt += 7;
   au8_tx_buff[u32_cnt++] = ' ';
   
-  s32_temp = (int32_t)(flt_EL_ENC_Get_Angle() * 100);
+	s32_temp = (int32_t)s16_az_pwm_value;
+  v_Int_To_Str_N(s32_temp, &au8_tx_buff[u32_cnt], 5);
+  u32_cnt += 5;
+  au8_tx_buff[u32_cnt++] = ' ';
+	
+	s32_temp = (int32_t)s16_el_pwm_value;
+  v_Int_To_Str_N(s32_temp, &au8_tx_buff[u32_cnt], 5);
+  u32_cnt += 5;
+  au8_tx_buff[u32_cnt++] = ' ';
+	
+	s32_temp = (int32_t)(stru_Get_IMU_Data().flt_gyro_x / IMU_SCALE_GYRO_UNIT);
+  v_Int_To_Str_N(s32_temp, &au8_tx_buff[u32_cnt], 6);
+  u32_cnt += 6;
+  au8_tx_buff[u32_cnt++] = ' ';
+	
+	s32_temp = (int32_t)(stru_Get_IMU_Data().flt_gyro_y / IMU_SCALE_GYRO_UNIT);
+  v_Int_To_Str_N(s32_temp, &au8_tx_buff[u32_cnt], 6);
+  u32_cnt += 6;
+  au8_tx_buff[u32_cnt++] = ' ';
+	
+	s32_temp = (int32_t)(stru_Get_IMU_Data().flt_gyro_z / IMU_SCALE_GYRO_UNIT);
+  v_Int_To_Str_N(s32_temp, &au8_tx_buff[u32_cnt], 6);
+  u32_cnt += 6;
+  au8_tx_buff[u32_cnt++] = ' ';
+	
+	s32_temp = (int32_t)(stru_Get_IMU_Data().flt_euler_x / IMU_SCALE_EULER_UNIT);
   v_Int_To_Str_N(s32_temp, &au8_tx_buff[u32_cnt], 7);
   u32_cnt += 7;
   au8_tx_buff[u32_cnt++] = ' ';
-  
-  s32_temp = (int32_t)(flt_EL_ENC_Get_Angle() * 100);
+	
+	s32_temp = (int32_t)(stru_Get_IMU_Data().flt_euler_y / IMU_SCALE_EULER_UNIT);
+  v_Int_To_Str_N(s32_temp, &au8_tx_buff[u32_cnt], 7);
+  u32_cnt += 7;
+  au8_tx_buff[u32_cnt++] = ' ';
+	
+	s32_temp = (int32_t)(stru_Get_IMU_Data().flt_euler_z / IMU_SCALE_EULER_UNIT);
   v_Int_To_Str_N(s32_temp, &au8_tx_buff[u32_cnt], 7);
   u32_cnt += 7;
   au8_tx_buff[u32_cnt++] = ' ';
