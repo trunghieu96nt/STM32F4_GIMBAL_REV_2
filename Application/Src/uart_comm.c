@@ -50,6 +50,7 @@ extern bool bool_Set_Kff2_Handler         (uint8_t u8_msg_id, uint8_t *pu8_paylo
 extern bool bool_Get_Params_Handler       (uint8_t u8_msg_id, uint8_t *pu8_payload, uint32_t u32_payload_cnt);
 extern bool bool_Set_Active_Axis_Handler  (uint8_t u8_msg_id, uint8_t *pu8_payload, uint32_t u32_payload_cnt);
 extern bool bool_Get_Active_Axis_Handler  (uint8_t u8_msg_id, uint8_t *pu8_payload, uint32_t u32_payload_cnt);
+extern bool bool_Send_Image_Data_Handler  (uint8_t u8_msg_id, uint8_t *pu8_payload, uint32_t u32_payload_cnt);
 
 const STRU_CMD_HANDLER_T astru_CMD_handler[CMD_NUM_MSG_ID_MAX] =
 {
@@ -70,7 +71,8 @@ const STRU_CMD_HANDLER_T astru_CMD_handler[CMD_NUM_MSG_ID_MAX] =
   {MSG_SET_KFF2,            6,    bool_Set_Kff2_Handler},
   {MSG_GET_PARAMS,          2,    bool_Get_Params_Handler},
   {MSG_SET_ACTIVE_AXIS,     2,    bool_Set_Active_Axis_Handler},
-  {MSG_GET_ACTIVE_AXIS,     1,    bool_Get_Active_Axis_Handler}
+  {MSG_GET_ACTIVE_AXIS,     1,    bool_Get_Active_Axis_Handler},
+  {MSG_SEND_IMAGE_DATA,     5,    bool_Send_Image_Data_Handler}
 };
 
 /* Private function prototypes -----------------------------------------------*/

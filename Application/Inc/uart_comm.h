@@ -42,6 +42,7 @@ typedef enum{
   MSG_GET_PARAMS          = 0x0F,
   MSG_SET_ACTIVE_AXIS     = 0x10,
   MSG_GET_ACTIVE_AXIS     = 0x11,
+  MSG_SEND_IMAGE_DATA     = 0x12,
 } ENUM_MSG_ID_T;
 
 typedef bool (*CMD_HANDLER_FUNC)(uint8_t, uint8_t *, uint32_t);

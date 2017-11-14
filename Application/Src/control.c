@@ -63,7 +63,8 @@ static uint32_t u32_el_sine_idx = 0;
 
 static float flt_euler_angle[3], flt_euler_rate[3], flt_body_rate[3];
 static float flt_filtered_body_rate[3];
-
+static float flt_alpha = 0;
+static float flt_lamda = 0;
 
 static STRU_PID_T stru_pid_az_manual;
 static STRU_PID_T stru_pid_az_pointing;
@@ -967,6 +968,28 @@ bool bool_Get_Active_Axis_Handler(uint8_t u8_msg_id, uint8_t *pu8_payload, uint3
     else
       au8_respond_payload[1] = 0x00;
   }
+  
+  v_Send_Response(u8_msg_id, au8_respond_payload, 2);
+  return true;
+}
+
+bool bool_Send_Image_Data_Handler(uint8_t u8_msg_id, uint8_t *pu8_payload, uint32_t u32_payload_cnt)
+{
+  uint8_t au8_respond_payload[MAX_SHORT_RES_PAYLOAD_LEN];
+  int16_t s16_x_value, s16_y_value;
+  float flt_factor;
+  
+  s16_x_value += (*(pu8_payload + 1) << 8) & 0x0ff00;
+  s16_x_value += *(pu8_payload + 2) & 0x0ff;
+  s16_y_value += (*(pu8_payload + 3) << 8) & 0x0ff00;
+  s16_y_value += *(pu8_payload + 4) & 0x0ff;
+  
+  flt_factor = (flt_alpha * flt_lamda) / (flt_lamda * flt_lamda + s16_x_value * s16_x_value + s16_y_value * s16_y_value);
+  flt_body_rate[PITCH] = flt_factor * s16_y_value - stru_Get_IMU_Data().flt_euler_x * s16_x_value;
+  flt_body_rate[YAW] = flt_factor * s16_x_value - stru_Get_IMU_Data().flt_euler_y * s16_x_value;
+  
+  au8_respond_payload[0] = *pu8_payload;
+  au8_respond_payload[1] = 0x00; //Ok
   
   v_Send_Response(u8_msg_id, au8_respond_payload, 2);
   return true;
