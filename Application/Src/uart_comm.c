@@ -353,7 +353,7 @@ void v_CMD_Receive(void)
   
   /* Check enough length */
   u32_length = au8_CMD_frame[5] - 3; //Length Payload
-  if (astru_CMD_handler[au8_CMD_frame[6]].u32_data_num_bytes != u32_length) return;
+  if (astru_CMD_handler[au8_CMD_frame[6]].u32_data_num_bytes > u32_length) return;
   
   /* Handle Data */
   astru_CMD_handler[au8_CMD_frame[6]].bool_msg_handler(astru_CMD_handler[au8_CMD_frame[6]].enum_msg_id, 
