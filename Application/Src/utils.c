@@ -59,7 +59,7 @@
 void v_Int_To_Str_N(int32_t s32_number, uint8_t *pu8_str, uint32_t u32_n)
 {
   uint8_t u8_mask[10];
-  if(s32_number < 0)
+  if (s32_number < 0)
   {
     pu8_str[0] = '-';
     s32_number = -s32_number;

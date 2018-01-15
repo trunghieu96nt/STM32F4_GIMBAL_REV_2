@@ -50,6 +50,7 @@ extern bool bool_Set_Kff2_Handler         (uint8_t u8_msg_id, uint8_t *pu8_paylo
 extern bool bool_Get_Params_Handler       (uint8_t u8_msg_id, uint8_t *pu8_payload, uint32_t u32_payload_cnt);
 extern bool bool_Set_Active_Axis_Handler  (uint8_t u8_msg_id, uint8_t *pu8_payload, uint32_t u32_payload_cnt);
 extern bool bool_Get_Active_Axis_Handler  (uint8_t u8_msg_id, uint8_t *pu8_payload, uint32_t u32_payload_cnt);
+extern bool bool_Send_Image_Data_Handler  (uint8_t u8_msg_id, uint8_t *pu8_payload, uint32_t u32_payload_cnt);
 
 const STRU_CMD_HANDLER_T astru_CMD_handler[CMD_NUM_MSG_ID_MAX] =
 {
@@ -70,7 +71,8 @@ const STRU_CMD_HANDLER_T astru_CMD_handler[CMD_NUM_MSG_ID_MAX] =
   {MSG_SET_KFF2,            6,    bool_Set_Kff2_Handler},
   {MSG_GET_PARAMS,          2,    bool_Get_Params_Handler},
   {MSG_SET_ACTIVE_AXIS,     2,    bool_Set_Active_Axis_Handler},
-  {MSG_GET_ACTIVE_AXIS,     1,    bool_Get_Active_Axis_Handler}
+  {MSG_GET_ACTIVE_AXIS,     1,    bool_Get_Active_Axis_Handler},
+  {MSG_SEND_IMAGE_DATA,     5,    bool_Send_Image_Data_Handler}
 };
 
 /* Private function prototypes -----------------------------------------------*/
@@ -214,7 +216,7 @@ static void v_CMD_UART_Init(void)
   */
 bool bool_CMD_Send(const uint8_t *pu8_message, uint32_t u32_message_size)
 {
-  if(u32_message_size > CMD_TXBUFF_SIZE)
+  if (u32_message_size > CMD_TXBUFF_SIZE)
   {
     return false;
   }
@@ -351,7 +353,7 @@ void v_CMD_Receive(void)
   
   /* Check enough length */
   u32_length = au8_CMD_frame[5] - 3; //Length Payload
-  if (astru_CMD_handler[au8_CMD_frame[6]].u32_data_num_bytes != u32_length) return;
+  if (astru_CMD_handler[au8_CMD_frame[6]].u32_data_num_bytes > u32_length) return;
   
   /* Handle Data */
   astru_CMD_handler[au8_CMD_frame[6]].bool_msg_handler(astru_CMD_handler[au8_CMD_frame[6]].enum_msg_id, 
@@ -474,7 +476,7 @@ bool bool_DATA_Send(const uint8_t *pu8_message, uint32_t u32_message_size)
 {
   uint32_t u32_idx;
   
-  if(u32_message_size > DATA_TXBUFF_SIZE)
+  if (u32_message_size > DATA_TXBUFF_SIZE)
   {
     return false;
   }
@@ -614,7 +616,7 @@ static void v_RESV_UART_Init(void)
   */
 bool bool_RESV_Send(const uint8_t *pu8_message, uint32_t u32_message_size)
 {
-  if(u32_message_size > RESV_TXBUFF_SIZE)
+  if (u32_message_size > RESV_TXBUFF_SIZE)
   {
     return false;
   }

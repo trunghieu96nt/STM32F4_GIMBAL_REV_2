@@ -591,7 +591,7 @@ static uint32_t u32_Timer_Get_Clock(TIM_TypeDef* TIMx)
   RCC_ClocksTypeDef RCC_Clocks;  
   /* Get system clocks */
   RCC_GetClocksFreq(&RCC_Clocks);
-  if(IS_APB2_TIMER(TIMx))
+  if (IS_APB2_TIMER(TIMx))
   {
     if (RCC_Clocks.HCLK_Frequency == RCC_Clocks.PCLK2_Frequency)//prescaler 1
       u32_clock = RCC_Clocks.PCLK2_Frequency;
