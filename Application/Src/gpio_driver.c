@@ -346,7 +346,7 @@ void v_AZ_Home_Falling_Unregister(void)
   */
 void EL_EXTI_IRQn_Handler(void)
 {
-  if(EXTI_GetITStatus(EL_EXTI_LINE) != RESET)
+  if (EXTI_GetITStatus(EL_EXTI_LINE) != RESET)
   {
     EXTI_ClearITPendingBit(EL_EXTI_LINE);
     if (GPIO_ReadInputDataBit(EL_HOME_PULSE_PORT, EL_HOME_PULSE_PIN))

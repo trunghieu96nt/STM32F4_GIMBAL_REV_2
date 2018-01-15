@@ -216,7 +216,7 @@ static void v_CMD_UART_Init(void)
   */
 bool bool_CMD_Send(const uint8_t *pu8_message, uint32_t u32_message_size)
 {
-  if(u32_message_size > CMD_TXBUFF_SIZE)
+  if (u32_message_size > CMD_TXBUFF_SIZE)
   {
     return false;
   }
@@ -476,7 +476,7 @@ bool bool_DATA_Send(const uint8_t *pu8_message, uint32_t u32_message_size)
 {
   uint32_t u32_idx;
   
-  if(u32_message_size > DATA_TXBUFF_SIZE)
+  if (u32_message_size > DATA_TXBUFF_SIZE)
   {
     return false;
   }
@@ -616,7 +616,7 @@ static void v_RESV_UART_Init(void)
   */
 bool bool_RESV_Send(const uint8_t *pu8_message, uint32_t u32_message_size)
 {
-  if(u32_message_size > RESV_TXBUFF_SIZE)
+  if (u32_message_size > RESV_TXBUFF_SIZE)
   {
     return false;
   }

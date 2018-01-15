@@ -191,30 +191,30 @@ static bool bool_ADIS_Parse(uint8_t *pu8_IMU_frame)
   uint32_t u32_idx = 0;
   uint8_t *pu8_end = NULL, *pu8_start = pu8_IMU_frame + 2;
   
-  if(strlen((char *)pu8_IMU_frame) != IMU_FRAME_LEN) return false;
+  if (strlen((char *)pu8_IMU_frame) != IMU_FRAME_LEN) return false;
   //get euler
-  for(u32_idx = 0; u32_idx < 3; u32_idx++)
+  for (u32_idx = 0; u32_idx < 3; u32_idx++)
   {
     pu8_end = memchr(pu8_start, ' ', IMU_ELEMENT_MAX_LEN);
-    if(pu8_end == NULL) return false;
+    if (pu8_end == NULL) return false;
     *pu8_end = 0;
     *(&stru_IMU_data.flt_euler_x + u32_idx) = (float)atoi((char *)pu8_start - 1) * IMU_SCALE_EULER_UNIT;
     pu8_start = pu8_end + 2;
   }
   //get gyro
-  for(u32_idx = 0; u32_idx < 3; u32_idx++)
+  for (u32_idx = 0; u32_idx < 3; u32_idx++)
   {
     pu8_end = memchr(pu8_start, ' ', IMU_ELEMENT_MAX_LEN);
-    if(pu8_end == NULL) return false;
+    if (pu8_end == NULL) return false;
     *pu8_end = 0;
     *(&stru_IMU_data.flt_gyro_x + u32_idx) = (float)atoi((char *)pu8_start - 1) * IMU_SCALE_GYRO_UNIT;
     pu8_start = pu8_end + 2;
   }
   //get acc
-  for(u32_idx = 0; u32_idx < 3; u32_idx++)
+  for (u32_idx = 0; u32_idx < 3; u32_idx++)
   {
     pu8_end = memchr(pu8_start, ' ', IMU_ELEMENT_MAX_LEN);
-    if(pu8_end == NULL) return false;
+    if (pu8_end == NULL) return false;
     *pu8_end = 0;
     *(&stru_IMU_data.flt_acc_x + u32_idx) = (float)atoi((char *)pu8_start - 1) * IMU_SCALE_ACC_UNIT;
     pu8_start = pu8_end + 2;
@@ -231,9 +231,9 @@ static bool bool_ADIS_Parse(uint8_t *pu8_IMU_frame)
 bool bool_ADIS_Read_IsTimeout(uint32_t u32_timeout_ms)
 {
   static uint32_t u32_read_done_time = 0;
-  if(bool_ADIS_Read() == false)
+  if (bool_ADIS_Read() == false)
   {
-    if(SysTick_IsTimeout(u32_read_done_time, u32_timeout_ms) == true)
+    if (SysTick_IsTimeout(u32_read_done_time, u32_timeout_ms) == true)
     {
       stru_IMU_data.bool_available = false;
       return true;

@@ -122,7 +122,7 @@ void v_Control_Init(void)
   float aflt_a[10], aflt_b[10];
   
   /* Limit EL*/
-  if(u8_DI_Read_Pin(DI_PIN_EL_LIMIT) == 1)
+  if (u8_DI_Read_Pin(DI_PIN_EL_LIMIT) == 1)
     v_Limit_El_Handler();
   v_EL_Limit_Falling_Register(v_Limit_El_Handler);
   v_EL_Limit_Rising_Register(v_Limit_El_Handler);
@@ -218,7 +218,7 @@ void v_Control_Init(void)
 void v_Control(void)
 {
   /* Position Loop */
-  switch(enum_az_state)
+  switch (enum_az_state)
   {
     case STATE_STOP:
     { 
@@ -226,13 +226,13 @@ void v_Control(void)
       break;
     }
     case STATE_HOME:
-      if(bool_az_going_home == false)
+      if (bool_az_going_home == false)
       {
         bool_az_going_home = true;
         v_AZ_Home_Rising_Register(v_Home_AZ_Handler);
         v_AZ_Home_Falling_Register(v_Home_AZ_Handler);
         
-        if(u8_DI_Read_Pin(DI_PIN_AZ_HOME) == 0)
+        if (u8_DI_Read_Pin(DI_PIN_AZ_HOME) == 0)
           s16_az_pwm_value = 85;
         else
           s16_az_pwm_value = -85;
@@ -248,25 +248,25 @@ void v_Control(void)
       break;
     case STATE_SINE:
       v_AZ_PWM_Set_Duty(300 * sin(2 * PI * u32_az_sine_idx / 5000));
-      if(++u32_az_sine_idx == 5000) u32_az_sine_idx = 0;
+      if (++u32_az_sine_idx == 5000) u32_az_sine_idx = 0;
       break;
     default:
       break;
   }
   
-  switch(enum_el_state)
+  switch (enum_el_state)
   {
     case STATE_STOP:
       s16_el_pwm_value = 0;
       break;
     case STATE_HOME:
-      if(bool_el_going_home == false)
+      if (bool_el_going_home == false)
       {
         bool_el_going_home = true;
         v_EL_Home_Rising_Register(v_Home_EL_Handler);
         v_EL_Home_Falling_Register(v_Home_EL_Handler);
         
-        if(u8_DI_Read_Pin(DI_PIN_EL_HOME) == 0)
+        if (u8_DI_Read_Pin(DI_PIN_EL_HOME) == 0)
           s16_el_pwm_value = -75;
         else
           s16_el_pwm_value = 75;
@@ -282,7 +282,7 @@ void v_Control(void)
       break;
     case STATE_SINE:
       v_EL_PWM_Set_Duty(200 * sin(2 * PI * u32_el_sine_idx / 5000));
-      if(++u32_el_sine_idx == 5000) u32_el_sine_idx = 0;
+      if (++u32_el_sine_idx == 5000) u32_el_sine_idx = 0;
       break;
     default:
       break;
@@ -290,7 +290,7 @@ void v_Control(void)
 
 
   /* Velocity Loop */
-  switch(enum_az_state)
+  switch (enum_az_state)
   {
     case STATE_POINTING:
       flt_euler_angle[ROLL]   = stru_Get_IMU_Data().flt_gyro_x;
@@ -308,7 +308,7 @@ void v_Control(void)
       break;
   }
   
-  switch(enum_el_state)
+  switch (enum_el_state)
   {
     case STATE_POINTING:
     case STATE_TRACKING:
@@ -344,7 +344,7 @@ void v_Control(void)
   */
 static void v_Control_Change_Mode(ENUM_AXIS_T enum_axis, ENUM_AXIS_STATE_T enum_new_state)
 {
-  if(enum_new_state != STATE_KEEP)
+  if (enum_new_state != STATE_KEEP)
   {
     if ((enum_axis == AXIS_AZ) || (enum_axis == AXIS_BOTH))
     {
@@ -356,7 +356,7 @@ static void v_Control_Change_Mode(ENUM_AXIS_T enum_axis, ENUM_AXIS_STATE_T enum_
         v_AZ_Home_Falling_Unregister();
       }
       
-      switch(enum_new_state)
+      switch (enum_new_state)
       {
         case STATE_STOP:
           break;
@@ -387,7 +387,7 @@ static void v_Control_Change_Mode(ENUM_AXIS_T enum_axis, ENUM_AXIS_STATE_T enum_
       enum_az_state = enum_new_state;
     }
     
-    if((enum_axis == AXIS_EL) || (enum_axis == AXIS_BOTH))
+    if ((enum_axis == AXIS_EL) || (enum_axis == AXIS_BOTH))
     {
       v_EL_PWM_Set_Duty(0);
       
@@ -397,7 +397,7 @@ static void v_Control_Change_Mode(ENUM_AXIS_T enum_axis, ENUM_AXIS_STATE_T enum_
         v_EL_Home_Falling_Unregister();
       }
       
-      switch(enum_new_state)
+      switch (enum_new_state)
       {
         case STATE_STOP:
           break;
@@ -474,7 +474,7 @@ static void v_Home_EL_Handler(void)
 static void v_Limit_El_Handler(void)
 {
   //v_Control_Change_Mode(STATE_STOP, STATE_STOP);
-  //while(true); //Loop forever
+  //while (true); //Loop forever
 }
 /**
   * @}
@@ -1065,48 +1065,48 @@ void v_Send_Data(void)
   v_Int_To_Str_N(s32_temp, &au8_tx_buff[u32_cnt], 7);
   u32_cnt += 7;
   au8_tx_buff[u32_cnt++] = ' ';
-	
-	s32_temp = (int32_t)(flt_EL_ENC_Get_Angle() * 1000);
+  
+  s32_temp = (int32_t)(flt_EL_ENC_Get_Angle() * 1000);
   v_Int_To_Str_N(s32_temp, &au8_tx_buff[u32_cnt], 7);
   u32_cnt += 7;
   au8_tx_buff[u32_cnt++] = ' ';
   
-	s32_temp = (int32_t)s16_az_pwm_value;
+  s32_temp = (int32_t)s16_az_pwm_value;
   v_Int_To_Str_N(s32_temp, &au8_tx_buff[u32_cnt], 5);
   u32_cnt += 5;
   au8_tx_buff[u32_cnt++] = ' ';
-	
-	s32_temp = (int32_t)s16_el_pwm_value;
+  
+  s32_temp = (int32_t)s16_el_pwm_value;
   v_Int_To_Str_N(s32_temp, &au8_tx_buff[u32_cnt], 5);
   u32_cnt += 5;
   au8_tx_buff[u32_cnt++] = ' ';
-	
-	s32_temp = (int32_t)(stru_Get_IMU_Data().flt_gyro_x / IMU_SCALE_GYRO_UNIT);
+  
+  s32_temp = (int32_t)(stru_Get_IMU_Data().flt_gyro_x / IMU_SCALE_GYRO_UNIT);
   v_Int_To_Str_N(s32_temp, &au8_tx_buff[u32_cnt], 6);
   u32_cnt += 6;
   au8_tx_buff[u32_cnt++] = ' ';
-	
-	s32_temp = (int32_t)(stru_Get_IMU_Data().flt_gyro_y / IMU_SCALE_GYRO_UNIT);
+  
+  s32_temp = (int32_t)(stru_Get_IMU_Data().flt_gyro_y / IMU_SCALE_GYRO_UNIT);
   v_Int_To_Str_N(s32_temp, &au8_tx_buff[u32_cnt], 6);
   u32_cnt += 6;
   au8_tx_buff[u32_cnt++] = ' ';
-	
-	s32_temp = (int32_t)(stru_Get_IMU_Data().flt_gyro_z / IMU_SCALE_GYRO_UNIT);
+  
+  s32_temp = (int32_t)(stru_Get_IMU_Data().flt_gyro_z / IMU_SCALE_GYRO_UNIT);
   v_Int_To_Str_N(s32_temp, &au8_tx_buff[u32_cnt], 6);
   u32_cnt += 6;
   au8_tx_buff[u32_cnt++] = ' ';
-	
-	s32_temp = (int32_t)(stru_Get_IMU_Data().flt_euler_x / IMU_SCALE_EULER_UNIT);
+  
+  s32_temp = (int32_t)(stru_Get_IMU_Data().flt_euler_x / IMU_SCALE_EULER_UNIT);
   v_Int_To_Str_N(s32_temp, &au8_tx_buff[u32_cnt], 7);
   u32_cnt += 7;
   au8_tx_buff[u32_cnt++] = ' ';
-	
-	s32_temp = (int32_t)(stru_Get_IMU_Data().flt_euler_y / IMU_SCALE_EULER_UNIT);
+  
+  s32_temp = (int32_t)(stru_Get_IMU_Data().flt_euler_y / IMU_SCALE_EULER_UNIT);
   v_Int_To_Str_N(s32_temp, &au8_tx_buff[u32_cnt], 7);
   u32_cnt += 7;
   au8_tx_buff[u32_cnt++] = ' ';
-	
-	s32_temp = (int32_t)(stru_Get_IMU_Data().flt_euler_z / IMU_SCALE_EULER_UNIT);
+  
+  s32_temp = (int32_t)(stru_Get_IMU_Data().flt_euler_z / IMU_SCALE_EULER_UNIT);
   v_Int_To_Str_N(s32_temp, &au8_tx_buff[u32_cnt], 7);
   u32_cnt += 7;
   au8_tx_buff[u32_cnt++] = ' ';
@@ -1216,7 +1216,7 @@ void v_Params_Load_All(void)
   uint8_t au8_loaded_version[2] = {0, 0};
   
   bool_Params_Load(PARAMS_CODE_VERSION, au8_loaded_version);
-  if((au8_loaded_version[0] != au8_code_version[0]) || (au8_loaded_version[1] != au8_code_version[1]))
+  if ((au8_loaded_version[0] != au8_code_version[0]) || (au8_loaded_version[1] != au8_code_version[1]))
   {
     v_Params_Save_Default();
   }

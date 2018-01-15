@@ -2,6 +2,21 @@
 
 void v_Board_Init()
 {
+  /* Check System Clock*/
+  RCC_ClocksTypeDef RCC_ClocksStructure;
+  uint8_t u8_clock_source;
+  u8_clock_source = RCC_GetSYSCLKSource();
+  if (u8_clock_source != 0x08) // 0x08: PLL used as system clock
+  {
+    //while (true);
+  }
+  RCC_GetClocksFreq(&RCC_ClocksStructure);
+  if (RCC_ClocksStructure.SYSCLK_Frequency != 168000000)
+  {
+    //while (true);
+  }
+  
+  
   /* Enable SysTick at 1ms interrupt */
   SysTick_Config(SystemCoreClock / F_CTRL);
   
@@ -15,11 +30,11 @@ void v_Board_Init()
   //v_Params_Load_All();
   
   /* waiting for IMU Data is available */
-  while(stru_Get_IMU_Data().bool_available == false)
+  while (stru_Get_IMU_Data().bool_available == false)
   {
     bool_ADIS_Read_IsTimeout(10);
     
-    if(u32_system_tick_count > 1000)
+    if (u32_system_tick_count > 1000)
     {
       u32_system_tick_count = 0;
       //v_Red_Toggle();
@@ -38,9 +53,9 @@ int main(void)
 {
   v_Board_Init();
   
-  while(true)
+  while (true)
   {
-    if(u32_system_tick_count > 1000)
+    if (u32_system_tick_count > 1000)
     {
       u32_system_tick_count = 0;
       //v_Red_Toggle();
@@ -52,7 +67,7 @@ int main(void)
     bool_ADIS_Read_IsTimeout(10);
     
     //Controller
-    if(tick_flag == true)
+    if (tick_flag == true)
     {
       tick_flag = false;
       v_Control();

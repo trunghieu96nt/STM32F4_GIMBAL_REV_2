@@ -122,9 +122,9 @@ static bool bool_I2C_ReadBytes(I2C_TypeDef* I2Cx, uint8_t *pu8_buff,
 
   /* While the bus is busy */
   u32_time = I2C_TIMEOUT;
-  while(I2C_GetFlagStatus(I2Cx, I2C_FLAG_BUSY))
+  while (I2C_GetFlagStatus(I2Cx, I2C_FLAG_BUSY))
   {
-    if((u32_time--) == 0) return false;
+    if ((u32_time--) == 0) return false;
   }
 
   /* Send START condition */
@@ -132,9 +132,9 @@ static bool bool_I2C_ReadBytes(I2C_TypeDef* I2Cx, uint8_t *pu8_buff,
 
   /* Test on EV5 and clear it (cleared by reading SR1 then writing to DR) */
   u32_time = I2C_TIMEOUT;
-  while(!I2C_CheckEvent(I2Cx, I2C_EVENT_MASTER_MODE_SELECT))
+  while (!I2C_CheckEvent(I2Cx, I2C_EVENT_MASTER_MODE_SELECT))
   {
-    if((u32_time--) == 0) return false;
+    if ((u32_time--) == 0) return false;
   }
 
   /* Send Slave address for write */
@@ -142,9 +142,9 @@ static bool bool_I2C_ReadBytes(I2C_TypeDef* I2Cx, uint8_t *pu8_buff,
       
   /* Test on EV6 and clear it */
   u32_time = I2C_TIMEOUT;
-  while(!I2C_CheckEvent(I2Cx, I2C_EVENT_MASTER_TRANSMITTER_MODE_SELECTED))
+  while (!I2C_CheckEvent(I2Cx, I2C_EVENT_MASTER_TRANSMITTER_MODE_SELECTED))
   {
-    if((u32_time--) == 0) return false;
+    if ((u32_time--) == 0) return false;
   }
 
   /* Send the Register address to read from: Only one byte address */
@@ -152,9 +152,9 @@ static bool bool_I2C_ReadBytes(I2C_TypeDef* I2Cx, uint8_t *pu8_buff,
 
   /* Test on EV8 and clear it */
   u32_time = I2C_TIMEOUT;
-  while(!I2C_CheckEvent(I2Cx, I2C_EVENT_MASTER_BYTE_TRANSMITTED)) 
+  while (!I2C_CheckEvent(I2Cx, I2C_EVENT_MASTER_BYTE_TRANSMITTED)) 
   {
-    if((u32_time--) == 0) return false;
+    if ((u32_time--) == 0) return false;
   }
 
   /* Send START condition a second time to RESTART bus */
@@ -162,9 +162,9 @@ static bool bool_I2C_ReadBytes(I2C_TypeDef* I2Cx, uint8_t *pu8_buff,
 
   /* Test on EV5 and clear it (cleared by reading SR1 then writing to DR) */
   u32_time = I2C_TIMEOUT;
-  while(!I2C_CheckEvent(I2Cx, I2C_EVENT_MASTER_MODE_SELECT))
+  while (!I2C_CheckEvent(I2Cx, I2C_EVENT_MASTER_MODE_SELECT))
   {
-    if((u32_time--) == 0) return false;
+    if ((u32_time--) == 0) return false;
   } 
 
   /* Send Slave address for read */
@@ -175,14 +175,14 @@ static bool bool_I2C_ReadBytes(I2C_TypeDef* I2Cx, uint8_t *pu8_buff,
 
   /* Test on EV6 and clear it */
   u32_time = I2C_TIMEOUT;
-  while(!I2C_CheckEvent(I2Cx, I2C_EVENT_MASTER_RECEIVER_MODE_SELECTED))
+  while (!I2C_CheckEvent(I2Cx, I2C_EVENT_MASTER_RECEIVER_MODE_SELECTED))
   {
       if ((u32_time--) == 0) return false;
   }
 
-  while(u8_length)
+  while (u8_length)
   {
-    if(u8_length == 1)
+    if (u8_length == 1)
     {
         /* This configuration should be in the last second transfer byte */
         /* Disable Acknowledgement */
@@ -194,7 +194,7 @@ static bool bool_I2C_ReadBytes(I2C_TypeDef* I2Cx, uint8_t *pu8_buff,
 
     /* Test on EV7 and clear it */
     u32_time = I2C_TIMEOUT;
-    while(!I2C_CheckEvent(I2Cx, I2C_EVENT_MASTER_BYTE_RECEIVED))
+    while (!I2C_CheckEvent(I2Cx, I2C_EVENT_MASTER_BYTE_RECEIVED))
     {
       if ((u32_time--) == 0) return false;
     }
@@ -210,9 +210,9 @@ static bool bool_I2C_ReadBytes(I2C_TypeDef* I2Cx, uint8_t *pu8_buff,
 
   /* Wait to make sure that STOP control bit has been cleared */
   u32_time = I2C_TIMEOUT;
-  while(I2Cx->CR1 & I2C_CR1_STOP)
+  while (I2Cx->CR1 & I2C_CR1_STOP)
   {
-      if((u32_time--) == 0) return false;
+      if ((u32_time--) == 0) return false;
   }
 
   /* Re-Enable Acknowledgement to be ready for another reception */
@@ -239,9 +239,9 @@ static bool bool_I2C_WriteBytes(I2C_TypeDef * I2Cx, const uint8_t *pu8_buff,
   I2C_AcknowledgeConfig(I2Cx, ENABLE); 
   /* While the bus is busy */
   u32_time = I2C_TIMEOUT;
-  while(I2C_GetFlagStatus(I2Cx, I2C_FLAG_BUSY))
+  while (I2C_GetFlagStatus(I2Cx, I2C_FLAG_BUSY))
   {
-    if((u32_time--) == 0) return false;
+    if ((u32_time--) == 0) return false;
   }
 
   /* Send START condition */
@@ -249,9 +249,9 @@ static bool bool_I2C_WriteBytes(I2C_TypeDef * I2Cx, const uint8_t *pu8_buff,
 
   /* Test on EV5 and clear it (cleared by reading SR1 then writing to DR) */
   u32_time = I2C_TIMEOUT;
-  while(!I2C_CheckEvent(I2Cx, I2C_EVENT_MASTER_MODE_SELECT))
+  while (!I2C_CheckEvent(I2Cx, I2C_EVENT_MASTER_MODE_SELECT))
   {
-    if((u32_time--) == 0) return false;
+    if ((u32_time--) == 0) return false;
   }
 
   /* Send Slave address for write */
@@ -259,9 +259,9 @@ static bool bool_I2C_WriteBytes(I2C_TypeDef * I2Cx, const uint8_t *pu8_buff,
 
   /* Test on EV6 and clear it */
   u32_time = I2C_TIMEOUT;
-  while(!I2C_CheckEvent(I2Cx, I2C_EVENT_MASTER_TRANSMITTER_MODE_SELECTED))
+  while (!I2C_CheckEvent(I2Cx, I2C_EVENT_MASTER_TRANSMITTER_MODE_SELECTED))
   {
-    if((u32_time--) == 0) return false;
+    if ((u32_time--) == 0) return false;
   }
 
   /* Send the Register address to read from: Only one byte address */
@@ -269,14 +269,14 @@ static bool bool_I2C_WriteBytes(I2C_TypeDef * I2Cx, const uint8_t *pu8_buff,
 
   /* Test on EV8 and clear it */
   u32_time = I2C_TIMEOUT;
-  while(!I2C_CheckEvent(I2Cx, I2C_EVENT_MASTER_BYTE_TRANSMITTED))
+  while (!I2C_CheckEvent(I2Cx, I2C_EVENT_MASTER_BYTE_TRANSMITTED))
   {
       if (u32_time-- == 0) return false;
   }
     
   /* SHOULD DISABLE INTERRUPT HERE, IF NOT IT MAY BE CORRUPT I2C TRANSACTION */
   __disable_irq();
-  while(u8_length)
+  while (u8_length)
   {
     /* Send the data & increase the pointer of write buffer */
     I2C_SendData(I2Cx, *pu8_buff); 
@@ -284,7 +284,7 @@ static bool bool_I2C_WriteBytes(I2C_TypeDef * I2Cx, const uint8_t *pu8_buff,
     u8_length--;  
     /* Test on EV8_2 to ensure data is transmitted, can used EV_8 for faster transmission*/
     u32_time = I2C_TIMEOUT;
-    while(!I2C_CheckEvent(I2Cx, I2C_EVENT_MASTER_BYTE_TRANSMITTED))
+    while (!I2C_CheckEvent(I2Cx, I2C_EVENT_MASTER_BYTE_TRANSMITTED))
     {
       if ((u32_time--) == 0) return false;
     }
@@ -327,24 +327,24 @@ bool bool_EEP_ReadBytes(uint8_t* pu8_buff, uint16_t u16_reg_add, uint16_t u16_le
   uint8_t u8_eep_add_buff;
   uint16_t u16_idx;
     
-  for(u16_idx = 0; u16_idx < u16_length; u16_idx++)
+  for (u16_idx = 0; u16_idx < u16_length; u16_idx++)
   {
     u8_eep_add_buff = EEP_ADD;
     u16_reg_add_buff = u16_reg_add + u16_idx;
     
-    if(u16_reg_add_buff > 511) return false; // Out of range
-    else if(u16_reg_add_buff > 255)
+    if (u16_reg_add_buff > 511) return false; // Out of range
+    else if (u16_reg_add_buff > 255)
     {
       /* Page 1: insert bit page 1 in eeprom address */
       u16_reg_add_buff -= 256;
       u8_eep_add_buff |= EEP_PAGE_1;
     }
     /*
-    else if(u16_reg_add_buff < 255) Page 0: do nothing
+    else if (u16_reg_add_buff < 255) Page 0: do nothing
     */
       
     /* Random read 1 byte */
-    if(bool_I2C_ReadBytes(EEP_RESV_I2C, pu8_buff, u8_eep_add_buff, u16_reg_add_buff, 1) == false) 
+    if (bool_I2C_ReadBytes(EEP_RESV_I2C, pu8_buff, u8_eep_add_buff, u16_reg_add_buff, 1) == false) 
     {
       return false;
     }
@@ -369,20 +369,20 @@ bool bool_EEP_WriteBytes(const uint8_t* pu8_buff, uint16_t u16_reg_add, uint16_t
   uint8_t u8_eep_add_buff;
   uint16_t u16_idx;
     
-  for(u16_idx = 0; u16_idx < u16_length; u16_idx++)
+  for (u16_idx = 0; u16_idx < u16_length; u16_idx++)
   {
     u8_eep_add_buff = EEP_ADD;
     u16_reg_add_buff = u16_reg_add + u16_idx;
 
-    if(u16_reg_add_buff > 511) return false; // Out of range
-    else if(u16_reg_add_buff > 255)
+    if (u16_reg_add_buff > 511) return false; // Out of range
+    else if (u16_reg_add_buff > 255)
     {
       /* Page 1: insert bit page 1 in eeprom address */
       u16_reg_add_buff -= 256;
       u8_eep_add_buff |= EEP_PAGE_1;
     }
     /*
-    else if(reg_add < 255) page 0: do nothing
+    else if (reg_add < 255) page 0: do nothing
     */
 
     // Random write 1 byte into eeprom
@@ -420,7 +420,7 @@ bool bool_EEP_WriteBytes(const uint8_t* pu8_buff, uint16_t u16_reg_add, uint16_t
 static uint32_t u32_Params_Get_Pos(ENUM_PARAMS_T enum_params)
 {
   uint32_t u32_idx = 0, u32_pos = 0;
-  for(u32_idx = 0; u32_idx < enum_params; u32_idx++)
+  for (u32_idx = 0; u32_idx < enum_params; u32_idx++)
   {
     u32_pos += au8_params_length[u32_idx];
   }
