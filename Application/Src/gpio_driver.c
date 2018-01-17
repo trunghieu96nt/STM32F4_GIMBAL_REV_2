@@ -65,9 +65,9 @@ static void v_DO_Init(void);
 void v_GPIO_Init(void)
 {
   v_LED_Init();
-  v_Led_Reset(LED0_PIN);
-  v_Led_Reset(LED1_PIN);
-  v_Led_Reset(LED2_PIN);
+  v_LED_Reset(LED0_PIN);
+  v_LED_Reset(LED1_PIN);
+  v_LED_Reset(LED2_PIN);
   
   v_Button_Init();
   
@@ -123,17 +123,17 @@ static void v_LED_Init(void)
   * @param  LEDx_Pin: specifies the LED pin to write
   * @retval none
   */
-void v_Led_Set(uint16_t LEDx_Pin)
+void v_LED_Set(uint16_t LEDx_Pin)
 {
   GPIO_SetBits(LED_GPIO, LEDx_Pin);
 }
 
-void v_Led_Reset(uint16_t LEDx_Pin)
+void v_LED_Reset(uint16_t LEDx_Pin)
 {
   GPIO_ResetBits(LED_GPIO, LEDx_Pin);
 }
 
-void v_Led_Toggle(uint16_t LEDx_Pin)
+void v_LED_Toggle(uint16_t LEDx_Pin)
 {
   GPIO_ToggleBits(LED_GPIO, LEDx_Pin);
 }

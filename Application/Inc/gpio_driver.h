@@ -126,17 +126,17 @@ typedef enum
 /** @defgroup LED Peripheral
   * @{
   */
-#define v_Red_On()                        v_Led_Set(LED0_PIN)
-#define v_Red_Off()                       v_Led_Reset(LED0_PIN)
-#define v_Red_Toggle()                    v_Led_Toggle(LED0_PIN)
+#define v_Red_On()                        v_LED_Set(LED0_PIN)
+#define v_Red_Off()                       v_LED_Reset(LED0_PIN)
+#define v_Red_Toggle()                    v_LED_Toggle(LED0_PIN)
 
-#define v_Green_On()                      v_Led_Set(LED1_PIN)
-#define v_Green_Off()                     v_Led_Reset(LED1_PIN)
-#define v_Green_Toggle()                  v_Led_Toggle(LED1_PIN)
+#define v_Green_On()                      v_LED_Set(LED1_PIN)
+#define v_Green_Off()                     v_LED_Reset(LED1_PIN)
+#define v_Green_Toggle()                  v_LED_Toggle(LED1_PIN)
 
-#define v_Blue_On()                       v_Led_Set(LED2_PIN)
-#define v_Blue_Off()                      v_Led_Reset(LED2_PIN)
-#define v_Blue_Toggle()                   v_Led_Toggle(LED2_PIN)
+#define v_Blue_On()                       v_LED_Set(LED2_PIN)
+#define v_Blue_Off()                      v_LED_Reset(LED2_PIN)
+#define v_Blue_Toggle()                   v_LED_Toggle(LED2_PIN)
 
 #define v_DO0_On()                        v_DO_Reset(DO0_PIN);
 #define v_DO0_Off()                       v_DO_Set(DO0_PIN);
@@ -155,9 +155,9 @@ typedef enum
 void v_GPIO_Init(void);
 
 /* LED functions **************************************************************/
-void v_Led_Set(uint16_t LEDx_Pin);
-void v_Led_Reset(uint16_t LEDx_Pin);
-void v_Led_Toggle(uint16_t LEDx_Pin);
+void v_LED_Set(uint16_t LEDx_Pin);
+void v_LED_Reset(uint16_t LEDx_Pin);
+void v_LED_Toggle(uint16_t LEDx_Pin);
 
 /* SW functions ***************************************************************/
 uint8_t u8_SW_Read_Pin(ENUM_SW_PIN_T enum_Pin);
