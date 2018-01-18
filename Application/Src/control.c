@@ -53,8 +53,8 @@ static bool bool_active_el = true;
 
 static int16_t s16_az_pwm_value = 0;
 static int16_t s16_el_pwm_value = 0;
-static float s16_az_pwm_value_raw = 0;
-static float s16_el_pwm_value_raw = 0;
+//static float s16_az_pwm_value_raw = 0;
+//static float s16_el_pwm_value_raw = 0;
 
 static volatile bool bool_az_going_home = false;
 static volatile bool bool_el_going_home = false;
@@ -297,8 +297,6 @@ void v_Control(void)
       else
         s16_el_speed = 0;
       
-      v_Send_BLDC_Speed(s16_az_speed, s16_el_speed);
-      
       break;
     case STATE_POINTING:
       flt_euler_rate[PITCH] = flt_PID_Calc(&stru_pid_el_pointing, stru_Get_IMU_Data().flt_euler_y);
@@ -326,8 +324,8 @@ void v_Control(void)
       flt_filtered_body_rate[YAW] = flt_IIR_Filter_Calc(&stru_iir_az_velocity_sp, flt_body_rate[YAW]);
       v_PID_Set_Setpoint(&stru_pid_az_velocity, flt_filtered_body_rate[YAW], 0);
       
-      s16_az_pwm_value_raw = flt_PID_Calc(&stru_pid_az_velocity, stru_Get_IMU_Data().flt_gyro_z) * cos(flt_AZ_ENC_Get_Angle() * DEGREE_TO_RAD);
-      s16_az_pwm_value = 0.5f + flt_IIR_Filter_Calc(&stru_iir_az_velocity_pwm, s16_az_pwm_value_raw);
+      s16_az_speed = flt_PID_Calc(&stru_pid_az_velocity, stru_Get_IMU_Data().flt_gyro_z);
+      //s16_az_pwm_value = 0.5f + flt_IIR_Filter_Calc(&stru_iir_az_velocity_pwm, s16_az_pwm_value_raw);
       break;
     default:
       break;
@@ -340,24 +338,21 @@ void v_Control(void)
       flt_filtered_body_rate[PITCH] = flt_IIR_Filter_Calc(&stru_iir_el_velocity_sp, flt_body_rate[PITCH]);
       v_PID_Set_Setpoint(&stru_pid_el_velocity, flt_filtered_body_rate[PITCH], 0);
       
-      s16_el_pwm_value_raw = flt_PID_Calc(&stru_pid_el_velocity, stru_Get_IMU_Data().flt_gyro_y);
-      s16_el_pwm_value = 0.5f + flt_IIR_Filter_Calc(&stru_iir_el_velocity_pwm, s16_el_pwm_value_raw);
+      s16_el_speed = flt_PID_Calc(&stru_pid_el_velocity, stru_Get_IMU_Data().flt_gyro_y);
+      //s16_el_pwm_value = 0.5f + flt_IIR_Filter_Calc(&stru_iir_el_velocity_pwm, s16_el_pwm_value_raw);
       break;
     default:
       break;
   }
   
   /* Write PWM */
-  if (bool_active_az == true)
-    v_AZ_PWM_Set_Duty(s16_az_pwm_value);
-  else
-    v_AZ_PWM_Set_Duty(0);
+  if (bool_active_az == false)
+    s16_az_speed = 0;
   
-  if (bool_active_el == true)
-    v_EL_PWM_Set_Duty(s16_el_pwm_value);
-  else
-    v_EL_PWM_Set_Duty(0);
+  if (bool_active_el == false)
+    s16_el_speed = 0;
   
+  v_Send_BLDC_Speed(s16_az_speed, s16_el_speed);
 }
 
 /**
