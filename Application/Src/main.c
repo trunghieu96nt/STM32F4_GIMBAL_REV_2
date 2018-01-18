@@ -26,6 +26,7 @@ void v_Board_Init()
   v_UART_Comm_Init();
   v_I2C_Comm_Init();
   v_Control_Init();
+  v_ADC_Init();
   
   //v_Params_Load_All();
   
