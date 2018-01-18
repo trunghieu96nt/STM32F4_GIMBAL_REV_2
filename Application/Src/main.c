@@ -1,5 +1,7 @@
 #include "include.h"
 
+static uint32_t u32_tick_flag_cnt = 0;
+
 void v_Board_Init()
 {
   /* Check System Clock*/
@@ -71,14 +73,12 @@ int main(void)
     if (tick_flag == true)
     {
       tick_flag = false;
-      v_Control();
-      v_Send_Data();
-      if (DMA_GetCmdStatus(DMA1_Stream3) == DISABLE)
+      if(++u32_tick_flag_cnt == 2)
       {
-        v_Red_On();
+        u32_tick_flag_cnt = 0;
+        v_Control();
+        v_Send_Data();
       }
-      else
-        v_Red_Off();
     }
   }
 }

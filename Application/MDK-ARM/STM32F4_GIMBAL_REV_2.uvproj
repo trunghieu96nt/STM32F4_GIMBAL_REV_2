@@ -436,6 +436,11 @@
               <FilePath>..\Src\motor_driver.c</FilePath>
             </File>
             <File>
+              <FileName>adc_driver.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Src\adc_driver.c</FilePath>
+            </File>
+            <File>
               <FileName>adis_sensor.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\Src\adis_sensor.c</FilePath>
@@ -449,11 +454,6 @@
               <FileName>i2c_comm.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\Src\i2c_comm.c</FilePath>
-            </File>
-            <File>
-              <FileName>analog_module.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\Src\analog_module.c</FilePath>
             </File>
             <File>
               <FileName>pid.c</FileName>

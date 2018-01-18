@@ -22,6 +22,7 @@
 #include "control.h"
 #include "motor_driver.h"
 #include "gpio_driver.h"
+#include "adc_driver.h"
 #include "adis_sensor.h"
 #include "uart_comm.h"
 #include "i2c_comm.h"
@@ -44,8 +45,8 @@
 /* Private variables ---------------------------------------------------------*/
 static const uint8_t au8_code_version[2] = {7, 7}; //Major.Minor
 
-static volatile ENUM_AXIS_STATE_T enum_az_state = STATE_HOME; //STATE_HOME STATE_SINE
-static volatile ENUM_AXIS_STATE_T enum_el_state = STATE_HOME; //STATE_STOP
+static volatile ENUM_AXIS_STATE_T enum_az_state = STATE_MANUAL; //STATE_HOME STATE_SINE
+static volatile ENUM_AXIS_STATE_T enum_el_state = STATE_MANUAL; //STATE_STOP STATE_MANUAL
 
 static bool bool_active_az = true;
 static bool bool_active_el = true;
@@ -96,6 +97,7 @@ static void v_Home_AZ_Handler(void);
 static void v_Home_EL_Handler(void);
 static void v_Limit_El_Handler(void);
 static void v_Send_Response(uint8_t u8_msg_id, uint8_t *pu8_payload, uint32_t u32_payload_cnt);
+static void v_Send_BLDC_Speed(int16_t s16_az_speed, int16_t s16_el_speed);
 
 /* Private functions ---------------------------------------------------------*/
 
@@ -217,6 +219,8 @@ void v_Control_Init(void)
   */
 void v_Control(void)
 {
+  static uint16_t u16_adc_value;
+  static int16_t s16_az_speed, s16_el_speed;
   /* Position Loop */
   switch (enum_az_state)
   {
@@ -239,7 +243,16 @@ void v_Control(void)
       }
       break;
     case STATE_MANUAL:
-      s16_az_pwm_value = 0.5f + flt_PID_Calc(&stru_pid_az_manual, flt_AZ_ENC_Get_Angle());
+      //s16_az_pwm_value = 0.5f + flt_PID_Calc(&stru_pid_az_manual, flt_AZ_ENC_Get_Angle());
+      u16_adc_value = u16_ADC_Get_Raw_Value(ADC_ID_0);
+      
+      if (u16_adc_value > 3500)
+        s16_az_speed = 100;
+      else if (u16_adc_value < 500)
+        s16_az_speed = -100;
+      else
+        s16_az_speed = 0;
+      
       break;
     case STATE_POINTING:
       flt_euler_rate[YAW] = flt_PID_Calc(&stru_pid_az_pointing, stru_Get_IMU_Data().flt_euler_z);
@@ -273,7 +286,19 @@ void v_Control(void)
       }
       break;
     case STATE_MANUAL:
-      s16_el_pwm_value = 0.5f + flt_PID_Calc(&stru_pid_el_manual, flt_EL_ENC_Get_Angle());
+      //s16_el_pwm_value = 0.5f + flt_PID_Calc(&stru_pid_el_manual, flt_EL_ENC_Get_Angle());
+      
+      u16_adc_value = u16_ADC_Get_Raw_Value(ADC_ID_1);
+      
+      if (u16_adc_value > 3500)
+        s16_el_speed = 100;
+      else if (u16_adc_value < 500)
+        s16_el_speed = -100;
+      else
+        s16_el_speed = 0;
+      
+      v_Send_BLDC_Speed(s16_az_speed, s16_el_speed);
+      
       break;
     case STATE_POINTING:
       flt_euler_rate[PITCH] = flt_PID_Calc(&stru_pid_el_pointing, stru_Get_IMU_Data().flt_euler_y);
@@ -1028,6 +1053,56 @@ static void v_Send_Response(uint8_t u8_msg_id, uint8_t *pu8_payload, uint32_t u3
   au8_respond_message[u32_idx++] = u16_crc_check & 0x0ff;
   
   bool_CMD_Send(au8_respond_message, u32_idx);
+}
+/**
+  * @}
+  */
+
+/** @defgroup Send BLDC Speed
+ *  @brief    ...
+ *
+ @verbatim
+ ===============================================================================
+                            ##### Send BLDC Speed #####
+ ===============================================================================  
+
+ @endverbatim
+  * @{
+  */
+static void v_Send_BLDC_Speed(int16_t s16_az_speed, int16_t s16_el_speed)
+{
+  uint32_t u32_idx, u32_message_no_checksum_size;
+  uint16_t u16_crc_check;
+  static uint8_t au8_respond_message[MAX_RES_MESSAGE_LEN] = {0x47, 0x42, 0x03, 0x02, 0x00};
+  
+  /* Total Length */
+  u32_message_no_checksum_size = 12;
+  
+  /* Length */
+  au8_respond_message[5] = 8;
+  
+  /* MsgID */
+  au8_respond_message[6] = 0x13;
+  
+  /* Payload */
+  au8_respond_message[7] = 0x03;
+  au8_respond_message[8] = (s16_az_speed >> 8) & 0x0ff;
+  au8_respond_message[9] = s16_az_speed & 0x0ff;
+  au8_respond_message[10] = (s16_el_speed >> 8) & 0x0ff;
+  au8_respond_message[11] = s16_el_speed & 0x0ff;
+  
+  /* Checksum */
+  u16_crc_check = 0;
+  for (u32_idx = 0; u32_idx < u32_message_no_checksum_size; u32_idx++)
+  {
+    u16_crc_check += au8_respond_message[u32_idx];
+  }
+  u16_crc_check = ~u16_crc_check;
+  
+  au8_respond_message[u32_idx++] = (u16_crc_check >> 8) & 0x0ff;
+  au8_respond_message[u32_idx++] = u16_crc_check & 0x0ff;
+  
+  bool_RESV_Send(au8_respond_message, u32_idx);
 }
 /**
   * @}

@@ -30,7 +30,8 @@
 static uint8_t au8_CMD_rx[CMD_RXBUFF_SIZE]= {0};
 static uint8_t au8_DATA_rx[DATA_RXBUFF_SIZE]= {0};
 static uint8_t au8_DATA_tx[DATA_TXBUFF_SIZE]= {0};
-static uint8_t au8_RESV_rx[RESV_RXBUFF_SIZE]= {0};
+uint8_t au8_RESV_rx[RESV_RXBUFF_SIZE]= {0};
+uint8_t au8_RESV_tx[RESV_TXBUFF_SIZE]= {0};
 
 extern bool bool_None_Handler             (uint8_t u8_msg_id, uint8_t *pu8_payload, uint32_t u32_payload_cnt);
 extern bool bool_Home_Handler             (uint8_t u8_msg_id, uint8_t *pu8_payload, uint32_t u32_payload_cnt);
@@ -585,7 +586,7 @@ static void v_RESV_UART_Init(void)
   DMA_DeInit(RESV_TX_DMA_STREAM);
   DMA_InitStructure.DMA_Channel            = RESV_TX_DMA_CHANNEL;
   DMA_InitStructure.DMA_DIR                = DMA_DIR_MemoryToPeripheral;
-  DMA_InitStructure.DMA_Memory0BaseAddr    = 0;
+  DMA_InitStructure.DMA_Memory0BaseAddr    = (uint32_t)&au8_RESV_tx[0];
   DMA_InitStructure.DMA_PeripheralBaseAddr = RESV_DATA_REG;   
   DMA_InitStructure.DMA_PeripheralDataSize = DMA_PeripheralDataSize_Byte;
   DMA_InitStructure.DMA_MemoryDataSize     = DMA_MemoryDataSize_Byte;
@@ -616,17 +617,25 @@ static void v_RESV_UART_Init(void)
   */
 bool bool_RESV_Send(const uint8_t *pu8_message, uint32_t u32_message_size)
 {
+  uint32_t u32_idx;
+  
   if (u32_message_size > RESV_TXBUFF_SIZE)
   {
     return false;
   }
   else
   {
+    //copy buff
+    for (u32_idx = 0; u32_idx < u32_message_size; u32_idx++)
+    {
+      au8_RESV_tx[u32_idx] = *(pu8_message + u32_idx);
+    }
+    
     //clear flag
     DMA_ClearFlag(RESV_TX_DMA_STREAM, RESV_TX_DMA_FLAG);
-    DMA_MemoryTargetConfig(RESV_TX_DMA_STREAM, (uint32_t)pu8_message, DMA_Memory_0);
+    //DMA_MemoryTargetConfig(RESV_TX_DMA_STREAM, (uint32_t)au8_RESV_tx, DMA_Memory_0);
     DMA_SetCurrDataCounter(RESV_TX_DMA_STREAM, u32_message_size);
-    //STM_TX_DMA_STREAM->NDTR = BUFF_SIZE;
+    //RESV_TX_DMA_STREAM->NDTR = BUFF_SIZE;
     DMA_Cmd(RESV_TX_DMA_STREAM, ENABLE);
     return true;
   }

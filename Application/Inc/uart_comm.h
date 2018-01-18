@@ -127,8 +127,8 @@ typedef struct{
 /** @defgroup RESV UART (General)
   * @{
   */
-#define RESV_TXBUFF_SIZE          64
-#define RESV_RXBUFF_SIZE          1024
+#define RESV_TXBUFF_SIZE          512
+#define RESV_RXBUFF_SIZE          64
 
 #define RESV_USART                UART5
 #define RESV_USART_CLK            RCC_APB1Periph_UART5
