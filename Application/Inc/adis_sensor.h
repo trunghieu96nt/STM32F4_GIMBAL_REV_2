@@ -51,7 +51,7 @@ typedef struct
 #define IMU_RXBUFF_SIZE       1024
 #endif
 
-#define IMU_FRAME_LEN         71
+#define IMU_FRAME_LEN         65
 #define IMU_FRAME_LEN_MAX     (IMU_FRAME_LEN + 1)
 #define IMU_ELEMENT_MAX_LEN   15
 #define IMU_START_FRAME       0x0a

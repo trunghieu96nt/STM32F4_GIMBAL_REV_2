@@ -33,19 +33,19 @@ void v_Board_Init()
   //v_Params_Load_All();
   
   /* waiting for IMU Data is available */
-//  while (stru_Get_IMU_Data().bool_available == false)
-//  {
-//    bool_ADIS_Read_IsTimeout(10);
-//    
-//    if (u32_system_tick_count > 1000)
-//    {
-//      u32_system_tick_count = 0;
-//      //v_Red_Toggle();
-//      v_Blue_Toggle();
-//      //v_Green_Toggle();
-//    }
-//  }
-//  v_Blue_Off();
+  while (stru_Get_IMU_Data().bool_available == false)
+  {
+    bool_ADIS_Read_IsTimeout(100);
+    
+    if (u32_system_tick_count > 400)
+    {
+      u32_system_tick_count = 0;
+      //v_Red_Toggle();
+      v_Blue_Toggle();
+      //v_Green_Toggle();
+    }
+  }
+  v_Blue_Off();
   
   //bool_CMD_Send((uint8_t *)"CMD Ok\r\n", strlen("CMD Ok\r\n"));
   //bool_DATA_Send((uint8_t *)"DATA Ok\r\n", strlen("DATA Ok\r\n"));
@@ -58,7 +58,7 @@ int main(void)
   
   while (true)
   {
-    if (u32_system_tick_count >= 1000)
+    if (u32_system_tick_count >= 400)
     {
       u32_system_tick_count = 0;
       //v_Red_Toggle();
@@ -67,7 +67,7 @@ int main(void)
     }
     
     v_CMD_Receive();
-    bool_ADIS_Read_IsTimeout(10);
+    bool_ADIS_Read_IsTimeout(100);
     
     //Controller
     if (tick_flag == true)

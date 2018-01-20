@@ -29,8 +29,8 @@
 /* Private define ------------------------------------------------------------*/
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
-static uint8_t au8_IMU_rx[IMU_RXBUFF_SIZE]= {0};
-static STRU_IMU_DATA_T stru_IMU_data = {false}; //initial bool_available value.
+uint8_t au8_IMU_rx[IMU_RXBUFF_SIZE]= {0};
+STRU_IMU_DATA_T stru_IMU_data = {false}; //initial bool_available value.
 
 /* Private function prototypes -----------------------------------------------*/
 static bool bool_ADIS_Parse(uint8_t *pu8_IMU_frame);

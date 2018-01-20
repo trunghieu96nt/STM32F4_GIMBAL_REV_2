@@ -59,8 +59,8 @@ static int16_t s16_el_pwm_value = 0;
 static volatile bool bool_az_going_home = false;
 static volatile bool bool_el_going_home = false;
 
-static uint32_t u32_az_sine_idx = 0;
-static uint32_t u32_el_sine_idx = 0;
+static uint32_t u32_az_sine_idx = 0, u32_el_sine_idx = 0;
+static int32_t s32_az_sine_cnt = 1, s32_el_sine_cnt = 1;
 
 static float flt_euler_angle[3], flt_euler_rate[3], flt_body_rate[3];
 static float flt_filtered_body_rate[3];
@@ -97,7 +97,7 @@ static void v_Home_AZ_Handler(void);
 static void v_Home_EL_Handler(void);
 static void v_Limit_El_Handler(void);
 static void v_Send_Response(uint8_t u8_msg_id, uint8_t *pu8_payload, uint32_t u32_payload_cnt);
-static void v_Send_BLDC_Speed(int16_t s16_az_speed, int16_t s16_el_speed);
+static void v_Send_BLDC_Speed(ENUM_AXIS_T enum_axis, int16_t s16_az_speed, int16_t s16_el_speed);
 
 /* Private functions ---------------------------------------------------------*/
 
@@ -148,9 +148,10 @@ void v_Control_Init(void)
   
   /* AZ Velocity PID */
   v_PID_Init(&stru_pid_az_velocity);
-  v_PID_Set_Kp(&stru_pid_az_velocity, 0.10);
-  v_PID_Set_Ki(&stru_pid_az_velocity, 20);
+  v_PID_Set_Kp(&stru_pid_az_velocity, 0.03);
+  v_PID_Set_Ki(&stru_pid_az_velocity, 1.6);
   v_PID_Set_Kd(&stru_pid_az_velocity, 0);
+  v_PID_Set_Max_Response(&stru_pid_az_velocity, 2000);
   v_PID_Set_Use_Setpoint_Ramp(&stru_pid_az_velocity, 0);
   v_PID_Set_Setpoint(&stru_pid_az_velocity, 0.0f, 0);
   
@@ -260,8 +261,14 @@ void v_Control(void)
     case STATE_TRACKING:
       break;
     case STATE_SINE:
-      v_AZ_PWM_Set_Duty(300 * sin(2 * PI * u32_az_sine_idx / 5000));
-      if (++u32_az_sine_idx == 5000) u32_az_sine_idx = 0;
+      //v_AZ_PWM_Set_Duty(300 * sin(2 * PI * u32_az_sine_idx / 5000));
+      //if (++u32_az_sine_idx == 5000) u32_az_sine_idx = 0;
+      u32_az_sine_idx += s32_az_sine_cnt;
+      if (u32_az_sine_idx == 2000)
+        s32_az_sine_cnt = -1;
+      else if (u32_az_sine_idx == 0)
+        s32_az_sine_cnt = 1;
+      s16_az_speed = u32_az_sine_idx;
       break;
     default:
       break;
@@ -304,8 +311,14 @@ void v_Control(void)
     case STATE_TRACKING:
       break;
     case STATE_SINE:
-      v_EL_PWM_Set_Duty(200 * sin(2 * PI * u32_el_sine_idx / 5000));
-      if (++u32_el_sine_idx == 5000) u32_el_sine_idx = 0;
+      //v_EL_PWM_Set_Duty(200 * sin(2 * PI * u32_el_sine_idx / 5000));
+      //if (++u32_el_sine_idx == 5000) u32_el_sine_idx = 0;
+      u32_el_sine_idx += s32_el_sine_cnt;
+      if (u32_el_sine_idx == 2000)
+        s32_el_sine_cnt = -1;
+      else if (u32_el_sine_idx == 0)
+        s32_el_sine_cnt = 1;
+      s16_el_speed = u32_el_sine_idx;
       break;
     default:
       break;
@@ -352,7 +365,7 @@ void v_Control(void)
   if (bool_active_el == false)
     s16_el_speed = 0;
   
-  v_Send_BLDC_Speed(s16_az_speed, s16_el_speed);
+  v_Send_BLDC_Speed(AXIS_BOTH, s16_az_speed, s16_el_speed);
 }
 
 /**
@@ -368,7 +381,8 @@ static void v_Control_Change_Mode(ENUM_AXIS_T enum_axis, ENUM_AXIS_STATE_T enum_
   {
     if ((enum_axis == AXIS_AZ) || (enum_axis == AXIS_BOTH))
     {
-      v_AZ_PWM_Set_Duty(0);
+      //v_AZ_PWM_Set_Duty(0);
+      v_Send_BLDC_Speed(AXIS_AZ, 0, 0);
       
       if (enum_az_state == STATE_HOME) //current state is home
       {
@@ -409,7 +423,8 @@ static void v_Control_Change_Mode(ENUM_AXIS_T enum_axis, ENUM_AXIS_STATE_T enum_
     
     if ((enum_axis == AXIS_EL) || (enum_axis == AXIS_BOTH))
     {
-      v_EL_PWM_Set_Duty(0);
+      //v_EL_PWM_Set_Duty(0);
+      v_Send_BLDC_Speed(AXIS_EL, 0, 0);
       
       if (enum_el_state == STATE_HOME) //current state is home
       {
@@ -1064,7 +1079,7 @@ static void v_Send_Response(uint8_t u8_msg_id, uint8_t *pu8_payload, uint32_t u3
  @endverbatim
   * @{
   */
-static void v_Send_BLDC_Speed(int16_t s16_az_speed, int16_t s16_el_speed)
+static void v_Send_BLDC_Speed(ENUM_AXIS_T enum_axis, int16_t s16_az_speed, int16_t s16_el_speed)
 {
   uint32_t u32_idx, u32_message_no_checksum_size;
   uint16_t u16_crc_check;
@@ -1080,7 +1095,7 @@ static void v_Send_BLDC_Speed(int16_t s16_az_speed, int16_t s16_el_speed)
   au8_respond_message[6] = 0x13;
   
   /* Payload */
-  au8_respond_message[7] = 0x03;
+  au8_respond_message[7] = enum_axis;
   au8_respond_message[8] = (s16_az_speed >> 8) & 0x0ff;
   au8_respond_message[9] = s16_az_speed & 0x0ff;
   au8_respond_message[10] = (s16_el_speed >> 8) & 0x0ff;

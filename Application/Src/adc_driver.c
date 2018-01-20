@@ -26,7 +26,7 @@
 /* Private define ------------------------------------------------------------*/
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
-static volatile uint16_t au16_result_adc[ADC_NUM_CHANNEL];
+volatile uint16_t au16_result_adc[ADC_NUM_CHANNEL];
 
 /* Private function prototypes -----------------------------------------------*/
 /* Private functions ---------------------------------------------------------*/
