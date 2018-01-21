@@ -51,8 +51,9 @@ static volatile ENUM_AXIS_STATE_T enum_el_state = STATE_MANUAL; //STATE_STOP STA
 static bool bool_active_az = true;
 static bool bool_active_el = true;
 
-static int16_t s16_az_pwm_value = 0;
-static int16_t s16_el_pwm_value = 0;
+static int16_t s16_az_speed, s16_el_speed; // BLDC Motor
+//static int16_t s16_az_pwm_value = 0; // DC Motor: not use in BLDC version
+//static int16_t s16_el_pwm_value = 0; // DC Motor: not use in BLDC version
 //static float s16_az_pwm_value_raw = 0;
 //static float s16_el_pwm_value_raw = 0;
 
@@ -148,8 +149,8 @@ void v_Control_Init(void)
   
   /* AZ Velocity PID */
   v_PID_Init(&stru_pid_az_velocity);
-  v_PID_Set_Kp(&stru_pid_az_velocity, 0.03);
-  v_PID_Set_Ki(&stru_pid_az_velocity, 1.6);
+  v_PID_Set_Kp(&stru_pid_az_velocity, 0.06);
+  v_PID_Set_Ki(&stru_pid_az_velocity, 1.3);
   v_PID_Set_Kd(&stru_pid_az_velocity, 0);
   v_PID_Set_Max_Response(&stru_pid_az_velocity, 2000);
   v_PID_Set_Use_Setpoint_Ramp(&stru_pid_az_velocity, 0);
@@ -221,13 +222,12 @@ void v_Control_Init(void)
 void v_Control(void)
 {
   static uint16_t u16_adc_value;
-  static int16_t s16_az_speed, s16_el_speed;
   /* Position Loop */
   switch (enum_az_state)
   {
     case STATE_STOP:
     { 
-      s16_az_pwm_value = 0;
+      s16_az_speed = 0;
       break;
     }
     case STATE_HOME:
@@ -237,10 +237,10 @@ void v_Control(void)
         v_AZ_Home_Rising_Register(v_Home_AZ_Handler);
         v_AZ_Home_Falling_Register(v_Home_AZ_Handler);
         
-        if (u8_DI_Read_Pin(DI_PIN_AZ_HOME) == 0)
-          s16_az_pwm_value = 85;
-        else
-          s16_az_pwm_value = -85;
+//        if (u8_DI_Read_Pin(DI_PIN_AZ_HOME) == 0)
+//          s16_az_pwm_value = 85;
+//        else
+//          s16_az_pwm_value = -85;
       }
       break;
     case STATE_MANUAL:
@@ -277,7 +277,7 @@ void v_Control(void)
   switch (enum_el_state)
   {
     case STATE_STOP:
-      s16_el_pwm_value = 0;
+      s16_el_speed = 0;
       break;
     case STATE_HOME:
       if (bool_el_going_home == false)
@@ -286,10 +286,10 @@ void v_Control(void)
         v_EL_Home_Rising_Register(v_Home_EL_Handler);
         v_EL_Home_Falling_Register(v_Home_EL_Handler);
         
-        if (u8_DI_Read_Pin(DI_PIN_EL_HOME) == 0)
-          s16_el_pwm_value = -75;
-        else
-          s16_el_pwm_value = 75;
+//        if (u8_DI_Read_Pin(DI_PIN_EL_HOME) == 0)
+//          s16_el_pwm_value = -75;
+//        else
+//          s16_el_pwm_value = 75;
       }
       break;
     case STATE_MANUAL:
@@ -1156,12 +1156,12 @@ void v_Send_Data(void)
   u32_cnt += 7;
   au8_tx_buff[u32_cnt++] = ' ';
   
-  s32_temp = (int32_t)s16_az_pwm_value;
+  s32_temp = (int32_t)s16_az_speed;
   v_Int_To_Str_N(s32_temp, &au8_tx_buff[u32_cnt], 5);
   u32_cnt += 5;
   au8_tx_buff[u32_cnt++] = ' ';
   
-  s32_temp = (int32_t)s16_el_pwm_value;
+  s32_temp = (int32_t)s16_el_speed;
   v_Int_To_Str_N(s32_temp, &au8_tx_buff[u32_cnt], 5);
   u32_cnt += 5;
   au8_tx_buff[u32_cnt++] = ' ';
