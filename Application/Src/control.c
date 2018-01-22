@@ -92,6 +92,10 @@ static STRU_IIR_FILTER_T stru_iir_az_velocity_pwm;
 static STRU_IIR_FILTER_T stru_iir_el_velocity_sp;
 static STRU_IIR_FILTER_T stru_iir_el_velocity_pwm;
 
+float f_m1step = 0, f_m2step = 0;
+int32_t m1step = 0, m2step = 0;
+int32_t m1step_pre = 0, m2step_pre = 0;
+
 /* Private function prototypes -----------------------------------------------*/
 static void v_Control_Change_Mode(ENUM_AXIS_T enum_axis, ENUM_AXIS_STATE_T enum_new_state);
 static void v_Home_AZ_Handler(void);
@@ -99,6 +103,7 @@ static void v_Home_EL_Handler(void);
 static void v_Limit_El_Handler(void);
 static void v_Send_Response(uint8_t u8_msg_id, uint8_t *pu8_payload, uint32_t u32_payload_cnt);
 static void v_Send_BLDC_Speed(ENUM_AXIS_T enum_axis, int16_t s16_az_speed, int16_t s16_el_speed);
+int32_t my_round(float f_input);
 
 /* Private functions ---------------------------------------------------------*/
 
@@ -149,18 +154,19 @@ void v_Control_Init(void)
   
   /* AZ Velocity PID */
   v_PID_Init(&stru_pid_az_velocity);
-  v_PID_Set_Kp(&stru_pid_az_velocity, 0.06);
-  v_PID_Set_Ki(&stru_pid_az_velocity, 1.3);
-  v_PID_Set_Kd(&stru_pid_az_velocity, 0);
-  v_PID_Set_Max_Response(&stru_pid_az_velocity, 2000);
+  v_PID_Set_Kp(&stru_pid_az_velocity, 0.0);
+  v_PID_Set_Ki(&stru_pid_az_velocity, 0.0);
+  v_PID_Set_Kd(&stru_pid_az_velocity, 0.0);
+  v_PID_Set_Max_Response(&stru_pid_az_velocity, 100);
   v_PID_Set_Use_Setpoint_Ramp(&stru_pid_az_velocity, 0);
   v_PID_Set_Setpoint(&stru_pid_az_velocity, 0.0f, 0);
   
   /* EL Velocity PID */
   v_PID_Init(&stru_pid_el_velocity);
-  v_PID_Set_Kp(&stru_pid_el_velocity, 0.10);
-  v_PID_Set_Ki(&stru_pid_el_velocity, 20);
-  v_PID_Set_Kd(&stru_pid_el_velocity, 0.0004);
+  v_PID_Set_Kp(&stru_pid_el_velocity, 0.0);
+  v_PID_Set_Ki(&stru_pid_el_velocity, 0.0);
+  v_PID_Set_Kd(&stru_pid_el_velocity, 0.0);
+  v_PID_Set_Max_Response(&stru_pid_el_velocity, 100);
   v_PID_Set_Use_Setpoint_Ramp(&stru_pid_el_velocity, 0);
   v_PID_Set_Setpoint(&stru_pid_el_velocity, 0.0f, 0);
   
@@ -248,11 +254,19 @@ void v_Control(void)
       u16_adc_value = u16_ADC_Get_Raw_Value(ADC_ID_0);
       
       if (u16_adc_value > 3500)
-        s16_az_speed = 100;
+      {
+        m1step++;
+        if (m1step >= 720) m1step = 0;
+        //s16_az_speed = 5;
+      }
       else if (u16_adc_value < 500)
-        s16_az_speed = -100;
+      {
+        m1step--;
+        if (m1step < 0) m1step = 720 - 1;
+        //s16_az_speed = -5;
+      }
       else
-        s16_az_speed = 0;
+        m1step = m1step_pre;
       
       break;
     case STATE_POINTING:
@@ -298,11 +312,19 @@ void v_Control(void)
       u16_adc_value = u16_ADC_Get_Raw_Value(ADC_ID_1);
       
       if (u16_adc_value > 3500)
-        s16_el_speed = 100;
+      {
+        m2step++;
+        if (m2step >= 720) m2step = 0;
+        //s16_el_speed = 5;
+      }
       else if (u16_adc_value < 500)
-        s16_el_speed = -100;
+      {
+        m2step--;
+        if (m2step < 0) m2step = 720 - 1;
+        //s16_el_speed = -5;
+      }
       else
-        s16_el_speed = 0;
+        m2step = m2step_pre;
       
       break;
     case STATE_POINTING:
@@ -337,7 +359,10 @@ void v_Control(void)
       flt_filtered_body_rate[YAW] = flt_IIR_Filter_Calc(&stru_iir_az_velocity_sp, flt_body_rate[YAW]);
       v_PID_Set_Setpoint(&stru_pid_az_velocity, flt_filtered_body_rate[YAW], 0);
       
-      s16_az_speed = flt_PID_Calc(&stru_pid_az_velocity, stru_Get_IMU_Data().flt_gyro_z);
+      f_m1step += flt_PID_Calc(&stru_pid_az_velocity, stru_Get_IMU_Data().flt_gyro_z);
+      while (f_m1step < 0) (f_m1step+=720.0f);
+      m1step = my_round(f_m1step);
+      m1step %= 720;
       //s16_az_pwm_value = 0.5f + flt_IIR_Filter_Calc(&stru_iir_az_velocity_pwm, s16_az_pwm_value_raw);
       break;
     default:
@@ -351,7 +376,10 @@ void v_Control(void)
       flt_filtered_body_rate[PITCH] = flt_IIR_Filter_Calc(&stru_iir_el_velocity_sp, flt_body_rate[PITCH]);
       v_PID_Set_Setpoint(&stru_pid_el_velocity, flt_filtered_body_rate[PITCH], 0);
       
-      s16_el_speed = flt_PID_Calc(&stru_pid_el_velocity, stru_Get_IMU_Data().flt_gyro_y);
+      f_m2step += flt_PID_Calc(&stru_pid_el_velocity, stru_Get_IMU_Data().flt_gyro_y);
+      while (f_m2step < 0) (f_m2step+=720.0f);
+      m2step = my_round(f_m2step);
+      m2step %= 720;
       //s16_el_pwm_value = 0.5f + flt_IIR_Filter_Calc(&stru_iir_el_velocity_pwm, s16_el_pwm_value_raw);
       break;
     default:
@@ -360,12 +388,14 @@ void v_Control(void)
   
   /* Write PWM */
   if (bool_active_az == false)
-    s16_az_speed = 0;
+    m1step = m1step_pre;
   
   if (bool_active_el == false)
-    s16_el_speed = 0;
+    m2step = m2step_pre;
   
-  v_Send_BLDC_Speed(AXIS_BOTH, s16_az_speed, s16_el_speed);
+  v_Send_BLDC_Speed(AXIS_BOTH, m1step, m2step);
+  m1step_pre = m1step;
+  m2step_pre = m2step;
 }
 
 /**
@@ -382,7 +412,7 @@ static void v_Control_Change_Mode(ENUM_AXIS_T enum_axis, ENUM_AXIS_STATE_T enum_
     if ((enum_axis == AXIS_AZ) || (enum_axis == AXIS_BOTH))
     {
       //v_AZ_PWM_Set_Duty(0);
-      v_Send_BLDC_Speed(AXIS_AZ, 0, 0);
+      v_Send_BLDC_Speed(AXIS_AZ, m1step_pre, m2step_pre);
       
       if (enum_az_state == STATE_HOME) //current state is home
       {
@@ -407,6 +437,7 @@ static void v_Control_Change_Mode(ENUM_AXIS_T enum_axis, ENUM_AXIS_STATE_T enum_
         case STATE_POINTING:
           break;
         case STATE_TRACKING:
+          f_m1step = m1step_pre;
           v_IIR_Filter_Reset(&stru_iir_az_velocity_sp);
           v_IIR_Filter_Reset(&stru_iir_az_velocity_pwm);
           v_PID_Reset(&stru_pid_az_velocity);
@@ -424,7 +455,7 @@ static void v_Control_Change_Mode(ENUM_AXIS_T enum_axis, ENUM_AXIS_STATE_T enum_
     if ((enum_axis == AXIS_EL) || (enum_axis == AXIS_BOTH))
     {
       //v_EL_PWM_Set_Duty(0);
-      v_Send_BLDC_Speed(AXIS_EL, 0, 0);
+      v_Send_BLDC_Speed(AXIS_EL, m1step_pre, m2step_pre);
       
       if (enum_el_state == STATE_HOME) //current state is home
       {
@@ -449,6 +480,7 @@ static void v_Control_Change_Mode(ENUM_AXIS_T enum_axis, ENUM_AXIS_STATE_T enum_
         case STATE_POINTING:
           break;
         case STATE_TRACKING:
+          f_m2step = m2step_pre;
           v_IIR_Filter_Reset(&stru_iir_el_velocity_sp);
           v_IIR_Filter_Reset(&stru_iir_el_velocity_pwm);
           v_PID_Reset(&stru_pid_el_velocity);
@@ -1312,5 +1344,18 @@ void v_Params_Load_All(void)
 /**
   * @}
   */
+
+int32_t my_round(float f_input)
+{
+
+  if(f_input>=0)
+  {
+    return (int32_t)(f_input+0.5f);
+  }
+  else
+  {
+    return (int32_t)(f_input-0.5f);
+  }
+}
 
 /*********************************END OF FILE**********************************/
