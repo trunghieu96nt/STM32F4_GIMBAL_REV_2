@@ -39,7 +39,7 @@
 #define MAX_RES_MESSAGE_LEN                 64
 #define PARAMS_SCALE                        1000000.0f
 #define POS_VEL_SCALE                       100.0f
-#define DATA_LOG_GENERAL
+#define DATA_GYRO_FILTER
 
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
@@ -52,6 +52,7 @@ static bool bool_active_az = true;
 static bool bool_active_el = true;
 
 static int16_t s16_az_speed, s16_el_speed; // BLDC Motor
+static int16_t s16_az_speed_raw, s16_el_speed_raw; // BLDC Motor
 //static int16_t s16_az_pwm_value = 0; // DC Motor: not use in BLDC version
 //static int16_t s16_el_pwm_value = 0; // DC Motor: not use in BLDC version
 //static float s16_az_pwm_value_raw = 0;
@@ -92,6 +93,10 @@ static STRU_IIR_FILTER_T stru_iir_az_velocity_pwm;
 static STRU_IIR_FILTER_T stru_iir_el_velocity_sp;
 static STRU_IIR_FILTER_T stru_iir_el_velocity_pwm;
 
+static STRU_IIR_FILTER_T stru_iir_pitch_gyro;
+static STRU_IIR_FILTER_T stru_iir_yaw_gyro;
+
+float flt_filtered_pitch_gyro, flt_filtered_yaw_gyro;
 /* Private function prototypes -----------------------------------------------*/
 static void v_Control_Change_Mode(ENUM_AXIS_T enum_axis, ENUM_AXIS_STATE_T enum_new_state);
 static void v_Home_AZ_Handler(void);
@@ -149,58 +154,106 @@ void v_Control_Init(void)
   
   /* AZ Velocity PID */
   v_PID_Init(&stru_pid_az_velocity);
-  v_PID_Set_Kp(&stru_pid_az_velocity, 0.06);
-  v_PID_Set_Ki(&stru_pid_az_velocity, 1.3);
-  v_PID_Set_Kd(&stru_pid_az_velocity, 0);
+  v_PID_Set_Kp(&stru_pid_az_velocity, 0.01);
+  v_PID_Set_Ki(&stru_pid_az_velocity, 6);
+  v_PID_Set_Kd(&stru_pid_az_velocity, 0.0002);
   v_PID_Set_Max_Response(&stru_pid_az_velocity, 2000);
   v_PID_Set_Use_Setpoint_Ramp(&stru_pid_az_velocity, 0);
   v_PID_Set_Setpoint(&stru_pid_az_velocity, 0.0f, 0);
   
   /* EL Velocity PID */
   v_PID_Init(&stru_pid_el_velocity);
-  v_PID_Set_Kp(&stru_pid_el_velocity, 0.10);
-  v_PID_Set_Ki(&stru_pid_el_velocity, 20);
-  v_PID_Set_Kd(&stru_pid_el_velocity, 0.0004);
+  v_PID_Set_Kp(&stru_pid_el_velocity, 0.03);
+  v_PID_Set_Ki(&stru_pid_el_velocity, 10);
+  v_PID_Set_Kd(&stru_pid_el_velocity, 0.0001);
+  v_PID_Set_Max_Response(&stru_pid_az_velocity, 2000);
   v_PID_Set_Use_Setpoint_Ramp(&stru_pid_el_velocity, 0);
   v_PID_Set_Setpoint(&stru_pid_el_velocity, 0.0f, 0);
   
   /* AZ, EL Velocity IIR filter */
-//  aflt_a[0] = 1.0f; // fs = 1000Hz, fc = 20Hz, Butterworth first order
-//  aflt_a[1] = -0.881618592363189;
-//  aflt_b[0] = 0.059190703818405;
-//  aflt_b[1] = 0.059190703818405;
+//  aflt_a[0] = 1.0f; // fs = 400Hz, fc = 50Hz, Butterworth first order
+//  aflt_a[1] = -0.414213562373095;
+//  aflt_b[0] = 0.292893218813453;
+//  aflt_b[1] = 0.292893218813453;
   
-//  aflt_a[0] = 1.0f; // fs = 1000Hz, fc = 15Hz, Butterworth first order
-//  aflt_a[1] = -0.909929988177738;
-//  aflt_b[0] = 0.045035005911131;
-//  aflt_b[1] = 0.045035005911131;
+//  aflt_a[0] = 1.0f; // fs = 400Hz, fc = 45Hz, Butterworth first order
+//  aflt_a[1] = -0.461006314427318;
+//  aflt_b[0] = 0.269496842786341;
+//  aflt_b[1] = 0.269496842786341;
   
-  aflt_a[0] = 1.0f; // fs = 1000Hz, fc = 10Hz, Butterworth first order
-  aflt_a[1] = -0.939062505817492;
-  aflt_b[0] = 0.030468747091254;
-  aflt_b[1] = 0.030468747091254;
+//  aflt_a[0] = 1.0f; // fs = 400Hz, fc = 40Hz, Butterworth first order
+//  aflt_a[1] = -0.509525449494429;
+//  aflt_b[0] = 0.245237275252786;
+//  aflt_b[1] = 0.245237275252786;
   
-//  aflt_a[0] = 1.0f; // fs = 1000Hz, fc = 5Hz, Butterworth first order
-//  aflt_a[1] = -0.969067417193793;
-//  aflt_b[0] = 0.015466291403103;
-//  aflt_b[1] = 0.015466291403103;
+//  aflt_a[0] = 1.0f; // fs = 400Hz, fc = 35Hz, Butterworth first order
+//  aflt_a[1] = -0.560026908474077;
+//  aflt_b[0] = 0.219986545762961;
+//  aflt_b[1] = 0.219986545762961;
+  
+//  aflt_a[0] = 1.0f; // fs = 400Hz, fc = 30Hz, Butterworth first order
+//  aflt_a[1] = -0.612800788139932;
+//  aflt_b[0] = 0.193599605930034;
+//  aflt_b[1] = 0.193599605930034;
+  
+//  aflt_a[0] = 1.0f; // fs = 400Hz, fc = 25Hz, Butterworth first order
+//  aflt_a[1] = -0.668178637919299;
+//  aflt_b[0] = 0.165910681040351;
+//  aflt_b[1] = 0.165910681040351;
+  
+//  aflt_a[0] = 1.0f; // fs = 400Hz, fc = 20Hz, Butterworth first order
+//  aflt_a[1] = -0.726542528005361;
+//  aflt_b[0] = 0.136728735997320;
+//  aflt_b[1] = 0.136728735997320;
+  
+//  aflt_a[0] = 1.0f; // fs = 400Hz, fc = 15Hz, Butterworth first order
+//  aflt_a[1] = -0.788336434585093;
+//  aflt_b[0] = 0.1058317827074541;
+//  aflt_b[1] = 0.105831782707454;
+  
+  aflt_a[0] = 1.0f; // fs = 400Hz, fc = 10Hz, Butterworth first order
+  aflt_a[1] = -0.854080685463467;
+  aflt_b[0] = 0.072959657268267;
+  aflt_b[1] = 0.072959657268267;
+  
+//  aflt_a[0] = 1.0f; // fs = 400Hz, fc = 5Hz, Butterworth first order
+//  aflt_a[1] = -0.924390491658207;
+//  aflt_b[0] = 0.037804754170896;
+//  aflt_b[1] = 0.037804754170896;
+  
+//  aflt_a[0] = 1.0f; // fs = 400Hz, fc = 1Hz, Butterworth first order
+//  aflt_a[1] = -0.984414127416097;
+//  aflt_b[0] = 0.007792936291952;
+//  aflt_b[1] = 0.007792936291952;
   
   v_IIR_Filter_Init(&stru_iir_az_velocity_sp, 1, aflt_a, aflt_b);
-  v_IIR_Filter_Set_Enable(&stru_iir_az_velocity_sp, 1);
+  v_IIR_Filter_Set_Enable(&stru_iir_az_velocity_sp, 0);
   
   v_IIR_Filter_Init(&stru_iir_el_velocity_sp, 1, aflt_a, aflt_b);
-  v_IIR_Filter_Set_Enable(&stru_iir_el_velocity_sp, 1);
+  v_IIR_Filter_Set_Enable(&stru_iir_el_velocity_sp, 0);
   
-  aflt_a[0] = 1.0f; // fs = 1000Hz, fc = 5Hz, Butterworth first order
-  aflt_a[1] = -0.969067417193793;
-  aflt_b[0] = 0.015466291403103;
-  aflt_b[1] = 0.015466291403103;
+  aflt_a[0] = 1.0f; // fs = 400Hz, fc = 40Hz, Butterworth first order
+  aflt_a[1] = -0.509525449494429;
+  aflt_b[0] = 0.245237275252786;
+  aflt_b[1] = 0.245237275252786;
   
   v_IIR_Filter_Init(&stru_iir_az_velocity_pwm, 1, aflt_a, aflt_b);
-  v_IIR_Filter_Set_Enable(&stru_iir_az_velocity_pwm, 0);
+  v_IIR_Filter_Set_Enable(&stru_iir_az_velocity_pwm, 1);
   
   v_IIR_Filter_Init(&stru_iir_el_velocity_pwm, 1, aflt_a, aflt_b);
-  v_IIR_Filter_Set_Enable(&stru_iir_el_velocity_pwm, 0);
+  v_IIR_Filter_Set_Enable(&stru_iir_el_velocity_pwm, 1);
+  
+  aflt_a[0] = 1.0f; // fs = 400Hz, fc = 30Hz, Butterworth first order
+  aflt_a[1] = -0.726542528005361;
+  aflt_b[0] = 0.136728735997320;
+  aflt_b[1] = 0.136728735997320;
+  
+  v_IIR_Filter_Init(&stru_iir_pitch_gyro, 1, aflt_a, aflt_b);
+  v_IIR_Filter_Set_Enable(&stru_iir_pitch_gyro, 1);
+  
+  v_IIR_Filter_Init(&stru_iir_yaw_gyro, 1, aflt_a, aflt_b);
+  v_IIR_Filter_Set_Enable(&stru_iir_yaw_gyro, 1);
+  
   
   /* Need to determine */
   v_PID_Init(&stru_pid_az_pointing);
@@ -222,6 +275,10 @@ void v_Control_Init(void)
 void v_Control(void)
 {
   static uint16_t u16_adc_value;
+  /* gyro filter */
+  flt_filtered_pitch_gyro = flt_IIR_Filter_Calc(&stru_iir_pitch_gyro, stru_Get_IMU_Data().flt_gyro_y);
+  flt_filtered_yaw_gyro = flt_IIR_Filter_Calc(&stru_iir_yaw_gyro, stru_Get_IMU_Data().flt_gyro_z);
+  
   /* Position Loop */
   switch (enum_az_state)
   {
@@ -248,9 +305,9 @@ void v_Control(void)
       u16_adc_value = u16_ADC_Get_Raw_Value(ADC_ID_0);
       
       if (u16_adc_value > 3500)
-        s16_az_speed = 100;
+        s16_az_speed = 50;
       else if (u16_adc_value < 500)
-        s16_az_speed = -100;
+        s16_az_speed = -50;
       else
         s16_az_speed = 0;
       
@@ -298,9 +355,9 @@ void v_Control(void)
       u16_adc_value = u16_ADC_Get_Raw_Value(ADC_ID_1);
       
       if (u16_adc_value > 3500)
-        s16_el_speed = 100;
+        s16_el_speed = -50;
       else if (u16_adc_value < 500)
-        s16_el_speed = -100;
+        s16_el_speed = 50;
       else
         s16_el_speed = 0;
       
@@ -337,8 +394,8 @@ void v_Control(void)
       flt_filtered_body_rate[YAW] = flt_IIR_Filter_Calc(&stru_iir_az_velocity_sp, flt_body_rate[YAW]);
       v_PID_Set_Setpoint(&stru_pid_az_velocity, flt_filtered_body_rate[YAW], 0);
       
-      s16_az_speed = flt_PID_Calc(&stru_pid_az_velocity, stru_Get_IMU_Data().flt_gyro_z);
-      //s16_az_pwm_value = 0.5f + flt_IIR_Filter_Calc(&stru_iir_az_velocity_pwm, s16_az_pwm_value_raw);
+      s16_az_speed_raw = flt_PID_Calc(&stru_pid_az_velocity, flt_filtered_yaw_gyro);
+      s16_az_speed = 0.5f + flt_IIR_Filter_Calc(&stru_iir_az_velocity_pwm, s16_az_speed_raw);
       break;
     default:
       break;
@@ -351,8 +408,8 @@ void v_Control(void)
       flt_filtered_body_rate[PITCH] = flt_IIR_Filter_Calc(&stru_iir_el_velocity_sp, flt_body_rate[PITCH]);
       v_PID_Set_Setpoint(&stru_pid_el_velocity, flt_filtered_body_rate[PITCH], 0);
       
-      s16_el_speed = flt_PID_Calc(&stru_pid_el_velocity, stru_Get_IMU_Data().flt_gyro_y);
-      //s16_el_pwm_value = 0.5f + flt_IIR_Filter_Calc(&stru_iir_el_velocity_pwm, s16_el_pwm_value_raw);
+      s16_el_speed_raw = flt_PID_Calc(&stru_pid_el_velocity, flt_filtered_pitch_gyro);
+      s16_el_speed = 0.5f + flt_IIR_Filter_Calc(&stru_iir_el_velocity_pwm, s16_el_speed_raw);
       break;
     default:
       break;
@@ -1139,7 +1196,7 @@ static void v_Send_BLDC_Speed(ENUM_AXIS_T enum_axis, int16_t s16_az_speed, int16
 void v_Send_Data(void)
 {
 #ifdef DATA_LOG_GENERAL
-  uint8_t au8_tx_buff[DATA_TXBUFF_SIZE];
+  static uint8_t au8_tx_buff[DATA_TXBUFF_SIZE];
   uint32_t u32_cnt = 0;
   int32_t s32_temp = 0;
   
@@ -1201,7 +1258,7 @@ void v_Send_Data(void)
   bool_DATA_Send(au8_tx_buff, u32_cnt);
 #endif
 
-#ifdef DATA_LOG_AZ_VELOCITY_LOOP
+#ifdef DATA_GYRO_FILTER
   static uint8_t au8_tx_buff[DATA_TXBUFF_SIZE];
   uint32_t u32_cnt = 0;
   int32_t s32_temp = 0;
@@ -1209,52 +1266,29 @@ void v_Send_Data(void)
   au8_tx_buff[0] = 0x0a;
   u32_cnt = 1;
   
-  /* s16_az_pwm_value */
-  s32_temp = (int32_t)s16_az_pwm_value;
-  v_Int_To_Str_N(s32_temp, &au8_tx_buff[u32_cnt], 5);
-  u32_cnt += 5;
+  s32_temp = (int32_t)(stru_Get_IMU_Data().flt_gyro_x / IMU_SCALE_GYRO_UNIT);
+  v_Int_To_Str_N(s32_temp, &au8_tx_buff[u32_cnt], 6);
+  u32_cnt += 6;
   au8_tx_buff[u32_cnt++] = ' ';
   
-  /* flt_body_rate[YAW] */
-  s32_temp = (int32_t)(flt_body_rate[YAW] * 10);
-  v_Int_To_Str_N(s32_temp, &au8_tx_buff[u32_cnt], 7);
-  u32_cnt += 7;
+  s32_temp = (int32_t)(stru_Get_IMU_Data().flt_gyro_y / IMU_SCALE_GYRO_UNIT);
+  v_Int_To_Str_N(s32_temp, &au8_tx_buff[u32_cnt], 6);
+  u32_cnt += 6;
   au8_tx_buff[u32_cnt++] = ' ';
   
-  /* flt_filtered_body_rate[YAW] */
-  s32_temp = (int32_t)(flt_filtered_body_rate[YAW] * 10);
-  v_Int_To_Str_N(s32_temp, &au8_tx_buff[u32_cnt], 7);
-  u32_cnt += 7;
+  s32_temp = (int32_t)(stru_Get_IMU_Data().flt_gyro_z / IMU_SCALE_GYRO_UNIT);
+  v_Int_To_Str_N(s32_temp, &au8_tx_buff[u32_cnt], 6);
+  u32_cnt += 6;
   au8_tx_buff[u32_cnt++] = ' ';
   
-  /* stru_Get_IMU_Data().flt_gyro_z */
-  s32_temp = (int32_t)(stru_Get_IMU_Data().flt_gyro_z * 10);
-  v_Int_To_Str_N(s32_temp, &au8_tx_buff[u32_cnt], 7);
-  u32_cnt += 7;
+  s32_temp = (int32_t)(flt_filtered_pitch_gyro / IMU_SCALE_GYRO_UNIT);
+  v_Int_To_Str_N(s32_temp, &au8_tx_buff[u32_cnt], 6);
+  u32_cnt += 6;
   au8_tx_buff[u32_cnt++] = ' ';
   
-  /* s16_el_pwm_value */
-  s32_temp = (int32_t)s16_el_pwm_value;
-  v_Int_To_Str_N(s32_temp, &au8_tx_buff[u32_cnt], 5);
-  u32_cnt += 5;
-  au8_tx_buff[u32_cnt++] = ' ';
-  
-  /* flt_body_rate[PITCH] */
-  s32_temp = (int32_t)(flt_body_rate[PITCH] * 10);
-  v_Int_To_Str_N(s32_temp, &au8_tx_buff[u32_cnt], 7);
-  u32_cnt += 7;
-  au8_tx_buff[u32_cnt++] = ' ';
-  
-  /* flt_filtered_body_rate[PITCH] */
-  s32_temp = (int32_t)(flt_filtered_body_rate[PITCH] * 10);
-  v_Int_To_Str_N(s32_temp, &au8_tx_buff[u32_cnt], 7);
-  u32_cnt += 7;
-  au8_tx_buff[u32_cnt++] = ' ';
-  
-  /* stru_Get_IMU_Data().flt_gyro_y */
-  s32_temp = (int32_t)(stru_Get_IMU_Data().flt_gyro_y * 10);
-  v_Int_To_Str_N(s32_temp, &au8_tx_buff[u32_cnt], 7);
-  u32_cnt += 7;
+  s32_temp = (int32_t)(flt_filtered_yaw_gyro / IMU_SCALE_GYRO_UNIT);
+  v_Int_To_Str_N(s32_temp, &au8_tx_buff[u32_cnt], 6);
+  u32_cnt += 6;
   au8_tx_buff[u32_cnt++] = ' ';
   
   au8_tx_buff[u32_cnt++] = 0x0d;
