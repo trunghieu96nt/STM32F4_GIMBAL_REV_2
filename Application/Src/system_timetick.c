@@ -68,5 +68,5 @@ uint32_t SysTick_GetTick(void)
 
 bool SysTick_IsTimeout(uint32_t u32_start_time_ms, uint32_t u32_time_out_ms)
 {
-  return (tick_count - u32_start_time_ms > u32_time_out_ms * F_CTRL / 1000);
+  return (tick_count - u32_start_time_ms > u32_time_out_ms * F_CTRL / 500);
 }

@@ -39,7 +39,7 @@
 #define MAX_RES_MESSAGE_LEN                 64
 #define PARAMS_SCALE                        1000000.0f
 #define POS_VEL_SCALE                       100.0f
-#define DATA_GYRO_FILTER
+#define DATA_LOG_GENERAL //DATA_LOG_GENERAL DATA_GYRO_FILTER
 
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
@@ -154,77 +154,47 @@ void v_Control_Init(void)
   
   /* AZ Velocity PID */
   v_PID_Init(&stru_pid_az_velocity);
-  v_PID_Set_Kp(&stru_pid_az_velocity, 0.01);
-  v_PID_Set_Ki(&stru_pid_az_velocity, 6);
-  v_PID_Set_Kd(&stru_pid_az_velocity, 0.0002);
-  v_PID_Set_Max_Response(&stru_pid_az_velocity, 2000);
+  v_PID_Set_Kp(&stru_pid_az_velocity, 0.0001);
+  v_PID_Set_Ki(&stru_pid_az_velocity, 0.07);
+  v_PID_Set_Kd(&stru_pid_az_velocity, 0.000015);
+  v_PID_Set_Max_Response(&stru_pid_az_velocity, 200);
   v_PID_Set_Use_Setpoint_Ramp(&stru_pid_az_velocity, 0);
   v_PID_Set_Setpoint(&stru_pid_az_velocity, 0.0f, 0);
   
   /* EL Velocity PID */
   v_PID_Init(&stru_pid_el_velocity);
-  v_PID_Set_Kp(&stru_pid_el_velocity, 0.03);
-  v_PID_Set_Ki(&stru_pid_el_velocity, 10);
-  v_PID_Set_Kd(&stru_pid_el_velocity, 0.0001);
-  v_PID_Set_Max_Response(&stru_pid_az_velocity, 2000);
+  v_PID_Set_Kp(&stru_pid_el_velocity, 0.0005);
+  v_PID_Set_Ki(&stru_pid_el_velocity, 0.1);
+  v_PID_Set_Kd(&stru_pid_el_velocity, 0.00005);
+  v_PID_Set_Max_Response(&stru_pid_az_velocity, 200);
   v_PID_Set_Use_Setpoint_Ramp(&stru_pid_el_velocity, 0);
   v_PID_Set_Setpoint(&stru_pid_el_velocity, 0.0f, 0);
   
   /* AZ, EL Velocity IIR filter */
-//  aflt_a[0] = 1.0f; // fs = 400Hz, fc = 50Hz, Butterworth first order
-//  aflt_a[1] = -0.414213562373095;
-//  aflt_b[0] = 0.292893218813453;
-//  aflt_b[1] = 0.292893218813453;
+//  aflt_a[0] = 1.0f; // fs = 500Hz, fc = 40Hz, Butterworth first order
+//  aflt_a[1] = -0.591398351399471;
+//  aflt_b[0] = 0.204300824300264;
+//  aflt_b[1] = 0.204300824300264;
   
-//  aflt_a[0] = 1.0f; // fs = 400Hz, fc = 45Hz, Butterworth first order
-//  aflt_a[1] = -0.461006314427318;
-//  aflt_b[0] = 0.269496842786341;
-//  aflt_b[1] = 0.269496842786341;
+//  aflt_a[0] = 1.0f; // fs = 500Hz, fc = 30Hz, Butterworth first order
+//  aflt_a[1] = -0.679599298224527;
+//  aflt_b[0] = 0.160200350887737;
+//  aflt_b[1] = 0.160200350887737;
   
-//  aflt_a[0] = 1.0f; // fs = 400Hz, fc = 40Hz, Butterworth first order
-//  aflt_a[1] = -0.509525449494429;
-//  aflt_b[0] = 0.245237275252786;
-//  aflt_b[1] = 0.245237275252786;
+//  aflt_a[0] = 1.0f; // fs = 500Hz, fc = 20Hz, Butterworth first order
+//  aflt_a[1] = -0.775679511049613;
+//  aflt_b[0] = 0.112160244475193;
+//  aflt_b[1] = 0.112160244475193;
   
-//  aflt_a[0] = 1.0f; // fs = 400Hz, fc = 35Hz, Butterworth first order
-//  aflt_a[1] = -0.560026908474077;
-//  aflt_b[0] = 0.219986545762961;
-//  aflt_b[1] = 0.219986545762961;
+//  aflt_a[0] = 1.0f; // fs = 500Hz, fc = 15Hz, Butterworth first order
+//  aflt_a[1] = -0.827271945972476;
+//  aflt_b[0] = 0.086364027013762;
+//  aflt_b[1] = 0.086364027013762;
   
-//  aflt_a[0] = 1.0f; // fs = 400Hz, fc = 30Hz, Butterworth first order
-//  aflt_a[1] = -0.612800788139932;
-//  aflt_b[0] = 0.193599605930034;
-//  aflt_b[1] = 0.193599605930034;
-  
-//  aflt_a[0] = 1.0f; // fs = 400Hz, fc = 25Hz, Butterworth first order
-//  aflt_a[1] = -0.668178637919299;
-//  aflt_b[0] = 0.165910681040351;
-//  aflt_b[1] = 0.165910681040351;
-  
-//  aflt_a[0] = 1.0f; // fs = 400Hz, fc = 20Hz, Butterworth first order
-//  aflt_a[1] = -0.726542528005361;
-//  aflt_b[0] = 0.136728735997320;
-//  aflt_b[1] = 0.136728735997320;
-  
-//  aflt_a[0] = 1.0f; // fs = 400Hz, fc = 15Hz, Butterworth first order
-//  aflt_a[1] = -0.788336434585093;
-//  aflt_b[0] = 0.1058317827074541;
-//  aflt_b[1] = 0.105831782707454;
-  
-  aflt_a[0] = 1.0f; // fs = 400Hz, fc = 10Hz, Butterworth first order
-  aflt_a[1] = -0.854080685463467;
-  aflt_b[0] = 0.072959657268267;
-  aflt_b[1] = 0.072959657268267;
-  
-//  aflt_a[0] = 1.0f; // fs = 400Hz, fc = 5Hz, Butterworth first order
-//  aflt_a[1] = -0.924390491658207;
-//  aflt_b[0] = 0.037804754170896;
-//  aflt_b[1] = 0.037804754170896;
-  
-//  aflt_a[0] = 1.0f; // fs = 400Hz, fc = 1Hz, Butterworth first order
-//  aflt_a[1] = -0.984414127416097;
-//  aflt_b[0] = 0.007792936291952;
-//  aflt_b[1] = 0.007792936291952;
+  aflt_a[0] = 1.0f; // fs = 500Hz, fc = 10Hz, Butterworth first order
+  aflt_a[1] = -0.881618592363189;
+  aflt_b[0] = 0.059190703818405;
+  aflt_b[1] = 0.059190703818405;
   
   v_IIR_Filter_Init(&stru_iir_az_velocity_sp, 1, aflt_a, aflt_b);
   v_IIR_Filter_Set_Enable(&stru_iir_az_velocity_sp, 0);
@@ -232,21 +202,21 @@ void v_Control_Init(void)
   v_IIR_Filter_Init(&stru_iir_el_velocity_sp, 1, aflt_a, aflt_b);
   v_IIR_Filter_Set_Enable(&stru_iir_el_velocity_sp, 0);
   
-  aflt_a[0] = 1.0f; // fs = 400Hz, fc = 40Hz, Butterworth first order
-  aflt_a[1] = -0.509525449494429;
-  aflt_b[0] = 0.245237275252786;
-  aflt_b[1] = 0.245237275252786;
+  aflt_a[0] = 1.0f; // fs = 500Hz, fc = 20Hz, Butterworth first order
+  aflt_a[1] = -0.775679511049613;
+  aflt_b[0] = 0.112160244475193;
+  aflt_b[1] = 0.112160244475193;
   
   v_IIR_Filter_Init(&stru_iir_az_velocity_pwm, 1, aflt_a, aflt_b);
-  v_IIR_Filter_Set_Enable(&stru_iir_az_velocity_pwm, 1);
+  v_IIR_Filter_Set_Enable(&stru_iir_az_velocity_pwm, 0);
   
   v_IIR_Filter_Init(&stru_iir_el_velocity_pwm, 1, aflt_a, aflt_b);
-  v_IIR_Filter_Set_Enable(&stru_iir_el_velocity_pwm, 1);
+  v_IIR_Filter_Set_Enable(&stru_iir_el_velocity_pwm, 0);
   
-  aflt_a[0] = 1.0f; // fs = 400Hz, fc = 30Hz, Butterworth first order
-  aflt_a[1] = -0.726542528005361;
-  aflt_b[0] = 0.136728735997320;
-  aflt_b[1] = 0.136728735997320;
+  aflt_a[0] = 1.0f; // fs = 500Hz, fc = 10Hz, Butterworth first order
+  aflt_a[1] = -0.881618592363189;
+  aflt_b[0] = 0.059190703818405;
+  aflt_b[1] = 0.059190703818405;
   
   v_IIR_Filter_Init(&stru_iir_pitch_gyro, 1, aflt_a, aflt_b);
   v_IIR_Filter_Set_Enable(&stru_iir_pitch_gyro, 1);
@@ -305,9 +275,9 @@ void v_Control(void)
       u16_adc_value = u16_ADC_Get_Raw_Value(ADC_ID_0);
       
       if (u16_adc_value > 3500)
-        s16_az_speed = 50;
+        s16_az_speed = 5;
       else if (u16_adc_value < 500)
-        s16_az_speed = -50;
+        s16_az_speed = -5;
       else
         s16_az_speed = 0;
       
@@ -355,9 +325,9 @@ void v_Control(void)
       u16_adc_value = u16_ADC_Get_Raw_Value(ADC_ID_1);
       
       if (u16_adc_value > 3500)
-        s16_el_speed = -50;
+        s16_el_speed = -5;
       else if (u16_adc_value < 500)
-        s16_el_speed = 50;
+        s16_el_speed = 5;
       else
         s16_el_speed = 0;
       
@@ -1203,12 +1173,12 @@ void v_Send_Data(void)
   au8_tx_buff[0] = 0x0a;
   u32_cnt = 1;
   
-  s32_temp = (int32_t)(flt_AZ_ENC_Get_Angle() * 1000);
+  s32_temp = (int32_t)(flt_body_rate[YAW] * 1000);
   v_Int_To_Str_N(s32_temp, &au8_tx_buff[u32_cnt], 7);
   u32_cnt += 7;
   au8_tx_buff[u32_cnt++] = ' ';
   
-  s32_temp = (int32_t)(flt_EL_ENC_Get_Angle() * 1000);
+  s32_temp = (int32_t)(flt_body_rate[PITCH] * 1000);
   v_Int_To_Str_N(s32_temp, &au8_tx_buff[u32_cnt], 7);
   u32_cnt += 7;
   au8_tx_buff[u32_cnt++] = ' ';
