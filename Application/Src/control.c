@@ -45,13 +45,13 @@
 /* Private variables ---------------------------------------------------------*/
 static const uint8_t au8_code_version[2] = {7, 7}; //Major.Minor
 
-static volatile ENUM_AXIS_STATE_T enum_az_state = STATE_MANUAL; //STATE_HOME STATE_SINE
-static volatile ENUM_AXIS_STATE_T enum_el_state = STATE_MANUAL; //STATE_STOP STATE_MANUAL
+volatile ENUM_AXIS_STATE_T enum_az_state = STATE_MANUAL; //STATE_HOME STATE_SINE
+volatile ENUM_AXIS_STATE_T enum_el_state = STATE_MANUAL; //STATE_STOP STATE_MANUAL
 
-static bool bool_active_az = true;
-static bool bool_active_el = true;
+bool bool_active_az = true;
+bool bool_active_el = true;
 
-static int16_t s16_az_speed, s16_el_speed; // BLDC Motor
+int16_t s16_az_speed, s16_el_speed; // BLDC Motor
 static int16_t s16_az_speed_raw, s16_el_speed_raw; // BLDC Motor
 //static int16_t s16_az_pwm_value = 0; // DC Motor: not use in BLDC version
 //static int16_t s16_el_pwm_value = 0; // DC Motor: not use in BLDC version
@@ -64,7 +64,7 @@ static volatile bool bool_el_going_home = false;
 static uint32_t u32_az_sine_idx = 0, u32_el_sine_idx = 0;
 static int32_t s32_az_sine_cnt = 1, s32_el_sine_cnt = 1;
 
-static float flt_euler_angle[3], flt_euler_rate[3], flt_body_rate[3];
+float flt_euler_angle[3], flt_euler_rate[3], flt_body_rate[3];
 static float flt_filtered_body_rate[3];
 static float flt_alpha = 0;
 static float flt_lamda = 0;
@@ -155,16 +155,16 @@ void v_Control_Init(void)
   /* AZ Velocity PID */
   v_PID_Init(&stru_pid_az_velocity);
   v_PID_Set_Kp(&stru_pid_az_velocity, 0.0001);
-  v_PID_Set_Ki(&stru_pid_az_velocity, 0.07);
-  v_PID_Set_Kd(&stru_pid_az_velocity, 0.000015);
+  v_PID_Set_Ki(&stru_pid_az_velocity, 0.1);
+  v_PID_Set_Kd(&stru_pid_az_velocity, 0.00001);
   v_PID_Set_Max_Response(&stru_pid_az_velocity, 200);
   v_PID_Set_Use_Setpoint_Ramp(&stru_pid_az_velocity, 0);
   v_PID_Set_Setpoint(&stru_pid_az_velocity, 0.0f, 0);
   
   /* EL Velocity PID */
   v_PID_Init(&stru_pid_el_velocity);
-  v_PID_Set_Kp(&stru_pid_el_velocity, 0.0005);
-  v_PID_Set_Ki(&stru_pid_el_velocity, 0.1);
+  v_PID_Set_Kp(&stru_pid_el_velocity, 0.00007);
+  v_PID_Set_Ki(&stru_pid_el_velocity, 0.12);
   v_PID_Set_Kd(&stru_pid_el_velocity, 0.00005);
   v_PID_Set_Max_Response(&stru_pid_az_velocity, 200);
   v_PID_Set_Use_Setpoint_Ramp(&stru_pid_el_velocity, 0);
@@ -213,10 +213,10 @@ void v_Control_Init(void)
   v_IIR_Filter_Init(&stru_iir_el_velocity_pwm, 1, aflt_a, aflt_b);
   v_IIR_Filter_Set_Enable(&stru_iir_el_velocity_pwm, 0);
   
-  aflt_a[0] = 1.0f; // fs = 500Hz, fc = 10Hz, Butterworth first order
-  aflt_a[1] = -0.881618592363189;
-  aflt_b[0] = 0.059190703818405;
-  aflt_b[1] = 0.059190703818405;
+  aflt_a[0] = 1.0f; // fs = 500Hz, fc = 5Hz, Butterworth first order
+  aflt_a[1] = -0.939062505817492;
+  aflt_b[0] = 0.030468747091254;
+  aflt_b[1] = 0.030468747091254;
   
   v_IIR_Filter_Init(&stru_iir_pitch_gyro, 1, aflt_a, aflt_b);
   v_IIR_Filter_Set_Enable(&stru_iir_pitch_gyro, 1);
@@ -1173,12 +1173,12 @@ void v_Send_Data(void)
   au8_tx_buff[0] = 0x0a;
   u32_cnt = 1;
   
-  s32_temp = (int32_t)(flt_body_rate[YAW] * 1000);
+  s32_temp = (int32_t)(flt_body_rate[YAW]);
   v_Int_To_Str_N(s32_temp, &au8_tx_buff[u32_cnt], 7);
   u32_cnt += 7;
   au8_tx_buff[u32_cnt++] = ' ';
   
-  s32_temp = (int32_t)(flt_body_rate[PITCH] * 1000);
+  s32_temp = (int32_t)(flt_body_rate[PITCH]);
   v_Int_To_Str_N(s32_temp, &au8_tx_buff[u32_cnt], 7);
   u32_cnt += 7;
   au8_tx_buff[u32_cnt++] = ' ';
@@ -1241,12 +1241,12 @@ void v_Send_Data(void)
   u32_cnt += 6;
   au8_tx_buff[u32_cnt++] = ' ';
   
-  s32_temp = (int32_t)(stru_Get_IMU_Data().flt_gyro_y / IMU_SCALE_GYRO_UNIT);
+  s32_temp = (int32_t)(flt_filtered_pitch_gyro / IMU_SCALE_GYRO_UNIT);
   v_Int_To_Str_N(s32_temp, &au8_tx_buff[u32_cnt], 6);
   u32_cnt += 6;
   au8_tx_buff[u32_cnt++] = ' ';
   
-  s32_temp = (int32_t)(stru_Get_IMU_Data().flt_gyro_z / IMU_SCALE_GYRO_UNIT);
+  s32_temp = (int32_t)(flt_filtered_yaw_gyro / IMU_SCALE_GYRO_UNIT);
   v_Int_To_Str_N(s32_temp, &au8_tx_buff[u32_cnt], 6);
   u32_cnt += 6;
   au8_tx_buff[u32_cnt++] = ' ';
