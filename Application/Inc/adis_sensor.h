@@ -32,9 +32,6 @@ typedef struct
   float flt_gyro_x;
   float flt_gyro_y;
   float flt_gyro_z;
-  float flt_acc_x;
-  float flt_acc_y;
-  float flt_acc_z;
 } STRU_IMU_DATA_T;
 
 /* Exported constants --------------------------------------------------------*/
@@ -51,7 +48,7 @@ typedef struct
 #define IMU_RXBUFF_SIZE       1024
 #endif
 
-#define IMU_FRAME_LEN         71
+#define IMU_FRAME_LEN         50
 #define IMU_FRAME_LEN_MAX     (IMU_FRAME_LEN + 1)
 #define IMU_ELEMENT_MAX_LEN   15
 #define IMU_START_FRAME       0x0a

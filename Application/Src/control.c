@@ -146,40 +146,45 @@ void v_Control_Init(void)
   
   /* AZ Velocity PID */
   v_PID_Init(&stru_pid_az_velocity);
-  v_PID_Set_Kp(&stru_pid_az_velocity, 0.10);
-  v_PID_Set_Ki(&stru_pid_az_velocity, 20);
-  v_PID_Set_Kd(&stru_pid_az_velocity, 0);
+  v_PID_Set_Kp(&stru_pid_az_velocity, 0.03);
+  v_PID_Set_Ki(&stru_pid_az_velocity, 3.5);
+  v_PID_Set_Kd(&stru_pid_az_velocity, 0.0001);
   v_PID_Set_Use_Setpoint_Ramp(&stru_pid_az_velocity, 0);
   v_PID_Set_Setpoint(&stru_pid_az_velocity, 0.0f, 0);
   
   /* EL Velocity PID */
   v_PID_Init(&stru_pid_el_velocity);
-  v_PID_Set_Kp(&stru_pid_el_velocity, 0.10);
-  v_PID_Set_Ki(&stru_pid_el_velocity, 20);
-  v_PID_Set_Kd(&stru_pid_el_velocity, 0.0004);
+  v_PID_Set_Kp(&stru_pid_el_velocity, 0.03);
+  v_PID_Set_Ki(&stru_pid_el_velocity, 3.5);
+  v_PID_Set_Kd(&stru_pid_el_velocity, 0.0001);
   v_PID_Set_Use_Setpoint_Ramp(&stru_pid_el_velocity, 0);
   v_PID_Set_Setpoint(&stru_pid_el_velocity, 0.0f, 0);
   
   /* AZ, EL Velocity IIR filter */
-//  aflt_a[0] = 1.0f; // fs = 1000Hz, fc = 20Hz, Butterworth first order
-//  aflt_a[1] = -0.881618592363189;
-//  aflt_b[0] = 0.059190703818405;
-//  aflt_b[1] = 0.059190703818405;
+//  aflt_a[0] = 1.0f; // fs = 500Hz, fc = 40Hz, Butterworth first order
+//  aflt_a[1] = -0.591398351399471;
+//  aflt_b[0] = 0.204300824300264;
+//  aflt_b[1] = 0.204300824300264;
   
-//  aflt_a[0] = 1.0f; // fs = 1000Hz, fc = 15Hz, Butterworth first order
-//  aflt_a[1] = -0.909929988177738;
-//  aflt_b[0] = 0.045035005911131;
-//  aflt_b[1] = 0.045035005911131;
+//  aflt_a[0] = 1.0f; // fs = 500Hz, fc = 30Hz, Butterworth first order
+//  aflt_a[1] = -0.679599298224527;
+//  aflt_b[0] = 0.160200350887737;
+//  aflt_b[1] = 0.160200350887737;
   
-  aflt_a[0] = 1.0f; // fs = 1000Hz, fc = 10Hz, Butterworth first order
-  aflt_a[1] = -0.939062505817492;
-  aflt_b[0] = 0.030468747091254;
-  aflt_b[1] = 0.030468747091254;
+//  aflt_a[0] = 1.0f; // fs = 500Hz, fc = 20Hz, Butterworth first order
+//  aflt_a[1] = -0.775679511049613;
+//  aflt_b[0] = 0.112160244475193;
+//  aflt_b[1] = 0.112160244475193;
   
-//  aflt_a[0] = 1.0f; // fs = 1000Hz, fc = 5Hz, Butterworth first order
-//  aflt_a[1] = -0.969067417193793;
-//  aflt_b[0] = 0.015466291403103;
-//  aflt_b[1] = 0.015466291403103;
+//  aflt_a[0] = 1.0f; // fs = 500Hz, fc = 15Hz, Butterworth first order
+//  aflt_a[1] = -0.827271945972476;
+//  aflt_b[0] = 0.086364027013762;
+//  aflt_b[1] = 0.086364027013762;
+  
+  aflt_a[0] = 1.0f; // fs = 500Hz, fc = 10Hz, Butterworth first order
+  aflt_a[1] = -0.881618592363189;
+  aflt_b[0] = 0.059190703818405;
+  aflt_b[1] = 0.059190703818405;
   
   v_IIR_Filter_Init(&stru_iir_az_velocity_sp, 1, aflt_a, aflt_b);
   v_IIR_Filter_Set_Enable(&stru_iir_az_velocity_sp, 1);
@@ -267,9 +272,9 @@ void v_Control(void)
         v_EL_Home_Falling_Register(v_Home_EL_Handler);
         
         if (u8_DI_Read_Pin(DI_PIN_EL_HOME) == 0)
-          s16_el_pwm_value = -75;
+          s16_el_pwm_value = -85;
         else
-          s16_el_pwm_value = 75;
+          s16_el_pwm_value = 85;
       }
       break;
     case STATE_MANUAL:
