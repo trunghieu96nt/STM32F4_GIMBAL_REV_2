@@ -123,10 +123,6 @@ static void v_Params_Save_All(void);
 void v_Control_Init(void)
 {
   float aflt_a[10], aflt_b[10];
-    
-  /* Set state */
-  enum_az_state = enum_az_startup_state;
-  enum_el_state = enum_el_startup_state;
   
   /* Limit EL*/
   if (u8_DI_Read_Pin(DI_PIN_EL_LIMIT) == 1)
@@ -1312,8 +1308,12 @@ void v_Params_Load_All(void)
   
   bool_Params_Load(PARAMS_PID_AZ_MANUAL_POS, (uint8_t *)&stru_pid_az_manual);
   bool_Params_Load(PARAMS_PID_EL_MANUAL_POS, (uint8_t *)&stru_pid_el_manual);
+  
   bool_Params_Load(PARAMS_PID_AZ_STARTUP_MODE, (uint8_t *)&enum_az_startup_state);
   bool_Params_Load(PARAMS_PID_EL_STARTUP_MODE, (uint8_t *)&enum_el_startup_state);
+  /* Set state */
+  enum_az_state = enum_az_startup_state;
+  enum_el_state = enum_el_startup_state;
 }
 
 /**
