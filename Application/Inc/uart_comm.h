@@ -43,6 +43,12 @@ typedef enum{
   MSG_SET_ACTIVE_AXIS     = 0x10,
   MSG_GET_ACTIVE_AXIS     = 0x11,
   MSG_SEND_IMAGE_DATA     = 0x12,
+  MSG_SET_BLDC_SPEED      = 0x13,
+  MSG_SET_CONTROL_METHOD  = 0x14,
+  MSG_GET_CONTROL_METHOD  = 0x15,
+  MSG_SET_STARTUP_MODE    = 0x16,
+  MSG_GET_STARTUP_MODE    = 0x17,
+  MSG_SAVE_ALL_PARAMS     = 0x18,
 } ENUM_MSG_ID_T;
 
 typedef bool (*CMD_HANDLER_FUNC)(uint8_t, uint8_t *, uint32_t);
@@ -58,7 +64,7 @@ typedef struct{
   * @{
   */
 #define CMD_RX_FRAME_TIMEOUT      50 //ms
-#define CMD_NUM_MSG_ID_MAX        20
+#define CMD_NUM_MSG_ID_MAX        30
 
 #define CMD_TXBUFF_SIZE           64
 #define CMD_RXBUFF_SIZE           512

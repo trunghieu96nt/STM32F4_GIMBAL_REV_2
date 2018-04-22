@@ -20,14 +20,15 @@ void v_Board_Init()
   /* Enable SysTick at 2ms interrupt */
   SysTick_Config(SystemCoreClock / F_CTRL);
   
+  v_I2C_Comm_Init();
   v_GPIO_Init();
   v_Motor_Init();
   v_ADIS_Init();
   v_UART_Comm_Init();
-  v_I2C_Comm_Init();
+
+  v_Params_Load_All();
+
   v_Control_Init();
-  
-  //v_Params_Load_All();
   
   /* waiting for IMU Data is available */
   while (stru_Get_IMU_Data().bool_available == false)

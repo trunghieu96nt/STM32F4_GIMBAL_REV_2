@@ -68,7 +68,6 @@ void v_Control_Init(void);
 /* Control Functions **********************************************************/
 void v_Control(void);
 void v_Send_Data(void);
-void v_Params_Save_Default(void);
 void v_Params_Load_All(void);
 
 #ifdef __cplusplus

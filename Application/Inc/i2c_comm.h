@@ -27,6 +27,8 @@ typedef enum{
   PARAMS_CODE_VERSION = 0,
   PARAMS_PID_AZ_MANUAL_POS,
   PARAMS_PID_EL_MANUAL_POS,
+  PARAMS_PID_AZ_STARTUP_MODE,
+  PARAMS_PID_EL_STARTUP_MODE,
 } ENUM_PARAMS_T;
 
 /* Exported constants --------------------------------------------------------*/

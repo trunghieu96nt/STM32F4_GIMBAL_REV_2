@@ -32,6 +32,8 @@ static const uint8_t au8_params_length[NUM_PARAMS_MAX] =
   2,                //CODE_VERSION = 0,
   12,               //PARAMS_PID_AZ_MANUAL_POS,
   12,               //PARAMS_PID_EL_MANUAL_POS,
+  4,                //PARAMS_PID_AZ_STARTUP_MODE,
+  4,                //PARAMS_PID_EL_STARTUP_MODE,
 };
 
 /* Private function prototypes -----------------------------------------------*/

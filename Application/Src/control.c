@@ -42,10 +42,12 @@
 
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
-static const uint8_t au8_code_version[2] = {7, 7}; //Major.Minor
+static const uint8_t au8_code_version[2] = {2, 1}; //Major.Minor
 
-static volatile ENUM_AXIS_STATE_T enum_az_state = STATE_HOME; //STATE_HOME STATE_SINE
-static volatile ENUM_AXIS_STATE_T enum_el_state = STATE_HOME; //STATE_STOP
+static volatile ENUM_AXIS_STATE_T enum_az_startup_state = STATE_KEEP;
+static volatile ENUM_AXIS_STATE_T enum_el_startup_state = STATE_KEEP;
+static volatile ENUM_AXIS_STATE_T enum_az_state = STATE_KEEP; //STATE_HOME STATE_SINE
+static volatile ENUM_AXIS_STATE_T enum_el_state = STATE_KEEP; //STATE_STOP
 
 static bool bool_active_az = true;
 static bool bool_active_el = true;
@@ -96,6 +98,7 @@ static void v_Home_AZ_Handler(void);
 static void v_Home_EL_Handler(void);
 static void v_Limit_El_Handler(void);
 static void v_Send_Response(uint8_t u8_msg_id, uint8_t *pu8_payload, uint32_t u32_payload_cnt);
+static void v_Params_Save_All(void);
 
 /* Private functions ---------------------------------------------------------*/
 
@@ -120,6 +123,10 @@ static void v_Send_Response(uint8_t u8_msg_id, uint8_t *pu8_payload, uint32_t u3
 void v_Control_Init(void)
 {
   float aflt_a[10], aflt_b[10];
+  
+  /* Set state */
+  enum_az_state = enum_az_startup_state;
+  enum_el_state = enum_el_startup_state;
   
   /* Limit EL*/
   if (u8_DI_Read_Pin(DI_PIN_EL_LIMIT) == 1)
@@ -1000,6 +1007,94 @@ bool bool_Send_Image_Data_Handler(uint8_t u8_msg_id, uint8_t *pu8_payload, uint3
   return true;
 }
 
+bool bool_Set_Control_Method_Handler(uint8_t u8_msg_id, uint8_t *pu8_payload, uint32_t u32_payload_cnt)
+{
+  uint8_t au8_respond_payload[MAX_SHORT_RES_PAYLOAD_LEN];
+  
+  if (*pu8_payload == 0x03)
+  {
+    
+  }
+  
+  au8_respond_payload[0] = *pu8_payload;
+  au8_respond_payload[1] = 0x00; //Ok
+  v_Send_Response(u8_msg_id, au8_respond_payload, 2);
+  return true;
+}
+
+bool bool_Get_Control_Method_Handler(uint8_t u8_msg_id, uint8_t *pu8_payload, uint32_t u32_payload_cnt)
+{
+  uint8_t au8_respond_payload[MAX_SHORT_RES_PAYLOAD_LEN];
+  
+  au8_respond_payload[0] = *pu8_payload;
+  au8_respond_payload[1] = 0x00; // always mode Traditional PID
+  
+  v_Send_Response(u8_msg_id, au8_respond_payload, 2);
+  return true;
+}
+
+bool bool_Set_Startup_Mode_Handler(uint8_t u8_msg_id, uint8_t *pu8_payload, uint32_t u32_payload_cnt)
+{
+  uint8_t au8_respond_payload[MAX_SHORT_RES_PAYLOAD_LEN];
+  
+  if (*pu8_payload == 0x01)
+  {
+    enum_az_startup_state = (ENUM_AXIS_STATE_T)pu8_payload[1];
+  }
+  else if (*pu8_payload == 0x02)
+  {
+    enum_el_startup_state = (ENUM_AXIS_STATE_T)pu8_payload[1];
+  }
+  else 
+  {
+    enum_az_startup_state = (ENUM_AXIS_STATE_T)pu8_payload[1];
+    enum_el_startup_state = (ENUM_AXIS_STATE_T)pu8_payload[1];
+  }
+  
+  au8_respond_payload[0] = *pu8_payload;
+  au8_respond_payload[1] = 0x00;
+  
+  v_Send_Response(u8_msg_id, au8_respond_payload, 2);
+  return true;
+}
+
+bool bool_Get_Startup_Mode_Handler(uint8_t u8_msg_id, uint8_t *pu8_payload, uint32_t u32_payload_cnt)
+{
+  uint8_t au8_respond_payload[MAX_SHORT_RES_PAYLOAD_LEN];
+  
+  au8_respond_payload[0] = *pu8_payload;
+  
+  if (*pu8_payload == 0x01)
+  {
+    au8_respond_payload[1] = enum_az_startup_state;
+  }
+  else if (*pu8_payload == 0x02)
+  {
+    au8_respond_payload[1] = enum_el_startup_state;
+  }
+  else 
+  {
+    /* enum_az_startup_state and enum_el_startup_state must be the same */
+    au8_respond_payload[1] = enum_az_startup_state;
+    //au8_respond_payload[1] = enum_el_startup_state;
+  }
+  
+  v_Send_Response(u8_msg_id, au8_respond_payload, 2);
+  return true;
+}
+
+bool bool_Save_All_Params(uint8_t u8_msg_id, uint8_t *pu8_payload, uint32_t u32_payload_cnt)
+{
+  uint8_t au8_respond_payload[MAX_SHORT_RES_PAYLOAD_LEN];
+  
+  v_Params_Save_All();
+  
+  au8_respond_payload[0] = *pu8_payload;
+  au8_respond_payload[1] = 0x00;
+  v_Send_Response(u8_msg_id, au8_respond_payload, 2);
+  return true;
+}
+
 static void v_Send_Response(uint8_t u8_msg_id, uint8_t *pu8_payload, uint32_t u32_payload_cnt)
 {
   uint32_t u32_idx, u32_message_no_checksum_size;
@@ -1197,18 +1292,6 @@ void v_Send_Data(void)
  @endverbatim
   * @{
   */
-/**
-  * @brief  save default params
-  * @note   
-  * @param  none
-  * @retval none
-  */
-void v_Params_Save_Default(void)
-{
-  bool_Params_Save(PARAMS_CODE_VERSION, au8_code_version);
-  bool_Params_Save(PARAMS_PID_AZ_MANUAL_POS, (uint8_t *)&stru_pid_az_manual);
-  bool_Params_Save(PARAMS_PID_EL_MANUAL_POS, (uint8_t *)&stru_pid_el_manual);
-}
 
 /**
   * @brief  load all params
@@ -1223,12 +1306,31 @@ void v_Params_Load_All(void)
   bool_Params_Load(PARAMS_CODE_VERSION, au8_loaded_version);
   if ((au8_loaded_version[0] != au8_code_version[0]) || (au8_loaded_version[1] != au8_code_version[1]))
   {
-    v_Params_Save_Default();
+    /* Default parameters */
+    v_Params_Save_All();
   }
   
   bool_Params_Load(PARAMS_PID_AZ_MANUAL_POS, (uint8_t *)&stru_pid_az_manual);
   bool_Params_Load(PARAMS_PID_EL_MANUAL_POS, (uint8_t *)&stru_pid_el_manual);
+  bool_Params_Load(PARAMS_PID_AZ_STARTUP_MODE, (uint8_t *)&enum_az_state);
+  bool_Params_Load(PARAMS_PID_EL_STARTUP_MODE, (uint8_t *)&enum_el_state);
 }
+
+/**
+  * @brief  save all params
+  * @note   
+  * @param  none
+  * @retval none
+  */
+static void v_Params_Save_All(void)
+{
+  bool_Params_Save(PARAMS_CODE_VERSION, au8_code_version);
+  bool_Params_Save(PARAMS_PID_AZ_MANUAL_POS, (uint8_t *)&stru_pid_az_manual);
+  bool_Params_Save(PARAMS_PID_EL_MANUAL_POS, (uint8_t *)&stru_pid_el_manual);
+  bool_Params_Save(PARAMS_PID_AZ_STARTUP_MODE, (uint8_t *)&enum_az_startup_state);
+  bool_Params_Save(PARAMS_PID_EL_STARTUP_MODE, (uint8_t *)&enum_el_startup_state);
+}
+
 /**
   * @}
   */
