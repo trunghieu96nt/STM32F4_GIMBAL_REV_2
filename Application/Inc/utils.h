@@ -32,6 +32,7 @@ extern "C" {
 #define RAD_TO_DEGREE       (180 / PI)
 #define DEGREE_TO_RAD       (PI / 180)
 #define DEGREE_TO_MRAD      (PI / 0.18)
+#define DEGREE_TO_MDEGREE   (1000)
 /**
   * @}
   */

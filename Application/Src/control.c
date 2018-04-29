@@ -42,7 +42,7 @@
 
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
-static const uint8_t au8_code_version[2] = {2, 1}; //Major.Minor
+static const uint8_t au8_code_version[2] = {2, 3}; //Major.Minor
 
 static volatile ENUM_AXIS_STATE_T enum_az_startup_state = STATE_KEEP;
 static volatile ENUM_AXIS_STATE_T enum_el_startup_state = STATE_KEEP;
@@ -136,7 +136,7 @@ void v_Control_Init(void)
   v_PID_Set_Ki(&stru_pid_az_manual, 40);
   v_PID_Set_Kd(&stru_pid_az_manual, 0.5);
   v_PID_Set_Use_Setpoint_Ramp(&stru_pid_az_manual, 1);
-  v_PID_Set_Max_Setpoint_Step(&stru_pid_az_manual, 0.05);
+  v_PID_Set_Max_Setpoint_Step(&stru_pid_az_manual, 0.1);
   
   /* EL Manual PID */
   v_PID_Init(&stru_pid_el_manual);
@@ -144,22 +144,22 @@ void v_Control_Init(void)
   v_PID_Set_Ki(&stru_pid_el_manual, 40);
   v_PID_Set_Kd(&stru_pid_el_manual, 0.5);
   v_PID_Set_Use_Setpoint_Ramp(&stru_pid_el_manual, 1);
-  v_PID_Set_Max_Setpoint_Step(&stru_pid_el_manual, 0.02);
+  v_PID_Set_Max_Setpoint_Step(&stru_pid_el_manual, 0.05);
   v_PID_Set_Max_Response(&stru_pid_el_manual, 500);
   
   /* AZ Velocity PID */
   v_PID_Init(&stru_pid_az_velocity);
-  v_PID_Set_Kp(&stru_pid_az_velocity, 0.03);
-  v_PID_Set_Ki(&stru_pid_az_velocity, 3.5);
-  v_PID_Set_Kd(&stru_pid_az_velocity, 0.0001);
+  v_PID_Set_Kp(&stru_pid_az_velocity, 0.003);
+  v_PID_Set_Ki(&stru_pid_az_velocity, 0.35);
+  v_PID_Set_Kd(&stru_pid_az_velocity, 0.00001);
   v_PID_Set_Use_Setpoint_Ramp(&stru_pid_az_velocity, 0);
   v_PID_Set_Setpoint(&stru_pid_az_velocity, 0.0f, 0);
   
   /* EL Velocity PID */
   v_PID_Init(&stru_pid_el_velocity);
-  v_PID_Set_Kp(&stru_pid_el_velocity, 0.03);
-  v_PID_Set_Ki(&stru_pid_el_velocity, 3.5);
-  v_PID_Set_Kd(&stru_pid_el_velocity, 0.0001);
+  v_PID_Set_Kp(&stru_pid_el_velocity, 0.003);
+  v_PID_Set_Ki(&stru_pid_el_velocity, 0.35);
+  v_PID_Set_Kd(&stru_pid_el_velocity, 0.00001);
   v_PID_Set_Use_Setpoint_Ramp(&stru_pid_el_velocity, 0);
   v_PID_Set_Setpoint(&stru_pid_el_velocity, 0.0f, 0);
   
@@ -241,9 +241,9 @@ void v_Control(void)
         v_AZ_Home_Falling_Register(v_Home_AZ_Handler);
         
         if (u8_DI_Read_Pin(DI_PIN_AZ_HOME) == 0)
-          s16_az_pwm_value = 85;
+          s16_az_pwm_value = 95;
         else
-          s16_az_pwm_value = -85;
+          s16_az_pwm_value = -95;
       }
       break;
     case STATE_MANUAL:
@@ -275,9 +275,9 @@ void v_Control(void)
         v_EL_Home_Falling_Register(v_Home_EL_Handler);
         
         if (u8_DI_Read_Pin(DI_PIN_EL_HOME) == 0)
-          s16_el_pwm_value = -85;
+          s16_el_pwm_value = -95;
         else
-          s16_el_pwm_value = 85;
+          s16_el_pwm_value = 95;
       }
       break;
     case STATE_MANUAL:
@@ -309,7 +309,7 @@ void v_Control(void)
       flt_filtered_body_rate[YAW] = flt_IIR_Filter_Calc(&stru_iir_az_velocity_sp, flt_body_rate[YAW]);
       v_PID_Set_Setpoint(&stru_pid_az_velocity, flt_filtered_body_rate[YAW], 0);
       
-      s16_az_pwm_value_raw = flt_PID_Calc(&stru_pid_az_velocity, stru_Get_IMU_Data().flt_gyro_z) * cos(flt_AZ_ENC_Get_Angle() * DEGREE_TO_RAD);
+      s16_az_pwm_value_raw = flt_PID_Calc(&stru_pid_az_velocity, stru_Get_IMU_Data().flt_gyro_z) * cos(flt_EL_ENC_Get_Angle() * DEGREE_TO_RAD);
       s16_az_pwm_value = 0.5f + flt_IIR_Filter_Calc(&stru_iir_az_velocity_pwm, s16_az_pwm_value_raw);
       break;
     default:
@@ -669,7 +669,7 @@ bool bool_Set_Vel_Handler(uint8_t u8_msg_id, uint8_t *pu8_payload, uint32_t u32_
         v_PID_Set_Max_Setpoint_Step(&stru_pid_az_manual, flt_vel_value / 1000.0f);
         break;
       case STATE_TRACKING:
-        flt_body_rate[YAW] = flt_vel_value * DEGREE_TO_MRAD;
+        flt_body_rate[YAW] = flt_vel_value * DEGREE_TO_MDEGREE;
         break;
       default:
         break;
@@ -684,21 +684,21 @@ bool bool_Set_Vel_Handler(uint8_t u8_msg_id, uint8_t *pu8_payload, uint32_t u32_
         v_PID_Set_Max_Setpoint_Step(&stru_pid_el_manual, flt_vel_value / 1000.0f);
         break;
       case STATE_TRACKING:
-        flt_body_rate[PITCH] = flt_vel_value * DEGREE_TO_MRAD;
+        flt_body_rate[PITCH] = flt_vel_value * DEGREE_TO_MDEGREE;
       default:
         break;
     }
   }
   else if (*pu8_payload == 0x03)
   {
-    flt_body_rate[YAW] = flt_vel_value * DEGREE_TO_MRAD;
+    flt_body_rate[YAW] = flt_vel_value * DEGREE_TO_MDEGREE;
     
     s32_vel_value = (*(pu8_payload + 5) << 24) & 0x0ff000000;
     s32_vel_value += (*(pu8_payload + 6) << 16) & 0x0ff0000;
     s32_vel_value += (*(pu8_payload + 7) << 8) & 0x0ff00;
     s32_vel_value += *(pu8_payload + 8) & 0x0ff;
     flt_vel_value = (float)s32_vel_value / POS_VEL_SCALE;
-    flt_body_rate[PITCH] = flt_vel_value * DEGREE_TO_MRAD;
+    flt_body_rate[PITCH] = flt_vel_value * DEGREE_TO_MDEGREE;
   }
   
   au8_respond_payload[0] = *pu8_payload;
@@ -1306,11 +1306,17 @@ void v_Params_Load_All(void)
     v_Params_Save_All();
   }
   
-  bool_Params_Load(PARAMS_PID_AZ_MANUAL_POS, (uint8_t *)&stru_pid_az_manual);
-  bool_Params_Load(PARAMS_PID_EL_MANUAL_POS, (uint8_t *)&stru_pid_el_manual);
+  bool_Params_Load(PARAMS_PID_AZ_MANUAL, (uint8_t *)&stru_pid_az_manual);
+  bool_Params_Load(PARAMS_PID_EL_MANUAL, (uint8_t *)&stru_pid_el_manual);
+  bool_Params_Load(PARAMS_PID_AZ_VELOCITY, (uint8_t *)&stru_pid_az_velocity);
+  bool_Params_Load(PARAMS_PID_EL_VELOCITY, (uint8_t *)&stru_pid_el_velocity);
   
   bool_Params_Load(PARAMS_PID_AZ_STARTUP_MODE, (uint8_t *)&enum_az_startup_state);
   bool_Params_Load(PARAMS_PID_EL_STARTUP_MODE, (uint8_t *)&enum_el_startup_state);
+  
+  bool_Params_Load(PARAMS_PID_AZ_ACTIVE, (uint8_t *)&bool_active_az);
+  bool_Params_Load(PARAMS_PID_EL_ACTIVE, (uint8_t *)&bool_active_el);
+  
   /* Set state */
   enum_az_state = enum_az_startup_state;
   enum_el_state = enum_el_startup_state;
@@ -1325,10 +1331,14 @@ void v_Params_Load_All(void)
 static void v_Params_Save_All(void)
 {
   bool_Params_Save(PARAMS_CODE_VERSION, au8_code_version);
-  bool_Params_Save(PARAMS_PID_AZ_MANUAL_POS, (uint8_t *)&stru_pid_az_manual);
-  bool_Params_Save(PARAMS_PID_EL_MANUAL_POS, (uint8_t *)&stru_pid_el_manual);
+  bool_Params_Save(PARAMS_PID_AZ_MANUAL, (uint8_t *)&stru_pid_az_manual);
+  bool_Params_Save(PARAMS_PID_EL_MANUAL, (uint8_t *)&stru_pid_el_manual);
+  bool_Params_Save(PARAMS_PID_AZ_VELOCITY, (uint8_t *)&stru_pid_az_velocity);
+  bool_Params_Save(PARAMS_PID_EL_VELOCITY, (uint8_t *)&stru_pid_el_velocity);
   bool_Params_Save(PARAMS_PID_AZ_STARTUP_MODE, (uint8_t *)&enum_az_startup_state);
   bool_Params_Save(PARAMS_PID_EL_STARTUP_MODE, (uint8_t *)&enum_el_startup_state);
+  bool_Params_Save(PARAMS_PID_AZ_ACTIVE, (uint8_t *)&bool_active_az);
+  bool_Params_Save(PARAMS_PID_EL_ACTIVE, (uint8_t *)&bool_active_el);
 }
 
 /**

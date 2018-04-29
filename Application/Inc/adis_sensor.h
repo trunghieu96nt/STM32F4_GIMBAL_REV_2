@@ -55,7 +55,7 @@ typedef struct
 #define IMU_END_FRAME         0x0d
 
 #define IMU_SCALE_EULER_UNIT  0.0001f // deg
-#define IMU_SCALE_GYRO_UNIT   0.1f // mrad/s
+#define IMU_SCALE_GYRO_UNIT   1.0f // mdeg/s
 #define IMU_SCALE_MAG_UNIT    0.1f // mgauss
 #define IMU_SCALE_ACC_UNIT    0.1f // mg
 #define IMU_SCALE_FOG_UNIT    0.01f // mdeg/s
