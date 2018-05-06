@@ -25,8 +25,14 @@ extern "C" {
 /* Exported types ------------------------------------------------------------*/
 typedef enum{
   PARAMS_CODE_VERSION = 0,
-  PARAMS_PID_AZ_MANUAL_POS,
-  PARAMS_PID_EL_MANUAL_POS,
+  PARAMS_PID_AZ_MANUAL,
+  PARAMS_PID_EL_MANUAL,
+  PARAMS_PID_AZ_VELOCITY,
+  PARAMS_PID_EL_VELOCITY,
+  PARAMS_PID_AZ_STARTUP_MODE,
+  PARAMS_PID_EL_STARTUP_MODE,
+  PARAMS_PID_AZ_ACTIVE,
+  PARAMS_PID_EL_ACTIVE,
 } ENUM_PARAMS_T;
 
 /* Exported constants --------------------------------------------------------*/

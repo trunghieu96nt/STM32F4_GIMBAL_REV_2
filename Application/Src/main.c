@@ -17,7 +17,7 @@ void v_Board_Init()
   }
   
   
-  /* Enable SysTick at 1ms interrupt */
+  /* Enable SysTick at 2ms interrupt */
   SysTick_Config(SystemCoreClock / F_CTRL);
   
   v_GPIO_Init();
@@ -27,14 +27,14 @@ void v_Board_Init()
   v_I2C_Comm_Init();
   v_Control_Init();
   
-  //v_Params_Load_All();
+  v_Params_Load_All();
   
   /* waiting for IMU Data is available */
   while (stru_Get_IMU_Data().bool_available == false)
   {
     bool_ADIS_Read_IsTimeout(10);
     
-    if (u32_system_tick_count > 1000)
+    if (u32_system_tick_count > 500)
     {
       u32_system_tick_count = 0;
       //v_Red_Toggle();
@@ -55,7 +55,7 @@ int main(void)
   
   while (true)
   {
-    if (u32_system_tick_count > 1000)
+    if (u32_system_tick_count > 500)
     {
       u32_system_tick_count = 0;
       //v_Red_Toggle();

@@ -32,25 +32,30 @@ static uint8_t au8_DATA_rx[DATA_RXBUFF_SIZE]= {0};
 static uint8_t au8_DATA_tx[DATA_TXBUFF_SIZE]= {0};
 static uint8_t au8_RESV_rx[RESV_RXBUFF_SIZE]= {0};
 
-extern bool bool_None_Handler             (uint8_t u8_msg_id, uint8_t *pu8_payload, uint32_t u32_payload_cnt);
-extern bool bool_Home_Handler             (uint8_t u8_msg_id, uint8_t *pu8_payload, uint32_t u32_payload_cnt);
-extern bool bool_Stop_Handler             (uint8_t u8_msg_id, uint8_t *pu8_payload, uint32_t u32_payload_cnt);
-extern bool bool_Emergency_Stop_Handler   (uint8_t u8_msg_id, uint8_t *pu8_payload, uint32_t u32_payload_cnt);
-extern bool bool_Stabilizing_Mode_Handler (uint8_t u8_msg_id, uint8_t *pu8_payload, uint32_t u32_payload_cnt);
-extern bool bool_Get_Mode_Handler         (uint8_t u8_msg_id, uint8_t *pu8_payload, uint32_t u32_payload_cnt);
-extern bool bool_Set_Pos_Handler          (uint8_t u8_msg_id, uint8_t *pu8_payload, uint32_t u32_payload_cnt);
-extern bool bool_Set_Vel_Handler          (uint8_t u8_msg_id, uint8_t *pu8_payload, uint32_t u32_payload_cnt);
-extern bool bool_Set_Pos_Vel_Handler      (uint8_t u8_msg_id, uint8_t *pu8_payload, uint32_t u32_payload_cnt);
-extern bool bool_Get_Pos_Handler          (uint8_t u8_msg_id, uint8_t *pu8_payload, uint32_t u32_payload_cnt);
-extern bool bool_Set_Kp_Handler           (uint8_t u8_msg_id, uint8_t *pu8_payload, uint32_t u32_payload_cnt);
-extern bool bool_Set_Ki_Handler           (uint8_t u8_msg_id, uint8_t *pu8_payload, uint32_t u32_payload_cnt);
-extern bool bool_Set_Kd_Handler           (uint8_t u8_msg_id, uint8_t *pu8_payload, uint32_t u32_payload_cnt);
-extern bool bool_Set_Kff1_Handler         (uint8_t u8_msg_id, uint8_t *pu8_payload, uint32_t u32_payload_cnt);
-extern bool bool_Set_Kff2_Handler         (uint8_t u8_msg_id, uint8_t *pu8_payload, uint32_t u32_payload_cnt);
-extern bool bool_Get_Params_Handler       (uint8_t u8_msg_id, uint8_t *pu8_payload, uint32_t u32_payload_cnt);
-extern bool bool_Set_Active_Axis_Handler  (uint8_t u8_msg_id, uint8_t *pu8_payload, uint32_t u32_payload_cnt);
-extern bool bool_Get_Active_Axis_Handler  (uint8_t u8_msg_id, uint8_t *pu8_payload, uint32_t u32_payload_cnt);
-extern bool bool_Send_Image_Data_Handler  (uint8_t u8_msg_id, uint8_t *pu8_payload, uint32_t u32_payload_cnt);
+extern bool bool_None_Handler                 (uint8_t u8_msg_id, uint8_t *pu8_payload, uint32_t u32_payload_cnt);
+extern bool bool_Home_Handler                 (uint8_t u8_msg_id, uint8_t *pu8_payload, uint32_t u32_payload_cnt);
+extern bool bool_Stop_Handler                 (uint8_t u8_msg_id, uint8_t *pu8_payload, uint32_t u32_payload_cnt);
+extern bool bool_Emergency_Stop_Handler       (uint8_t u8_msg_id, uint8_t *pu8_payload, uint32_t u32_payload_cnt);
+extern bool bool_Stabilizing_Mode_Handler     (uint8_t u8_msg_id, uint8_t *pu8_payload, uint32_t u32_payload_cnt);
+extern bool bool_Get_Mode_Handler             (uint8_t u8_msg_id, uint8_t *pu8_payload, uint32_t u32_payload_cnt);
+extern bool bool_Set_Pos_Handler              (uint8_t u8_msg_id, uint8_t *pu8_payload, uint32_t u32_payload_cnt);
+extern bool bool_Set_Vel_Handler              (uint8_t u8_msg_id, uint8_t *pu8_payload, uint32_t u32_payload_cnt);
+extern bool bool_Set_Pos_Vel_Handler          (uint8_t u8_msg_id, uint8_t *pu8_payload, uint32_t u32_payload_cnt);
+extern bool bool_Get_Pos_Handler              (uint8_t u8_msg_id, uint8_t *pu8_payload, uint32_t u32_payload_cnt);
+extern bool bool_Set_Kp_Handler               (uint8_t u8_msg_id, uint8_t *pu8_payload, uint32_t u32_payload_cnt);
+extern bool bool_Set_Ki_Handler               (uint8_t u8_msg_id, uint8_t *pu8_payload, uint32_t u32_payload_cnt);
+extern bool bool_Set_Kd_Handler               (uint8_t u8_msg_id, uint8_t *pu8_payload, uint32_t u32_payload_cnt);
+extern bool bool_Set_Kff1_Handler             (uint8_t u8_msg_id, uint8_t *pu8_payload, uint32_t u32_payload_cnt);
+extern bool bool_Set_Kff2_Handler             (uint8_t u8_msg_id, uint8_t *pu8_payload, uint32_t u32_payload_cnt);
+extern bool bool_Get_Params_Handler           (uint8_t u8_msg_id, uint8_t *pu8_payload, uint32_t u32_payload_cnt);
+extern bool bool_Set_Active_Axis_Handler      (uint8_t u8_msg_id, uint8_t *pu8_payload, uint32_t u32_payload_cnt);
+extern bool bool_Get_Active_Axis_Handler      (uint8_t u8_msg_id, uint8_t *pu8_payload, uint32_t u32_payload_cnt);
+extern bool bool_Send_Image_Data_Handler      (uint8_t u8_msg_id, uint8_t *pu8_payload, uint32_t u32_payload_cnt);
+extern bool bool_Set_Control_Method_Handler   (uint8_t u8_msg_id, uint8_t *pu8_payload, uint32_t u32_payload_cnt);
+extern bool bool_Get_Control_Method_Handler   (uint8_t u8_msg_id, uint8_t *pu8_payload, uint32_t u32_payload_cnt);
+extern bool bool_Set_Startup_Mode_Handler     (uint8_t u8_msg_id, uint8_t *pu8_payload, uint32_t u32_payload_cnt);
+extern bool bool_Get_Startup_Mode_Handler     (uint8_t u8_msg_id, uint8_t *pu8_payload, uint32_t u32_payload_cnt);
+extern bool bool_Save_All_Params              (uint8_t u8_msg_id, uint8_t *pu8_payload, uint32_t u32_payload_cnt);
 
 const STRU_CMD_HANDLER_T astru_CMD_handler[CMD_NUM_MSG_ID_MAX] =
 {
@@ -72,7 +77,13 @@ const STRU_CMD_HANDLER_T astru_CMD_handler[CMD_NUM_MSG_ID_MAX] =
   {MSG_GET_PARAMS,          2,    bool_Get_Params_Handler},
   {MSG_SET_ACTIVE_AXIS,     2,    bool_Set_Active_Axis_Handler},
   {MSG_GET_ACTIVE_AXIS,     1,    bool_Get_Active_Axis_Handler},
-  {MSG_SEND_IMAGE_DATA,     5,    bool_Send_Image_Data_Handler}
+  {MSG_SEND_IMAGE_DATA,     5,    bool_Send_Image_Data_Handler},
+  {MSG_SET_BLDC_SPEED,      0,    0},
+  {MSG_SET_CONTROL_METHOD,  2,    bool_Set_Control_Method_Handler},
+  {MSG_GET_CONTROL_METHOD,  1,    bool_Get_Control_Method_Handler},
+  {MSG_SET_STARTUP_MODE,    2,    bool_Set_Startup_Mode_Handler},
+  {MSG_GET_STARTUP_MODE,    1,    bool_Get_Startup_Mode_Handler},
+  {MSG_SAVE_ALL_PARAMS,     1,    bool_Save_All_Params}
 };
 
 /* Private function prototypes -----------------------------------------------*/

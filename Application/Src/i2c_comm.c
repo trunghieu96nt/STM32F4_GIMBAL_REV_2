@@ -32,6 +32,12 @@ static const uint8_t au8_params_length[NUM_PARAMS_MAX] =
   2,                //CODE_VERSION = 0,
   12,               //PARAMS_PID_AZ_MANUAL_POS,
   12,               //PARAMS_PID_EL_MANUAL_POS,
+  12,               //PARAMS_PID_AZ_VELOCITY,
+  12,               //PARAMS_PID_EL_VELOCITY,
+  1,                //PARAMS_PID_AZ_STARTUP_MODE,
+  1,                //PARAMS_PID_EL_STARTUP_MODE,
+  1,                //PARAMS_PID_AZ_ACTIVE,
+  1,                //PARAMS_PID_EL_ACTIVE,
 };
 
 /* Private function prototypes -----------------------------------------------*/
@@ -40,6 +46,7 @@ static bool bool_I2C_ReadBytes(I2C_TypeDef* I2Cx, uint8_t *pu8_buff,
 static bool bool_I2C_WriteBytes(I2C_TypeDef * I2Cx, const uint8_t *pu8_buff,
                            uint8_t u8_slave_add, uint8_t u8_reg_add, uint8_t u8_length);
 static uint32_t u32_Params_Get_Pos(ENUM_PARAMS_T enum_params);
+static void delay_us(uint32_t micros);
 
 /* Private functions ---------------------------------------------------------*/
 
@@ -391,7 +398,7 @@ bool bool_EEP_WriteBytes(const uint8_t* pu8_buff, uint16_t u16_reg_add, uint16_t
       return false;
     }
     pu8_buff++;
-    //delay_us(5000); //Important: Maximum write cycle time = 5ms
+    delay_us(5000); //Important: Maximum write cycle time = 5ms
   }
   return true;
 }
@@ -449,6 +456,22 @@ bool bool_Params_Save(ENUM_PARAMS_T enum_params, const uint8_t *pu8_data)
 bool bool_Params_Load(ENUM_PARAMS_T enum_params, uint8_t *pu8_data)
 {
   return bool_EEP_ReadBytes(pu8_data, u32_Params_Get_Pos(enum_params), au8_params_length[enum_params]);
+}
+
+/**
+  * @brief  delay in us
+  * @note   ...
+  * @param  micros: Desired delay in us
+  * @retval none
+  */
+static void delay_us(uint32_t micros)
+{
+  RCC_ClocksTypeDef RCC_Clocks;
+  /* Get system clocks */
+  RCC_GetClocksFreq(&RCC_Clocks);
+  micros = micros * (RCC_Clocks.HCLK_Frequency / 4000000) - 10;
+  /* 4 cycles for one loop */
+  while (micros--);
 }
 /**
   * @}

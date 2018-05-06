@@ -42,10 +42,12 @@
 
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
-static const uint8_t au8_code_version[2] = {7, 7}; //Major.Minor
+static const uint8_t au8_code_version[2] = {2, 3}; //Major.Minor
 
-static volatile ENUM_AXIS_STATE_T enum_az_state = STATE_HOME; //STATE_HOME STATE_SINE
-static volatile ENUM_AXIS_STATE_T enum_el_state = STATE_HOME; //STATE_STOP
+static volatile ENUM_AXIS_STATE_T enum_az_startup_state = STATE_KEEP;
+static volatile ENUM_AXIS_STATE_T enum_el_startup_state = STATE_KEEP;
+static volatile ENUM_AXIS_STATE_T enum_az_state = STATE_KEEP; //STATE_HOME STATE_SINE
+static volatile ENUM_AXIS_STATE_T enum_el_state = STATE_KEEP; //STATE_STOP
 
 static bool bool_active_az = true;
 static bool bool_active_el = true;
@@ -96,6 +98,7 @@ static void v_Home_AZ_Handler(void);
 static void v_Home_EL_Handler(void);
 static void v_Limit_El_Handler(void);
 static void v_Send_Response(uint8_t u8_msg_id, uint8_t *pu8_payload, uint32_t u32_payload_cnt);
+static void v_Params_Save_All(void);
 
 /* Private functions ---------------------------------------------------------*/
 
@@ -133,7 +136,7 @@ void v_Control_Init(void)
   v_PID_Set_Ki(&stru_pid_az_manual, 40);
   v_PID_Set_Kd(&stru_pid_az_manual, 0.5);
   v_PID_Set_Use_Setpoint_Ramp(&stru_pid_az_manual, 1);
-  v_PID_Set_Max_Setpoint_Step(&stru_pid_az_manual, 0.05);
+  v_PID_Set_Max_Setpoint_Step(&stru_pid_az_manual, 0.1);
   
   /* EL Manual PID */
   v_PID_Init(&stru_pid_el_manual);
@@ -141,45 +144,50 @@ void v_Control_Init(void)
   v_PID_Set_Ki(&stru_pid_el_manual, 40);
   v_PID_Set_Kd(&stru_pid_el_manual, 0.5);
   v_PID_Set_Use_Setpoint_Ramp(&stru_pid_el_manual, 1);
-  v_PID_Set_Max_Setpoint_Step(&stru_pid_el_manual, 0.02);
+  v_PID_Set_Max_Setpoint_Step(&stru_pid_el_manual, 0.05);
   v_PID_Set_Max_Response(&stru_pid_el_manual, 500);
   
   /* AZ Velocity PID */
   v_PID_Init(&stru_pid_az_velocity);
-  v_PID_Set_Kp(&stru_pid_az_velocity, 0.10);
-  v_PID_Set_Ki(&stru_pid_az_velocity, 20);
-  v_PID_Set_Kd(&stru_pid_az_velocity, 0);
+  v_PID_Set_Kp(&stru_pid_az_velocity, 0.003);
+  v_PID_Set_Ki(&stru_pid_az_velocity, 0.35);
+  v_PID_Set_Kd(&stru_pid_az_velocity, 0.00001);
   v_PID_Set_Use_Setpoint_Ramp(&stru_pid_az_velocity, 0);
   v_PID_Set_Setpoint(&stru_pid_az_velocity, 0.0f, 0);
   
   /* EL Velocity PID */
   v_PID_Init(&stru_pid_el_velocity);
-  v_PID_Set_Kp(&stru_pid_el_velocity, 0.10);
-  v_PID_Set_Ki(&stru_pid_el_velocity, 20);
-  v_PID_Set_Kd(&stru_pid_el_velocity, 0.0004);
+  v_PID_Set_Kp(&stru_pid_el_velocity, 0.003);
+  v_PID_Set_Ki(&stru_pid_el_velocity, 0.35);
+  v_PID_Set_Kd(&stru_pid_el_velocity, 0.00001);
   v_PID_Set_Use_Setpoint_Ramp(&stru_pid_el_velocity, 0);
   v_PID_Set_Setpoint(&stru_pid_el_velocity, 0.0f, 0);
   
   /* AZ, EL Velocity IIR filter */
-//  aflt_a[0] = 1.0f; // fs = 1000Hz, fc = 20Hz, Butterworth first order
-//  aflt_a[1] = -0.881618592363189;
-//  aflt_b[0] = 0.059190703818405;
-//  aflt_b[1] = 0.059190703818405;
+//  aflt_a[0] = 1.0f; // fs = 500Hz, fc = 40Hz, Butterworth first order
+//  aflt_a[1] = -0.591398351399471;
+//  aflt_b[0] = 0.204300824300264;
+//  aflt_b[1] = 0.204300824300264;
   
-//  aflt_a[0] = 1.0f; // fs = 1000Hz, fc = 15Hz, Butterworth first order
-//  aflt_a[1] = -0.909929988177738;
-//  aflt_b[0] = 0.045035005911131;
-//  aflt_b[1] = 0.045035005911131;
+//  aflt_a[0] = 1.0f; // fs = 500Hz, fc = 30Hz, Butterworth first order
+//  aflt_a[1] = -0.679599298224527;
+//  aflt_b[0] = 0.160200350887737;
+//  aflt_b[1] = 0.160200350887737;
   
-  aflt_a[0] = 1.0f; // fs = 1000Hz, fc = 10Hz, Butterworth first order
-  aflt_a[1] = -0.939062505817492;
-  aflt_b[0] = 0.030468747091254;
-  aflt_b[1] = 0.030468747091254;
+//  aflt_a[0] = 1.0f; // fs = 500Hz, fc = 20Hz, Butterworth first order
+//  aflt_a[1] = -0.775679511049613;
+//  aflt_b[0] = 0.112160244475193;
+//  aflt_b[1] = 0.112160244475193;
   
-//  aflt_a[0] = 1.0f; // fs = 1000Hz, fc = 5Hz, Butterworth first order
-//  aflt_a[1] = -0.969067417193793;
-//  aflt_b[0] = 0.015466291403103;
-//  aflt_b[1] = 0.015466291403103;
+//  aflt_a[0] = 1.0f; // fs = 500Hz, fc = 15Hz, Butterworth first order
+//  aflt_a[1] = -0.827271945972476;
+//  aflt_b[0] = 0.086364027013762;
+//  aflt_b[1] = 0.086364027013762;
+  
+  aflt_a[0] = 1.0f; // fs = 500Hz, fc = 10Hz, Butterworth first order
+  aflt_a[1] = -0.881618592363189;
+  aflt_b[0] = 0.059190703818405;
+  aflt_b[1] = 0.059190703818405;
   
   v_IIR_Filter_Init(&stru_iir_az_velocity_sp, 1, aflt_a, aflt_b);
   v_IIR_Filter_Set_Enable(&stru_iir_az_velocity_sp, 1);
@@ -233,9 +241,9 @@ void v_Control(void)
         v_AZ_Home_Falling_Register(v_Home_AZ_Handler);
         
         if (u8_DI_Read_Pin(DI_PIN_AZ_HOME) == 0)
-          s16_az_pwm_value = 85;
+          s16_az_pwm_value = 95;
         else
-          s16_az_pwm_value = -85;
+          s16_az_pwm_value = -95;
       }
       break;
     case STATE_MANUAL:
@@ -267,9 +275,9 @@ void v_Control(void)
         v_EL_Home_Falling_Register(v_Home_EL_Handler);
         
         if (u8_DI_Read_Pin(DI_PIN_EL_HOME) == 0)
-          s16_el_pwm_value = -75;
+          s16_el_pwm_value = -95;
         else
-          s16_el_pwm_value = 75;
+          s16_el_pwm_value = 95;
       }
       break;
     case STATE_MANUAL:
@@ -301,7 +309,7 @@ void v_Control(void)
       flt_filtered_body_rate[YAW] = flt_IIR_Filter_Calc(&stru_iir_az_velocity_sp, flt_body_rate[YAW]);
       v_PID_Set_Setpoint(&stru_pid_az_velocity, flt_filtered_body_rate[YAW], 0);
       
-      s16_az_pwm_value_raw = flt_PID_Calc(&stru_pid_az_velocity, stru_Get_IMU_Data().flt_gyro_z) * cos(flt_AZ_ENC_Get_Angle() * DEGREE_TO_RAD);
+      s16_az_pwm_value_raw = flt_PID_Calc(&stru_pid_az_velocity, stru_Get_IMU_Data().flt_gyro_z) * cos(flt_EL_ENC_Get_Angle() * DEGREE_TO_RAD);
       s16_az_pwm_value = 0.5f + flt_IIR_Filter_Calc(&stru_iir_az_velocity_pwm, s16_az_pwm_value_raw);
       break;
     default:
@@ -661,7 +669,7 @@ bool bool_Set_Vel_Handler(uint8_t u8_msg_id, uint8_t *pu8_payload, uint32_t u32_
         v_PID_Set_Max_Setpoint_Step(&stru_pid_az_manual, flt_vel_value / 1000.0f);
         break;
       case STATE_TRACKING:
-        flt_body_rate[YAW] = flt_vel_value * DEGREE_TO_MRAD;
+        flt_body_rate[YAW] = flt_vel_value * DEGREE_TO_MDEGREE;
         break;
       default:
         break;
@@ -676,21 +684,21 @@ bool bool_Set_Vel_Handler(uint8_t u8_msg_id, uint8_t *pu8_payload, uint32_t u32_
         v_PID_Set_Max_Setpoint_Step(&stru_pid_el_manual, flt_vel_value / 1000.0f);
         break;
       case STATE_TRACKING:
-        flt_body_rate[PITCH] = flt_vel_value * DEGREE_TO_MRAD;
+        flt_body_rate[PITCH] = flt_vel_value * DEGREE_TO_MDEGREE;
       default:
         break;
     }
   }
   else if (*pu8_payload == 0x03)
   {
-    flt_body_rate[YAW] = flt_vel_value * DEGREE_TO_MRAD;
+    flt_body_rate[YAW] = flt_vel_value * DEGREE_TO_MDEGREE;
     
     s32_vel_value = (*(pu8_payload + 5) << 24) & 0x0ff000000;
     s32_vel_value += (*(pu8_payload + 6) << 16) & 0x0ff0000;
     s32_vel_value += (*(pu8_payload + 7) << 8) & 0x0ff00;
     s32_vel_value += *(pu8_payload + 8) & 0x0ff;
     flt_vel_value = (float)s32_vel_value / POS_VEL_SCALE;
-    flt_body_rate[PITCH] = flt_vel_value * DEGREE_TO_MRAD;
+    flt_body_rate[PITCH] = flt_vel_value * DEGREE_TO_MDEGREE;
   }
   
   au8_respond_payload[0] = *pu8_payload;
@@ -995,6 +1003,94 @@ bool bool_Send_Image_Data_Handler(uint8_t u8_msg_id, uint8_t *pu8_payload, uint3
   return true;
 }
 
+bool bool_Set_Control_Method_Handler(uint8_t u8_msg_id, uint8_t *pu8_payload, uint32_t u32_payload_cnt)
+{
+  uint8_t au8_respond_payload[MAX_SHORT_RES_PAYLOAD_LEN];
+  
+  if (*pu8_payload == 0x03)
+  {
+    
+  }
+  
+  au8_respond_payload[0] = *pu8_payload;
+  au8_respond_payload[1] = 0x00; //Ok
+  v_Send_Response(u8_msg_id, au8_respond_payload, 2);
+  return true;
+}
+
+bool bool_Get_Control_Method_Handler(uint8_t u8_msg_id, uint8_t *pu8_payload, uint32_t u32_payload_cnt)
+{
+  uint8_t au8_respond_payload[MAX_SHORT_RES_PAYLOAD_LEN];
+  
+  au8_respond_payload[0] = *pu8_payload;
+  au8_respond_payload[1] = 0x00; // always mode Traditional PID
+  
+  v_Send_Response(u8_msg_id, au8_respond_payload, 2);
+  return true;
+}
+
+bool bool_Set_Startup_Mode_Handler(uint8_t u8_msg_id, uint8_t *pu8_payload, uint32_t u32_payload_cnt)
+{
+  uint8_t au8_respond_payload[MAX_SHORT_RES_PAYLOAD_LEN];
+  
+  if (*pu8_payload == 0x01)
+  {
+    enum_az_startup_state = (ENUM_AXIS_STATE_T)pu8_payload[1];
+  }
+  else if (*pu8_payload == 0x02)
+  {
+    enum_el_startup_state = (ENUM_AXIS_STATE_T)pu8_payload[1];
+  }
+  else 
+  {
+    enum_az_startup_state = (ENUM_AXIS_STATE_T)pu8_payload[1];
+    enum_el_startup_state = (ENUM_AXIS_STATE_T)pu8_payload[1];
+  }
+  
+  au8_respond_payload[0] = *pu8_payload;
+  au8_respond_payload[1] = 0x00;
+  
+  v_Send_Response(u8_msg_id, au8_respond_payload, 2);
+  return true;
+}
+
+bool bool_Get_Startup_Mode_Handler(uint8_t u8_msg_id, uint8_t *pu8_payload, uint32_t u32_payload_cnt)
+{
+  uint8_t au8_respond_payload[MAX_SHORT_RES_PAYLOAD_LEN];
+  
+  au8_respond_payload[0] = *pu8_payload;
+  
+  if (*pu8_payload == 0x01)
+  {
+    au8_respond_payload[1] = enum_az_startup_state;
+  }
+  else if (*pu8_payload == 0x02)
+  {
+    au8_respond_payload[1] = enum_el_startup_state;
+  }
+  else 
+  {
+    /* enum_az_startup_state and enum_el_startup_state must be the same */
+    au8_respond_payload[1] = enum_az_startup_state;
+    //au8_respond_payload[1] = enum_el_startup_state;
+  }
+  
+  v_Send_Response(u8_msg_id, au8_respond_payload, 2);
+  return true;
+}
+
+bool bool_Save_All_Params(uint8_t u8_msg_id, uint8_t *pu8_payload, uint32_t u32_payload_cnt)
+{
+  uint8_t au8_respond_payload[MAX_SHORT_RES_PAYLOAD_LEN];
+  
+  v_Params_Save_All();
+  
+  au8_respond_payload[0] = *pu8_payload;
+  au8_respond_payload[1] = 0x00;
+  v_Send_Response(u8_msg_id, au8_respond_payload, 2);
+  return true;
+}
+
 static void v_Send_Response(uint8_t u8_msg_id, uint8_t *pu8_payload, uint32_t u32_payload_cnt)
 {
   uint32_t u32_idx, u32_message_no_checksum_size;
@@ -1192,18 +1288,6 @@ void v_Send_Data(void)
  @endverbatim
   * @{
   */
-/**
-  * @brief  save default params
-  * @note   
-  * @param  none
-  * @retval none
-  */
-void v_Params_Save_Default(void)
-{
-  bool_Params_Save(PARAMS_CODE_VERSION, au8_code_version);
-  bool_Params_Save(PARAMS_PID_AZ_MANUAL_POS, (uint8_t *)&stru_pid_az_manual);
-  bool_Params_Save(PARAMS_PID_EL_MANUAL_POS, (uint8_t *)&stru_pid_el_manual);
-}
 
 /**
   * @brief  load all params
@@ -1218,12 +1302,45 @@ void v_Params_Load_All(void)
   bool_Params_Load(PARAMS_CODE_VERSION, au8_loaded_version);
   if ((au8_loaded_version[0] != au8_code_version[0]) || (au8_loaded_version[1] != au8_code_version[1]))
   {
-    v_Params_Save_Default();
+    /* Default parameters */
+    v_Params_Save_All();
   }
   
-  bool_Params_Load(PARAMS_PID_AZ_MANUAL_POS, (uint8_t *)&stru_pid_az_manual);
-  bool_Params_Load(PARAMS_PID_EL_MANUAL_POS, (uint8_t *)&stru_pid_el_manual);
+  bool_Params_Load(PARAMS_PID_AZ_MANUAL, (uint8_t *)&stru_pid_az_manual);
+  bool_Params_Load(PARAMS_PID_EL_MANUAL, (uint8_t *)&stru_pid_el_manual);
+  bool_Params_Load(PARAMS_PID_AZ_VELOCITY, (uint8_t *)&stru_pid_az_velocity);
+  bool_Params_Load(PARAMS_PID_EL_VELOCITY, (uint8_t *)&stru_pid_el_velocity);
+  
+  bool_Params_Load(PARAMS_PID_AZ_STARTUP_MODE, (uint8_t *)&enum_az_startup_state);
+  bool_Params_Load(PARAMS_PID_EL_STARTUP_MODE, (uint8_t *)&enum_el_startup_state);
+  
+  bool_Params_Load(PARAMS_PID_AZ_ACTIVE, (uint8_t *)&bool_active_az);
+  bool_Params_Load(PARAMS_PID_EL_ACTIVE, (uint8_t *)&bool_active_el);
+  
+  /* Set state */
+  enum_az_state = enum_az_startup_state;
+  enum_el_state = enum_el_startup_state;
 }
+
+/**
+  * @brief  save all params
+  * @note   
+  * @param  none
+  * @retval none
+  */
+static void v_Params_Save_All(void)
+{
+  bool_Params_Save(PARAMS_CODE_VERSION, au8_code_version);
+  bool_Params_Save(PARAMS_PID_AZ_MANUAL, (uint8_t *)&stru_pid_az_manual);
+  bool_Params_Save(PARAMS_PID_EL_MANUAL, (uint8_t *)&stru_pid_el_manual);
+  bool_Params_Save(PARAMS_PID_AZ_VELOCITY, (uint8_t *)&stru_pid_az_velocity);
+  bool_Params_Save(PARAMS_PID_EL_VELOCITY, (uint8_t *)&stru_pid_el_velocity);
+  bool_Params_Save(PARAMS_PID_AZ_STARTUP_MODE, (uint8_t *)&enum_az_startup_state);
+  bool_Params_Save(PARAMS_PID_EL_STARTUP_MODE, (uint8_t *)&enum_el_startup_state);
+  bool_Params_Save(PARAMS_PID_AZ_ACTIVE, (uint8_t *)&bool_active_az);
+  bool_Params_Save(PARAMS_PID_EL_ACTIVE, (uint8_t *)&bool_active_el);
+}
+
 /**
   * @}
   */

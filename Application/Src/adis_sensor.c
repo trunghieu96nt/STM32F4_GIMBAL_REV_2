@@ -210,15 +210,6 @@ static bool bool_ADIS_Parse(uint8_t *pu8_IMU_frame)
     *(&stru_IMU_data.flt_gyro_x + u32_idx) = (float)atoi((char *)pu8_start - 1) * IMU_SCALE_GYRO_UNIT;
     pu8_start = pu8_end + 2;
   }
-  //get acc
-  for (u32_idx = 0; u32_idx < 3; u32_idx++)
-  {
-    pu8_end = memchr(pu8_start, ' ', IMU_ELEMENT_MAX_LEN);
-    if (pu8_end == NULL) return false;
-    *pu8_end = 0;
-    *(&stru_IMU_data.flt_acc_x + u32_idx) = (float)atoi((char *)pu8_start - 1) * IMU_SCALE_ACC_UNIT;
-    pu8_start = pu8_end + 2;
-  }
   return true;
 }
 
